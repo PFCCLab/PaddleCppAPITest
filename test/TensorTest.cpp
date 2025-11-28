@@ -20,7 +20,6 @@ class TensorTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
-// 测试从 PaddleTensor 构造
 TEST_F(TensorTest, ConstructFromPaddleTensor) {
   EXPECT_EQ(tensor.dim(), 3);
   EXPECT_EQ(tensor.numel(), 24);  // 2*3*4
