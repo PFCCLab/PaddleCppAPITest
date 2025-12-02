@@ -101,7 +101,7 @@ create_paddle_tests(
 # ---------------------------------------------------------------------------
 # Build Torch test case
 # ---------------------------------------------------------------------------
-set(TORCH_DIR "/ssd2/mayongqiang/mayongqiang/PaddleCPPAPITest/libtorch/")
+set(TORCH_DIR "/usr/lib/libtorch/" CACHE PATH "Path to libtorch installation")
 
 set(TORCH_LIBRARIES "")
 file(GLOB_RECURSE TORCH_LIBRARIES "${TORCH_DIR}/lib/*.so"
