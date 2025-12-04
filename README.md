@@ -27,7 +27,7 @@ cd PaddleCPPAPITest
 ### 2. 配置构建环境
 ```bash
 mkdir build && cd build
-cmake ../ -DTORCH_DIR=<libtorch path> -G Ninja
+cmake ../PaddleCPPAPITest -DTORCH_DIR=<libtorch path> -G Ninja
 ```
 
 ### 3. 编译项目
