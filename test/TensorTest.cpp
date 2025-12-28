@@ -376,5 +376,20 @@ TEST_F(TensorTest, SymNumel) {
   EXPECT_EQ(sym_numel, tensor.numel());
 }
 
+// 测试 defined
+TEST_F(TensorTest, Defined) {
+  // Tensor tensor(paddle_tensor_);
+
+  EXPECT_TRUE(tensor.defined());
+}
+
+// 测试 reset
+TEST_F(TensorTest, Reset) {
+  // Tensor tensor(paddle_tensor_);
+
+  tensor.reset();
+  EXPECT_EQ(tensor.defined(), false);
+}
+
 }  // namespace test
 }  // namespace at
