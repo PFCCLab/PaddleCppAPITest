@@ -182,7 +182,7 @@ TEST_F(TensorTest, Reset) {
   // Tensor tensor(paddle_tensor_);
 
   tensor.reset();
-  EXPECT_EQ(tensor.defined(), false);
+  EXPECT_FALSE(tensor.defined());
 }
 
 }  // namespace test
