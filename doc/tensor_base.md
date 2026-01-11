@@ -53,11 +53,11 @@
 | `strides()`                  | ✅               | ✅          |   P0  | 返回 IntArrayRef |
 | `numel()`                    | ✅               | ✅          |   P0  | 元素总数 |
 | `storage_offset()`           | 🚧               | 🚧          |   P2  |  |
-| `sym_size(dim)`              | - [ ]            | - [ ]       |   P3  | 符号化 size |
-| `sym_stride(dim)`            | - [ ]            | - [ ]       |   P3  | 符号化 stride |
-| `sym_sizes()`                | - [ ]            | - [ ]       |   P3  | 符号化 sizes |
-| `sym_strides()`              | - [ ]            | - [ ]       |   P3  | 符号化 strides |
-| `sym_numel()`                | - [ ]            | - [ ]       |   P3  | 符号化 numel |
+| `sym_size(dim)`              | 🚧               | 🚧          |   P3  | 符号化 size |
+| `sym_stride(dim)`            | 🚧               | 🚧          |   P3  | 符号化 stride |
+| `sym_sizes()`                | 🚧               | 🚧          |   P3  | 符号化 sizes |
+| `sym_strides()`              | 🚧               | 🚧          |   P3  | 符号化 strides |
+| `sym_numel()`                | 🚧               | 🚧          |   P3  | 符号化 numel |
 | `sym_storage_offset()`       | 🚧               | 🚧          |   P3  | 符号化 storage_offset |
 
 ---
