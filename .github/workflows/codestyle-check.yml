@@ -39,6 +39,10 @@ jobs:
           python-version: "3.14"
           enable-cache: true
 
+      - name: Install dependencies
+        run: |
+          uv pip install cpplint==1.6.0 clang-format==13.0.0
+
       - name: Install prek
         run: |
           uv tool install prek
