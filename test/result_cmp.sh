@@ -34,12 +34,6 @@ for test_file in ${TORCH_PATH}/*; do
     fi
 done
 
-
-
-
-echo "Paddle executables (${#PADDLE_EXECUTABLES[@]}): ${PADDLE_EXECUTABLES[@]}"
-echo "Torch executables (${#TORCH_EXECUTABLES[@]}): ${TORCH_EXECUTABLES[@]}"
-
 # 比较结果文件
 echo "Comparing result files..."
 for ((i=0; i<${#PADDLE_EXECUTABLES[@]}; i++)); do

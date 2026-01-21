@@ -8,7 +8,7 @@
 #endif
 
 #include "src/file_manager.h"
-// 线程安全的全局变量
+
 paddle_api_test::ThreadSafeParam g_custom_param;
 
 std::string extract_filename(const std::string& path) {
@@ -16,7 +16,7 @@ std::string extract_filename(const std::string& path) {
   if (last_slash != std::string::npos) {
     return path.substr(last_slash + 1);
   }
-  return path;  // 如果没有"/"，返回原字符串
+  return path;
 }
 
 int main(int argc, char** argv) {  // NOLINT
