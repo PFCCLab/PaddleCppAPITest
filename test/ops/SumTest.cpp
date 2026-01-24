@@ -4,10 +4,18 @@
 #include <ATen/ops/zeros.h>
 #include <gtest/gtest.h>
 
+#include <string>
 #include <vector>
+
+#include "../../src/file_manager.h"
+
+extern paddle_api_test::ThreadSafeParam g_custom_param;
 
 namespace at {
 namespace test {
+
+using paddle_api_test::FileManerger;
+using paddle_api_test::ThreadSafeParam;
 
 class SumTest : public ::testing::Test {
  protected:
@@ -23,64 +31,82 @@ class SumTest : public ::testing::Test {
 };
 
 TEST_F(SumTest, SumAllElements) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::sum(test_tensor);
-  EXPECT_EQ(result.dim(), 0);
-  EXPECT_EQ(result.numel(), 1);
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
   float result_value = *result.data_ptr<float>();
-  EXPECT_FLOAT_EQ(result_value, 21.0f);  // 1+2+3+4+5+6 = 21
+  file << std::to_string(result_value) << " ";
+  file.saveFile();
 }
 
 TEST_F(SumTest, SumWithDtype) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::sum(test_tensor, at::kDouble);
-  EXPECT_EQ(result.dim(), 0);
-  EXPECT_EQ(result.dtype(), at::kDouble);
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   double result_value = *result.data_ptr<double>();
-  EXPECT_DOUBLE_EQ(result_value, 21.0);
+  file << std::to_string(result_value) << " ";
+  file.saveFile();
 }
 
 TEST_F(SumTest, SumAlongDim0) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::sum(test_tensor, {0}, false);
-  EXPECT_EQ(result.dim(), 1);
-  EXPECT_EQ(result.numel(), 3);
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
   float* data = result.data_ptr<float>();
-  EXPECT_FLOAT_EQ(data[0], 5.0f);  // 1+4
-  EXPECT_FLOAT_EQ(data[1], 7.0f);  // 2+5
-  EXPECT_FLOAT_EQ(data[2], 9.0f);  // 3+6
+  file << std::to_string(data[0]) << " ";
+  file << std::to_string(data[1]) << " ";
+  file << std::to_string(data[2]) << " ";
+  file.saveFile();
 }
 
 TEST_F(SumTest, SumAlongDim1) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::sum(test_tensor, {1}, false);
-  EXPECT_EQ(result.dim(), 1);
-  EXPECT_EQ(result.numel(), 2);
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
   float* data = result.data_ptr<float>();
-  EXPECT_FLOAT_EQ(data[0], 6.0f);   // 1+2+3
-  EXPECT_FLOAT_EQ(data[1], 15.0f);  // 4+5+6
+  file << std::to_string(data[0]) << " ";
+  file << std::to_string(data[1]) << " ";
+  file.saveFile();
 }
 
 TEST_F(SumTest, SumWithKeepdim) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::sum(test_tensor, {0}, true);
-  EXPECT_EQ(result.dim(), 2);
-  EXPECT_EQ(result.numel(), 3);
-  EXPECT_EQ(result.sizes()[0], 1);
-  EXPECT_EQ(result.sizes()[1], 3);
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
   float* data = result.data_ptr<float>();
-  EXPECT_FLOAT_EQ(data[0], 5.0f);
-  EXPECT_FLOAT_EQ(data[1], 7.0f);
-  EXPECT_FLOAT_EQ(data[2], 9.0f);
+  file << std::to_string(data[0]) << " ";
+  file << std::to_string(data[1]) << " ";
+  file << std::to_string(data[2]) << " ";
+  file.saveFile();
 }
 
 TEST_F(SumTest, SumOutFunction) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor output = at::zeros({}, at::kFloat);
   at::Tensor& result = at::sum_out(output, test_tensor);
-
-  EXPECT_EQ(&result, &output);
+  file << std::to_string(&result == &output) << " ";
   float result_value = *output.data_ptr<float>();
-  EXPECT_FLOAT_EQ(result_value, 21.0f);
+  file << std::to_string(result_value) << " ";
+  file.saveFile();
 }
 
 }  // namespace test
