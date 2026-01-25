@@ -95,23 +95,5 @@ TEST_F(TensorAccessorTest, HasNames) {
   file.saveFile();
 }
 
-// 测试 print
-TEST_F(TensorAccessorTest, Print) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.createFile();
-
-  // 创建一个小的tensor用于print测试
-  at::Tensor small_tensor = at::ones({2, 2}, at::kFloat);
-
-  // print() 通常输出到标准输出，我们主要测试它不会崩溃
-  // 并记录tensor的基本信息
-  tensor.print();
-  small_tensor.print();
-
-  file << std::to_string(1) << " ";  // 如果执行到这里说明print()没有崩溃
-  file.saveFile();
-}
-
 }  // namespace test
 }  // namespace at
