@@ -172,5 +172,65 @@ TEST_F(TensorTest, Transpose) {
   EXPECT_EQ(transposed.sizes()[2], 2);
 }
 
+// 测试 is_complex
+TEST_F(TensorTest, IsComplex) {
+  // Float tensor should not be complex
+  EXPECT_FALSE(tensor.is_complex());
+
+  // Test with actual complex tensor
+  at::Tensor complex_tensor =
+      at::ones({2, 3}, at::TensorOptions().dtype(at::kComplexFloat));
+  EXPECT_TRUE(complex_tensor.is_complex());
+
+  at::Tensor complex_double_tensor =
+      at::ones({2, 3}, at::TensorOptions().dtype(at::kComplexDouble));
+  EXPECT_TRUE(complex_double_tensor.is_complex());
+}
+
+// 测试 is_floating_point
+TEST_F(TensorTest, IsFloatingPoint) {
+  // Float tensor should be floating point
+  EXPECT_TRUE(tensor.is_floating_point());
+
+  // Test with double tensor
+  at::Tensor double_tensor =
+      at::ones({2, 3}, at::TensorOptions().dtype(at::kDouble));
+  EXPECT_TRUE(double_tensor.is_floating_point());
+
+  // Test with integer tensor
+  at::Tensor int_tensor = at::ones({2, 3}, at::TensorOptions().dtype(at::kInt));
+  EXPECT_FALSE(int_tensor.is_floating_point());
+
+  // Test with long tensor
+  at::Tensor long_tensor =
+      at::ones({2, 3}, at::TensorOptions().dtype(at::kLong));
+  EXPECT_FALSE(long_tensor.is_floating_point());
+}
+
+// 测试 is_signed
+TEST_F(TensorTest, IsSigned) {
+  // Float tensor should be signed
+  EXPECT_TRUE(tensor.is_signed());
+
+  // Test with int tensor (signed)
+  at::Tensor int_tensor = at::ones({2, 3}, at::TensorOptions().dtype(at::kInt));
+  EXPECT_TRUE(int_tensor.is_signed());
+
+  // Test with long tensor (signed)
+  at::Tensor long_tensor =
+      at::ones({2, 3}, at::TensorOptions().dtype(at::kLong));
+  EXPECT_TRUE(long_tensor.is_signed());
+
+  // Test with byte tensor (unsigned)
+  at::Tensor byte_tensor =
+      at::ones({2, 3}, at::TensorOptions().dtype(at::kByte));
+  EXPECT_FALSE(byte_tensor.is_signed());
+
+  // Test with bool tensor (unsigned)
+  at::Tensor bool_tensor =
+      at::ones({2, 3}, at::TensorOptions().dtype(at::kBool));
+  EXPECT_FALSE(bool_tensor.is_signed());
+}
+
 }  // namespace test
 }  // namespace at
