@@ -35,9 +35,9 @@
 | `mutable_data_ptr()`         | ✅               | ✅          |   P0  | 返回可变 `void*` |
 | `mutable_data_ptr<T>()`      | ✅               | ✅          |   P0  | 返回可变类型化指针 |
 | `accessor<T, N>()`           | ✅               | ✅          |   P1  | TensorAccessor |
-| `generic_packed_accessor<T, N>()` | - [ ]       | - [ ]       |   P2  | CUDA PackedTensorAccessor |
-| `packed_accessor32<T, N>()`  | - [ ]            | - [ ]       |   P2  | 32位索引 PackedAccessor |
-| `packed_accessor64<T, N>()`  | - [ ]            | - [ ]       |   P2  | 64位索引 PackedAccessor |
+| `generic_packed_accessor<T, N>()` | 🚧          | 🚧          |   P2  | CUDA PackedTensorAccessor |
+| `packed_accessor32<T, N>()`  | 🚧               | 🚧          |   P2  | 32位索引 PackedAccessor |
+| `packed_accessor64<T, N>()`  | 🚧               | 🚧          |   P2  | 64位索引 PackedAccessor |
 
 ---
 
@@ -113,7 +113,7 @@
 | `is_contiguous()`            | ✅               | ✅          |   P0  | 连续性检查 |
 | `sym_is_contiguous()`        | - [ ]            | - [ ]       |   P3  | 符号化连续性检查 |
 | `is_contiguous_or_false()`   | 🚧               | 🚧          |   P3  |  |
-| `is_non_overlapping_and_dense()` | - [ ]        | - [ ]       |   P3  |  |
+| `is_non_overlapping_and_dense()` | 🚧           | 🚧          |   P3  |  |
 | `is_complex()`               | 🚧               | 🚧          |   P2  | 是否复数类型 |
 | `is_floating_point()`        | 🚧               | 🚧          |   P2  | 是否浮点类型 |
 | `is_signed()`                | 🚧               | 🚧          |   P2  | 是否有符号类型 |
@@ -210,7 +210,7 @@
 
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
-| `has_names()`                | - [ ]            | - [ ]       |   P3  |  |
+| `has_names()`                | 🚧               | 🚧          |   P3  |  |
 | `opt_names()`                | - [ ]            | - [ ]       |   P3  |  |
 | `names()`                    | - [ ]            | - [ ]       |   P3  |  |
 | `get_named_tensor_meta()`    | - [ ]            | - [ ]       |   P3  |  |
@@ -255,7 +255,7 @@
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
 | `toString()`                 | 🚧               | 🚧          |   P3  |  |
-| `print()`                    | - [ ]            | - [ ]       |   P3  |  |
+| `print()`                    | 🚧               | 🚧          |   P3  |  |
 | `name()`                     | - [ ]            | - [ ]       |   P3  |  |
 | `quantizer()`                | - [ ]            | - [ ]       |   P3  | 量化器 |
 
