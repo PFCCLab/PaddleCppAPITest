@@ -4,15 +4,19 @@ demangle_fna_simple.py - 简化的 FNA 解析器
 """
 
 import re
-import sys
 import subprocess
+import sys
 
 
 def demangle_cpp_name(mangled_name):
     """使用 c++filt 解析 C++ 函数名"""
     try:
         result = subprocess.run(
-            ["c++filt"], input=mangled_name, capture_output=True, text=True, check=True
+            ["c++filt"],
+            input=mangled_name,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return result.stdout.strip()
     except:
@@ -63,21 +67,23 @@ def main():
     )
 
     try:
-        with open(input_file, "r", encoding="utf-8") as f_in:
-            with open(output_file, "w", encoding="utf-8") as f_out:
-                line_count = 0
-                processed_count = 0
+        with (
+            open(input_file, "r", encoding="utf-8") as f_in,
+            open(output_file, "w", encoding="utf-8") as f_out,
+        ):
+            line_count = 0
+            processed_count = 0
 
-                for line in f_in:
-                    line_count += 1
+            for line in f_in:
+                line_count += 1
 
-                    if "FNA:" in line.upper():
-                        processed_line = process_fna_line(line)
-                        if processed_line != line:
-                            processed_count += 1
-                        f_out.write(processed_line)
-                    else:
-                        f_out.write(line)
+                if "FNA:" in line.upper():
+                    processed_line = process_fna_line(line)
+                    if processed_line != line:
+                        processed_count += 1
+                    f_out.write(processed_line)
+                else:
+                    f_out.write(line)
 
         print(f"输入文件: {input_file}")
         print(f"输出文件: {output_file}")

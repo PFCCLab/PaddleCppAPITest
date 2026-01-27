@@ -58,7 +58,7 @@ set(COMMAND_TO_RUN
 include_directories(${Python3_INCLUDE_DIRS})
 link_directories("${Python3_LIBRARY_DIRS}")
 
-set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include)
+set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 
 enable_testing()
 include_directories(${COMMON_INCLUDES})

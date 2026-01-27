@@ -6,9 +6,11 @@
 
 #include <vector>
 
+#include "../src/file_manager.h"
 namespace at {
 namespace test {
 
+using paddle_api_test::FileManerger;
 class TensorTest : public ::testing::Test {
  protected:
   void SetUp() override {
