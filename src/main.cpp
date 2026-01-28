@@ -7,7 +7,7 @@
 #include "paddle/extension.h"
 #endif
 
-#include "src/file_manager.h"
+#include "../src/file_manager.h"
 
 paddle_api_test::ThreadSafeParam g_custom_param;
 
