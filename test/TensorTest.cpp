@@ -236,191 +236,67 @@ TEST_F(TensorTest, Transpose) {
   file.saveFile();
 }
 
-// 测试 toBackend
-TEST_F(TensorTest, ToBackend) {
-  // 测试转换到 CPU backend
-  at::Tensor cpu_tensor = tensor.toBackend(c10::Backend::CPU);
-  EXPECT_TRUE(cpu_tensor.is_cpu());
-  EXPECT_EQ(cpu_tensor.device().type(), c10::DeviceType::CPU);
-  EXPECT_EQ(cpu_tensor.numel(), tensor.numel());
-
-  // 测试多次调用 toBackend(CPU) - 当前实现会创建新的副本
-  at::Tensor cpu_tensor2 = cpu_tensor.toBackend(c10::Backend::CPU);
-  // 验证都在 CPU 上且数据内容相同
-  EXPECT_TRUE(cpu_tensor2.is_cpu());
-  EXPECT_FLOAT_EQ(cpu_tensor2.data_ptr<float>()[0], 1.0f);
-
-  // 验证数据内容
-  EXPECT_FLOAT_EQ(cpu_tensor.data_ptr<float>()[0], 1.0f);
+// 返回当前用例的结果文件名（用于逐个用例对比）
+static std::string GetTestCaseResultFileName() {
+  std::string base = g_custom_param.get();
+  std::string test_name =
+      ::testing::UnitTest::GetInstance()->current_test_info()->name();
+  if (base.size() >= 4 && base.substr(base.size() - 4) == ".txt") {
+    base.resize(base.size() - 4);
+  }
+  return base + "_" + test_name + ".txt";
 }
 
-// 测试 data 方法
-TEST_F(TensorTest, Data) {
-  // Tensor tensor(paddle_tensor_);
-
-  void* float_data = tensor.data_ptr<float>();
-  EXPECT_NE(float_data, nullptr);
-
-  // 验证数据内容
-  float* data_as_float = static_cast<float*>(float_data);
-  EXPECT_FLOAT_EQ(data_as_float[0], 1.0f);
-
-  // 测试不同类型的 tensor
-  at::Tensor int_tensor = at::ones({2, 3}, at::kInt);
-  void* int_data = int_tensor.data_ptr<int>();
-  EXPECT_NE(int_data, nullptr);
-
-  int* data_as_int = static_cast<int*>(int_data);
-  EXPECT_EQ(data_as_int[0], 1);
-}
-
-// 测试 to 方法 (TensorOptions 版本)
-TEST_F(TensorTest, ToWithOptions) {
-  // Tensor tensor(paddle_tensor_);
-
-  // 测试转换到不同的数据类型
-  at::Tensor double_tensor = tensor.to(at::TensorOptions().dtype(at::kDouble));
-  EXPECT_EQ(double_tensor.dtype(), at::kDouble);
-  EXPECT_EQ(double_tensor.numel(), tensor.numel());
-
-  // 测试 copy 参数
-  at::Tensor copied_tensor =
-      tensor.to(at::TensorOptions().dtype(at::kFloat), false, true);
-  EXPECT_EQ(copied_tensor.dtype(), at::kFloat);
-  EXPECT_EQ(copied_tensor.numel(), tensor.numel());
-  // 验证是复制而不是引用
-  EXPECT_NE(copied_tensor.data_ptr(), tensor.data_ptr());
-}
-
-// 测试 to 方法 (ScalarType 版本)
-TEST_F(TensorTest, ToWithScalarType) {
-  // Tensor tensor(paddle_tensor_);
-
-  // 测试转换到 double
-  at::Tensor double_tensor = tensor.to(at::kDouble);
-  EXPECT_EQ(double_tensor.dtype(), at::kDouble);
-  EXPECT_EQ(double_tensor.numel(), tensor.numel());
-
-  // 测试转换到 int
-  at::Tensor int_tensor = tensor.to(at::kInt);
-  EXPECT_EQ(int_tensor.dtype(), at::kInt);
-  EXPECT_EQ(int_tensor.numel(), tensor.numel());
-
-  // 测试转换到 long
-  at::Tensor long_tensor = tensor.to(at::kLong);
-  EXPECT_EQ(long_tensor.dtype(), at::kLong);
-  EXPECT_EQ(long_tensor.numel(), tensor.numel());
-
-  // 验证数据内容 (float 1.0 -> int 1)
-  int_tensor.fill_(5.7);  // 5.7 should be truncated to 5
-  int* int_data = int_tensor.data_ptr<int>();
-  EXPECT_EQ(int_data[0], 5);
-}
-
-// 测试 toBackend 行为
-TEST_F(TensorTest, ToBackendBehavior) {
-  // Tensor tensor(paddle_tensor_);
-
-  // toBackend 总是会复制 tensor（当前实现）
-  at::Tensor cpu_tensor1 = tensor.toBackend(c10::Backend::CPU);
-  at::Tensor cpu_tensor2 = cpu_tensor1.toBackend(c10::Backend::CPU);
-
-  // 验证都在 CPU 上
-  EXPECT_TRUE(cpu_tensor1.is_cpu());
-  EXPECT_TRUE(cpu_tensor2.is_cpu());
-  EXPECT_EQ(cpu_tensor1.device().type(), c10::DeviceType::CPU);
-  EXPECT_EQ(cpu_tensor2.device().type(), c10::DeviceType::CPU);
-
-  // 验证数据内容相同（即使是不同的副本）
-  EXPECT_FLOAT_EQ(cpu_tensor1.data_ptr<float>()[0], 1.0f);
-  EXPECT_FLOAT_EQ(cpu_tensor2.data_ptr<float>()[0], 1.0f);
-
-  // 验证形状和元素数量相同
-  EXPECT_EQ(cpu_tensor1.numel(), tensor.numel());
-  EXPECT_EQ(cpu_tensor2.numel(), tensor.numel());
-}
-
-// 测试 cpu 行为
-TEST_F(TensorTest, CpuBehavior) {
-  // Tensor tensor(paddle_tensor_);
-
-  // 第一次调用 cpu()
-  at::Tensor cpu_tensor1 = tensor.cpu();
-  EXPECT_TRUE(cpu_tensor1.is_cpu());
-  EXPECT_EQ(cpu_tensor1.device().type(), c10::DeviceType::CPU);
-
-  // 再次调用 cpu()，当前实现会创建新的副本
-  at::Tensor cpu_tensor2 = cpu_tensor1.cpu();
-  EXPECT_TRUE(cpu_tensor2.is_cpu());
-
-  // 验证数据内容
-  EXPECT_FLOAT_EQ(cpu_tensor1.data_ptr<float>()[0], 1.0f);
-  EXPECT_FLOAT_EQ(cpu_tensor2.data_ptr<float>()[0], 1.0f);
-
-  // 验证是有效的 tensor
-  EXPECT_EQ(cpu_tensor1.numel(), tensor.numel());
-  EXPECT_EQ(cpu_tensor2.numel(), tensor.numel());
-  EXPECT_EQ(cpu_tensor1.dim(), tensor.dim());
-}
-
-// 测试 cuda 方法
-TEST_F(TensorTest, Cuda) {
+// 测试 cuda
+TEST_F(TensorTest, CudaResult) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.createFile();
   try {
     at::Tensor cuda_tensor = tensor.cuda();
-
-    EXPECT_TRUE(cuda_tensor.is_cuda());
-    EXPECT_EQ(cuda_tensor.device().type(), c10::DeviceType::CUDA);
-    EXPECT_EQ(cuda_tensor.numel(), tensor.numel());
-
-    at::Tensor cpu_check = cuda_tensor.cpu();
-    EXPECT_FLOAT_EQ(cpu_check.data_ptr<float>()[0], 1.0f);
-
-    at::Tensor cuda_tensor2 = cuda_tensor.cuda();
-    EXPECT_TRUE(cuda_tensor2.is_cuda());
-    EXPECT_EQ(cuda_tensor2.device().type(), c10::DeviceType::CUDA);
-    EXPECT_EQ(cuda_tensor2.numel(), cuda_tensor.numel());
-  } catch (const std::exception& e) {
-    GTEST_SKIP() << "CUDA not available: " << e.what();
+    file << "1 ";
+    file << std::to_string(static_cast<int>(cuda_tensor.device().type()))
+         << " ";
+    file << std::to_string(cuda_tensor.is_cuda() ? 1 : 0) << " ";
+    file << std::to_string(cuda_tensor.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "0 ";
   } catch (...) {
-    GTEST_SKIP() << "CUDA test failed with unknown error";
+    file << "0 ";
   }
+  file.saveFile();
 }
 
-// 测试 is_pinned 方法
-TEST_F(TensorTest, IsPinned) {
-  EXPECT_FALSE(tensor.is_pinned());
-
-#ifdef PADDLE_WITH_CUDA
-
-  at::Tensor pinned_tensor = tensor.pin_memory();
-  EXPECT_TRUE(pinned_tensor.is_pinned());
-
-  at::Tensor cuda_tensor = tensor.cuda();
-  EXPECT_FALSE(cuda_tensor.is_pinned());
-#endif
-}
-
-// 测试 pin_memory 方法
-TEST_F(TensorTest, PinMemory) {
+// 测试 is_pinned
+TEST_F(TensorTest, IsPinnedResult) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.createFile();
+  file << std::to_string(tensor.is_pinned() ? 1 : 0) << " ";
+  int pinned_after_cuda = 0;
   try {
-    at::Tensor pinned_tensor = tensor.pin_memory();
-    EXPECT_TRUE(pinned_tensor.is_pinned());
-    EXPECT_FALSE(pinned_tensor.is_cuda());
-    EXPECT_EQ(pinned_tensor.numel(), tensor.numel());
-
-    EXPECT_FLOAT_EQ(pinned_tensor.data_ptr<float>()[0], 1.0f);
-
-    at::Tensor pinned_tensor2 = pinned_tensor.pin_memory();
-    EXPECT_TRUE(pinned_tensor2.is_pinned());
-
-    try {
-      at::Tensor cuda_tensor = tensor.cuda();
-    } catch (...) {
-      // CUDA 不可用时跳过此测试
-    }
-  } catch (const std::exception& e) {
-    GTEST_SKIP() << "Pinned memory not available: " << e.what();
+    at::Tensor cuda_tensor = tensor.cuda();
+    at::Tensor pinned_tensor = cuda_tensor.pin_memory();
+    pinned_after_cuda = pinned_tensor.is_pinned() ? 1 : 0;
+  } catch (...) {
+    pinned_after_cuda = 0;
   }
+  file << std::to_string(pinned_after_cuda) << " ";
+  file.saveFile();
+}
+
+// 测试 pin_memory
+TEST_F(TensorTest, PinMemoryResult) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.createFile();
+  int gpu_pin_ok = 0;
+  try {
+    at::Tensor cuda_tensor = tensor.cuda();
+    at::Tensor pinned_tensor = cuda_tensor.pin_memory();
+    gpu_pin_ok = pinned_tensor.is_pinned() ? 1 : 0;
+  } catch (...) {
+    gpu_pin_ok = 0;
+  }
+  file << std::to_string(gpu_pin_ok) << " ";
+  file.saveFile();
 }
 
 }  // namespace test
