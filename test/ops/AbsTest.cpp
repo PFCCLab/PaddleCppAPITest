@@ -4,10 +4,18 @@
 #include <ATen/ops/zeros.h>
 #include <gtest/gtest.h>
 
+#include <string>
 #include <vector>
+
+#include "../../src/file_manager.h"
+
+extern paddle_api_test::ThreadSafeParam g_custom_param;
 
 namespace at {
 namespace test {
+
+using paddle_api_test::FileManerger;
+using paddle_api_test::ThreadSafeParam;
 
 class AbsTest : public ::testing::Test {
  protected:
@@ -23,14 +31,23 @@ class AbsTest : public ::testing::Test {
   at::Tensor test_tensor;
 };
 
+static void write_abs_result_to_file(FileManerger* file,
+                                     const at::Tensor& result) {
+  *file << std::to_string(result.dim()) << " ";
+  *file << std::to_string(result.numel()) << " ";
+  float* result_data = result.data_ptr<float>();
+  for (int64_t i = 0; i < result.numel(); ++i) {
+    *file << std::to_string(result_data[i]) << " ";
+  }
+}
+
 TEST_F(AbsTest, BasicAbs) {
   at::Tensor result = at::abs(test_tensor);
-  EXPECT_EQ(result.sizes(), test_tensor.sizes());
-  float* result_data = result.data_ptr<float>();
-  EXPECT_FLOAT_EQ(result_data[0], 1.0f);
-  EXPECT_FLOAT_EQ(result_data[1], 2.0f);
-  EXPECT_FLOAT_EQ(result_data[2], 0.0f);
-  EXPECT_FLOAT_EQ(result_data[3], 3.5f);
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  write_abs_result_to_file(&file, result);
+  file.saveFile();
 }
 
 TEST_F(AbsTest, PositiveTensor) {
@@ -41,10 +58,11 @@ TEST_F(AbsTest, PositiveTensor) {
   data[2] = 7.2f;
 
   at::Tensor result = at::abs(positive_tensor);
-  float* result_data = result.data_ptr<float>();
-  EXPECT_FLOAT_EQ(result_data[0], 1.5f);
-  EXPECT_FLOAT_EQ(result_data[1], 3.0f);
-  EXPECT_FLOAT_EQ(result_data[2], 7.2f);
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  write_abs_result_to_file(&file, result);
+  file.saveFile();
 }
 
 TEST_F(AbsTest, NegativeTensor) {
@@ -55,10 +73,11 @@ TEST_F(AbsTest, NegativeTensor) {
   data[2] = -7.2f;
 
   at::Tensor result = at::abs(negative_tensor);
-  float* result_data = result.data_ptr<float>();
-  EXPECT_FLOAT_EQ(result_data[0], 1.5f);
-  EXPECT_FLOAT_EQ(result_data[1], 3.0f);
-  EXPECT_FLOAT_EQ(result_data[2], 7.2f);
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  write_abs_result_to_file(&file, result);
+  file.saveFile();
 }
 
 }  // namespace test

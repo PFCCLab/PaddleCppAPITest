@@ -1,4 +1,4 @@
-#include "../src/file_manager.h"
+#include "src/file_manager.h"
 
 #include <filesystem>
 #include <iostream>
@@ -23,6 +23,23 @@ void FileManerger::createFile() {
   file_stream_.open(full_path, std::ios::out | std::ios::trunc);
   if (!file_stream_.is_open()) {
     throw std::runtime_error("Failed to create file: " + full_path);
+  }
+}
+
+void FileManerger::openAppend() {
+  std::unique_lock<std::shared_mutex> lock(mutex_);
+
+  std::error_code ec;
+  if (!std::filesystem::create_directories(basic_path_, ec) && ec) {
+    throw std::runtime_error("Failed to create directory: " + basic_path_ +
+                             ", error: " + ec.message());
+  }
+
+  std::string full_path = basic_path_ + file_name_;
+
+  file_stream_.open(full_path, std::ios::out | std::ios::app);
+  if (!file_stream_.is_open()) {
+    throw std::runtime_error("Failed to open file for append: " + full_path);
   }
 }
 

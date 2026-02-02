@@ -12,6 +12,7 @@ class FileManerger {
 
   void setFileName(const std::string& value);
   void createFile();
+  void openAppend();
   void writeString(const std::string& str);
   FileManerger& operator<<(const std::string& str);
   void saveFile();
