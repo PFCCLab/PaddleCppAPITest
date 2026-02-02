@@ -40,5 +40,6 @@ function(ExternalProject repourl tag destination)
                -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
                -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
     PREFIX "${destination}"
-    INSTALL_DIR "${destination}")
+    INSTALL_DIR "${destination}"
+    INSTALL_COMMAND "")
 endfunction()

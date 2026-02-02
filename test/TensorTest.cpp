@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <torch/all.h>
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,7 @@ class TensorTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
+// 测试 从 Paddle Tensor 构造
 TEST_F(TensorTest, ConstructFromPaddleTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -210,6 +212,115 @@ TEST_F(TensorTest, Transpose) {
   at::Tensor transposed = tensor.transpose(0, 2);
   file << std::to_string(transposed.sizes()[0]) << " ";
   file << std::to_string(transposed.sizes()[2]) << " ";
+  file.saveFile();
+}
+
+static void write_tensor_shape_and_data(FileManerger* f,
+                                        const at::Tensor& t,
+                                        int64_t max_elems = 6) {
+  *f << std::to_string(t.dim()) << " ";
+  for (int64_t i = 0; i < t.dim(); ++i) {
+    *f << std::to_string(t.size(i)) << " ";
+  }
+  int64_t n = std::min(t.numel(), max_elems);
+  float* p = t.data_ptr<float>();
+  for (int64_t i = 0; i < n; ++i) {
+    *f << std::to_string(p[i]) << " ";
+  }
+}
+
+// 测试 clamp(scalar, scalar)
+TEST_F(TensorTest, ClampScalar) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  for (int64_t i = 0; i < 6; ++i) {
+    t.data_ptr<float>()[i] = static_cast<float>(i + 1);
+  }
+  at::Tensor out =
+      t.clamp(std::optional<at::Scalar>(2.0), std::optional<at::Scalar>(5.0));
+  write_tensor_shape_and_data(&file, out);
+  file.saveFile();
+}
+
+// 测试 clamp_min(scalar)
+TEST_F(TensorTest, ClampMinScalar) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  for (int64_t i = 0; i < 6; ++i) {
+    t.data_ptr<float>()[i] = static_cast<float>(i + 1);
+  }
+  at::Tensor out = t.clamp_min(at::Scalar(2.0));
+  write_tensor_shape_and_data(&file, out);
+  file.saveFile();
+}
+
+// 测试 clamp_max(scalar)
+TEST_F(TensorTest, ClampMaxScalar) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  for (int64_t i = 0; i < 6; ++i) {
+    t.data_ptr<float>()[i] = static_cast<float>(i + 1);
+  }
+  at::Tensor out = t.clamp_max(at::Scalar(5.0));
+  write_tensor_shape_and_data(&file, out);
+  file.saveFile();
+}
+
+// 测试 clamp_(scalar)
+TEST_F(TensorTest, ClampInplaceScalar) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  for (int64_t i = 0; i < 6; ++i) {
+    t.data_ptr<float>()[i] = static_cast<float>(i + 1);
+  }
+  t.clamp_(std::optional<at::Scalar>(2.0), std::optional<at::Scalar>(5.0));
+  write_tensor_shape_and_data(&file, t);
+  file.saveFile();
+}
+
+// 测试 clamp_min(tensor)
+TEST_F(TensorTest, ClampMinTensor) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  for (int64_t i = 0; i < 6; ++i) {
+    t.data_ptr<float>()[i] = static_cast<float>(i + 1);
+  }
+  at::Tensor min_t = at::ones(shape, at::kFloat);
+  min_t.fill_(2.0);
+  at::Tensor out = t.clamp_min(min_t);
+  write_tensor_shape_and_data(&file, out);
+  file.saveFile();
+}
+
+// 测试 clamp_max(tensor)
+TEST_F(TensorTest, ClampMaxTensor) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  for (int64_t i = 0; i < 6; ++i) {
+    t.data_ptr<float>()[i] = static_cast<float>(i + 1);
+  }
+  at::Tensor max_t = at::ones(shape, at::kFloat);
+  max_t.fill_(5.0);
+  at::Tensor out = t.clamp_max(max_t);
+  write_tensor_shape_and_data(&file, out);
   file.saveFile();
 }
 
