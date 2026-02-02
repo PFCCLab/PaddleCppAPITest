@@ -1,90 +1,77 @@
 repos:
-# Common hooks
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+  # Common hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
     hooks:
-    -   id: check-added-large-files
-    -   id: check-merge-conflict
-    -   id: check-symlinks
-    -   id: detect-private-key
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
-        files: (.*\.(py|bzl|md|rst|c|cc|cxx|cpp|cu|h|hpp|hxx|xpu|kps|cmake|yaml|yml|hook|scpp)|BUILD|.*\.BUILD|WORKSPACE|CMakeLists\.txt)$
--   repo: https://github.com/Lucas-C/pre-commit-hooks.git
-    rev: v1.1.14
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: sort-simple-yaml
+        files: (ops|backward|op_[a-z_]+)\.yaml$
+      - id: trailing-whitespace
+  - repo: https://github.com/Lucas-C/pre-commit-hooks.git
+    rev: v1.5.1
     hooks:
-    -   id: remove-crlf
-    -   id: remove-tabs
+      - id: remove-crlf
+      - id: remove-tabs
         name: Tabs remover (C++)
-        files: \.(c|cc|cxx|cpp|cu|h|hpp|hxx|xpu|kps)$
+        files: \.(c|cc|cxx|cpp|cu|h|cuh|hpp|hxx|xpu|kps)$
         args: [--whitespaces-count, '2']
-    -   id: remove-tabs
+      - id: remove-tabs
         name: Tabs remover (Python)
         files: (.*\.(py|bzl)|BUILD|.*\.BUILD|WORKSPACE)$
         args: [--whitespaces-count, '4']
-# For Python files
--   repo: https://github.com/psf/black.git
-    rev: 22.8.0
+  # For Python files
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.4
     hooks:
-    -   id: black
-        files: (.*\.(py|pyi|bzl)|BUILD|.*\.BUILD|WORKSPACE)$
--   repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
+      - id: ruff-check
+        args: [--fix, --exit-non-zero-on-fix, --no-cache]
+      - id: ruff-format
+  # For C++ files
+  - repo: local
     hooks:
-    -   id: flake8
--   repo: https://github.com/PyCQA/autoflake
-    rev: v1.7.7
-    hooks:
-    -   id: autoflake
-        args:
-            - --in-place
-            - --remove-all-unused-imports
-            - --ignore-pass-after-docstring
-            - --ignore-init-module-imports
-            - --exclude=python/paddle/fluid/[!t]**,python/paddle/fluid/tra**
--   repo: local
-    hooks:
-    -   id: pylint-doc-string
-        name: pylint
-        description: Check python docstring style using docstring_checker.
-        entry: bash ./tools/codestyle/pylint_pre_commit.hook
-        language: system
-        files: \.(py)$
-# For C++ files
--   repo: local
-    hooks:
-    -   id: clang-format
+      - id: clang-format
         name: clang-format
         description: Format files with ClangFormat.
-        entry: bash ./tools/codestyle/clang_format.hook -i
+        entry: bash ./tools/codestyle/clang_format.sh -i
         language: system
-        files: \.(c|cc|cxx|cpp|cu|h|hpp|hxx|xpu|kps|mm|m|scpp)$
--   repo: local
+        files: \.(c|cc|cxx|cpp|cu|h|cuh|hpp|hxx|xpu|kps)$
+  - repo: local
     hooks:
-    -   id: cpplint-cpp-source
+      - id: cpplint-cpp-source
         name: cpplint
         description: Check C++ code style using cpplint.py.
-        entry: bash ./tools/codestyle/cpplint_pre_commit.hook
+        entry: bash ./tools/codestyle/cpplint_pre_commit.sh
         language: system
-        files: \.(c|cc|cxx|cpp|cu|h|hpp|hxx|scpp)$
+        files: \.(cc|cxx|cpp|cu|h|hpp|hxx)$
         args:
-            - --extensions=c,cc,cxx,cpp,cu,cuh,h,hpp,hxx,kps
-            - --filter=-readability/fn_size,-build/include_what_you_use,-build/c++11,-whitespace/parens,-legal/copyright
-            - --quiet
-# For CMake files
--   repo: local
-    hooks:
-    -   id: auto-generate-cmakelists
-        name: auto-generate-cmakelists
-        entry: bash ./tools/gen_ut_cmakelists.hook
-        language: system
-        files: testslist.csv$
--   repo: https://github.com/cheshirekow/cmake-format-precommit
+          - --extensions=cc,cxx,cpp,cu,cuh,h,hpp,hxx,kps
+          - --filter=-readability/fn_size,-build/include_what_you_use,-build/c++11,-whitespace/parens,-legal/copyright
+          - --quiet
+  # For CMake files
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
     rev: v0.6.13
     hooks:
-    -   id: cmake-format
--   repo: https://github.com/cmake-lint/cmake-lint
-    rev: 1.4.2
+      - id: cmake-format
+  - repo: https://github.com/PFCCLab/cmake-lint-paddle
+    rev: v1.5.1
     hooks:
-    -   id: cmakelint
+      - id: cmakelint
         args: [--config=./tools/codestyle/.cmakelintrc]
+  # For YAML files
+  - repo: https://github.com/PFCCLab/yamlfmt-pre-commit-mirror.git
+    rev: v0.16.0
+    hooks:
+      - id: yamlfmt
+        files: |
+          (?x)^(
+            \.github/.+\.(yaml|yml)|
+            \.pre-commit-config\.yaml|
+            \.yamlfmt|
+            sgconfig\.yml|
+            ci/rules/.+\.yml|
+            ci/rule-tests/.+\.yml
+          )
