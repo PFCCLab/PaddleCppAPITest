@@ -213,5 +213,67 @@ TEST_F(TensorTest, Transpose) {
   file.saveFile();
 }
 
+// 测试 all()
+TEST_F(TensorTest, AllNoDim) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  at::Tensor out = t.all();
+  file << std::to_string(out.dim()) << " ";
+  file << std::to_string(static_cast<int>(out.scalar_type())) << " ";
+  file << std::to_string(static_cast<int>(out.data_ptr<bool>()[0])) << " ";
+  file.saveFile();
+}
+
+// 测试 all(dim, keepdim)
+TEST_F(TensorTest, AllDim) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  at::Tensor out = t.all(0, false);
+  file << std::to_string(out.dim()) << " ";
+  file << std::to_string(out.size(0)) << " ";
+  bool* p = out.data_ptr<bool>();
+  for (int64_t i = 0; i < out.numel(); ++i) {
+    file << std::to_string(static_cast<int>(p[i])) << " ";
+  }
+  file.saveFile();
+}
+
+// 测试 all(dim, keepdim=true)
+TEST_F(TensorTest, AllOptDim) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor t = at::ones(shape, at::kFloat);
+  at::Tensor out = t.all(1, true);
+  file << std::to_string(out.dim()) << " ";
+  file << std::to_string(out.size(0)) << " ";
+  file << std::to_string(out.size(1)) << " ";
+  file.saveFile();
+}
+
+// 测试 allclose
+TEST_F(TensorTest, Allclose) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  std::vector<int64_t> shape = {2, 3};
+  at::Tensor a = at::ones(shape, at::kFloat);
+  at::Tensor b = at::ones(shape, at::kFloat);
+  bool result = a.allclose(b, 1e-5, 1e-8, false);
+  file << std::to_string(static_cast<int>(result)) << " ";
+  at::Tensor c = at::ones(shape, at::kFloat);
+  c.data_ptr<float>()[0] = 100.0f;
+  bool result2 = a.allclose(c, 1e-5, 1e-8, false);
+  file << std::to_string(static_cast<int>(result2)) << " ";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at
