@@ -1,6 +1,4 @@
 #include <ATen/ATen.h>
-#include <ATen/core/Tensor.h>
-#include <ATen/ops/ones.h>
 #include <gtest/gtest.h>
 #if !USE_PADDLE_API
 #include <torch/all.h>
@@ -8,17 +6,6 @@
 
 #include <string>
 #include <vector>
-#if USE_PADDLE_API
-#include "paddle/phi/api/include/tensor.h"
-#include "paddle/phi/common/place.h"
-#include "paddle/phi/core/dense_tensor.h"
-#include "paddle/phi/core/memory/malloc.h"
-namespace phi {
-inline std::ostream& operator<<(std::ostream& os, AllocationType type) {
-  return os << static_cast<int>(type);
-}
-}  // namespace phi
-#endif
 
 #include "../src/file_manager.h"
 
