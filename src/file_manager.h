@@ -1,5 +1,6 @@
 #pragma once
 #include <fstream>
+#include <functional>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -16,6 +17,9 @@ class FileManerger {
   void writeString(const std::string& str);
   FileManerger& operator<<(const std::string& str);
   void saveFile();
+
+  // 捕获标准输出到文件
+  void captureStdout(std::function<void()> func);
 
  private:
   mutable std::shared_mutex mutex_;
