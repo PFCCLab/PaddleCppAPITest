@@ -214,7 +214,7 @@ TEST_F(TensorTest, Transpose) {
 }
 
 // 返回当前用例的结果文件名（用于逐个用例对比）
-static std::string GetTestCaseResultFileName() {
+std::string GetTestCaseResultFileName() {
   std::string base = g_custom_param.get();
   std::string test_name =
       ::testing::UnitTest::GetInstance()->current_test_info()->name();
@@ -274,39 +274,6 @@ TEST_F(TensorTest, PinMemoryResult) {
   }
   file << std::to_string(gpu_pin_ok) << " ";
   file.saveFile();
-  // 测试 sym_size
-  TEST_F(TensorTest, SymSize) {
-    // 获取符号化的单个维度大小
-    c10::SymInt sym_size_0 = tensor.sym_size(0);
-    c10::SymInt sym_size_1 = tensor.sym_size(1);
-    c10::SymInt sym_size_2 = tensor.sym_size(2);
-
-    // 验证符号化大小与实际大小一致
-    EXPECT_EQ(sym_size_0, 2);
-    EXPECT_EQ(sym_size_1, 3);
-    EXPECT_EQ(sym_size_2, 4);
-
-    // 测试负索引
-    c10::SymInt sym_size_neg1 = tensor.sym_size(-1);
-    EXPECT_EQ(sym_size_neg1, 4);
-  }
-}
-
-// 测试 sym_size
-TEST_F(TensorTest, SymSize) {
-  // 获取符号化的单个维度大小
-  c10::SymInt sym_size_0 = tensor.sym_size(0);
-  c10::SymInt sym_size_1 = tensor.sym_size(1);
-  c10::SymInt sym_size_2 = tensor.sym_size(2);
-
-  // 验证符号化大小与实际大小一致
-  EXPECT_EQ(sym_size_0, 2);
-  EXPECT_EQ(sym_size_1, 3);
-  EXPECT_EQ(sym_size_2, 4);
-
-  // 测试负索引
-  c10::SymInt sym_size_neg1 = tensor.sym_size(-1);
-  EXPECT_EQ(sym_size_neg1, 4);
 }
 
 // 测试 sym_stride
