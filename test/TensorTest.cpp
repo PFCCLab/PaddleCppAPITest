@@ -798,7 +798,7 @@ TEST_F(TensorTest, AbsInplace) {
   file.saveFile();
 }
 
-// 测试 absolute (alias of abs)
+// 测试 absolute
 TEST_F(TensorTest, AbsoluteMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.createFile();
@@ -809,7 +809,7 @@ TEST_F(TensorTest, AbsoluteMethod) {
   file.saveFile();
 }
 
-// 测试 absolute_ (alias of abs_)
+// 测试 absolute_
 TEST_F(TensorTest, AbsoluteInplace) {
   FileManerger file(GetTestCaseResultFileName());
   file.createFile();
