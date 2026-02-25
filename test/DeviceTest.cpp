@@ -22,7 +22,8 @@ class DeviceTest : public ::testing::Test {
 };
 
 // 辅助函数：将 Device 结果写入文件
-static void write_device_result_to_file(FileManerger& file, const c10::Device& device) {
+static void write_device_result_to_file(const FileManerger& file,
+                                        const c10::Device& device) {
   file << std::to_string(static_cast<int>(device.type())) << " ";
   file << std::to_string(static_cast<int>(device.index())) << " ";
   file << (device.is_cuda() ? "1" : "0") << " ";
@@ -246,12 +247,14 @@ TEST_F(DeviceTest, TensorDevice) {
   write_device_result_to_file(file, cpu_dev);
 
   // 指定 CPU device 的 tensor
-  at::Tensor cpu_tensor2 = at::zeros({2, 3}, at::TensorOptions().device(c10::kCPU));
+  at::Tensor cpu_tensor2 =
+      at::zeros({2, 3}, at::TensorOptions().device(c10::kCPU));
   c10::Device cpu_dev2 = cpu_tensor2.device();
   write_device_result_to_file(file, cpu_dev2);
 
   // 使用 TensorOptions 构造
-  at::Tensor cpu_tensor3 = at::zeros({2, 3}, at::TensorOptions().device(c10::Device(c10::kCPU)));
+  at::Tensor cpu_tensor3 =
+      at::zeros({2, 3}, at::TensorOptions().device(c10::Device(c10::kCPU)));
   c10::Device cpu_dev3 = cpu_tensor3.device();
   write_device_result_to_file(file, cpu_dev3);
 
@@ -290,7 +293,8 @@ TEST_F(DeviceTest, DeviceConstants) {
   write_device_result_to_file(file, dev_kcuda);
 
   // 在 TensorOptions 中使用
-  at::Tensor tensor_kcpu = at::zeros({2}, at::TensorOptions().device(c10::kCPU));
+  at::Tensor tensor_kcpu =
+      at::zeros({2}, at::TensorOptions().device(c10::kCPU));
   write_device_result_to_file(file, tensor_kcpu.device());
 
   file.saveFile();
