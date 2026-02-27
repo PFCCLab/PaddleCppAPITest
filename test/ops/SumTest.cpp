@@ -109,5 +109,80 @@ TEST_F(SumTest, SumOutFunction) {
   file.saveFile();
 }
 
+// --------------------------------------------------------------------------
+// 以下为 tensor 成员函数形式 sum() 的测试
+// --------------------------------------------------------------------------
+
+// 测试 tensor.sum()：无参数，对所有元素求和
+TEST_F(SumTest, MemberSumAllElements) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  at::Tensor result = test_tensor.sum();
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  float result_value = *result.data_ptr<float>();
+  file << std::to_string(result_value) << " ";
+  file.saveFile();
+}
+
+// 测试 tensor.sum(dtype)：指定输出类型
+TEST_F(SumTest, MemberSumWithDtype) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  at::Tensor result = test_tensor.sum(at::kDouble);
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  double result_value = *result.data_ptr<double>();
+  file << std::to_string(result_value) << " ";
+  file.saveFile();
+}
+
+// 测试 tensor.sum(dim, keepdim=false)：沿 dim=0 求和并降维
+TEST_F(SumTest, MemberSumAlongDim0) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  at::Tensor result = test_tensor.sum({0}, /*keepdim=*/false);
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  float* data = result.data_ptr<float>();
+  file << std::to_string(data[0]) << " ";
+  file << std::to_string(data[1]) << " ";
+  file << std::to_string(data[2]) << " ";
+  file.saveFile();
+}
+
+// 测试 tensor.sum(dim, keepdim=true)：保留维度
+TEST_F(SumTest, MemberSumKeepdim) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  at::Tensor result = test_tensor.sum({1}, /*keepdim=*/true);
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  float* data = result.data_ptr<float>();
+  file << std::to_string(data[0]) << " ";  // 1+2+3=6
+  file << std::to_string(data[1]) << " ";  // 4+5+6=15
+  file.saveFile();
+}
+
+// 测试 tensor.sum(dim, keepdim, dtype)：沿多维度求和并指定输出类型
+TEST_F(SumTest, MemberSumMultiDimWithDtype) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  at::Tensor result = test_tensor.sum(at::IntArrayRef{0, 1},
+                                      /*keepdim=*/false,
+                                      std::make_optional(at::kDouble));
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  double val = *result.data_ptr<double>();
+  file << std::to_string(val) << " ";  // 21
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at
