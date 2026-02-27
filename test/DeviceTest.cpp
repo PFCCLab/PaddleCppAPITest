@@ -22,14 +22,14 @@ class DeviceTest : public ::testing::Test {
 };
 
 // 辅助函数：将 Device 结果写入文件
-static void write_device_result_to_file(const FileManerger& file,
+static void write_device_result_to_file(FileManerger* file,
                                         const c10::Device& device) {
-  file << std::to_string(static_cast<int>(device.type())) << " ";
-  file << std::to_string(static_cast<int>(device.index())) << " ";
-  file << (device.is_cuda() ? "1" : "0") << " ";
-  file << (device.is_cpu() ? "1" : "0") << " ";
-  file << (device.has_index() ? "1" : "0") << " ";
-  file << device.str() << " ";
+  *file << std::to_string(static_cast<int>(device.type())) << " ";
+  *file << std::to_string(static_cast<int>(device.index())) << " ";
+  *file << (device.is_cuda() ? "1" : "0") << " ";
+  *file << (device.is_cpu() ? "1" : "0") << " ";
+  *file << (device.has_index() ? "1" : "0") << " ";
+  *file << device.str() << " ";
 }
 
 // ==================== Device 构造函数测试 ====================
@@ -42,19 +42,19 @@ TEST_F(DeviceTest, ConstructorWithTypeAndIndex) {
 
   // CPU 设备，默认 index=0
   c10::Device cpu_device(c10::kCPU);
-  write_device_result_to_file(file, cpu_device);
+  write_device_result_to_file(&file, cpu_device);
 
   // CPU 设备，显式 index=0
   c10::Device cpu_device_0(c10::kCPU, 0);
-  write_device_result_to_file(file, cpu_device_0);
+  write_device_result_to_file(&file, cpu_device_0);
 
   // CUDA 设备，index=0
   c10::Device cuda_device_0(c10::kCUDA, 0);
-  write_device_result_to_file(file, cuda_device_0);
+  write_device_result_to_file(&file, cuda_device_0);
 
   // CUDA 设备，index=1
   c10::Device cuda_device_1(c10::kCUDA, 1);
-  write_device_result_to_file(file, cuda_device_1);
+  write_device_result_to_file(&file, cuda_device_1);
 
   file.saveFile();
 }
@@ -67,23 +67,23 @@ TEST_F(DeviceTest, ConstructorWithString) {
 
   // "cpu" 字符串
   c10::Device cpu_str("cpu");
-  write_device_result_to_file(file, cpu_str);
+  write_device_result_to_file(&file, cpu_str);
 
   // "cpu:0" 字符串
   c10::Device cpu0_str("cpu:0");
-  write_device_result_to_file(file, cpu0_str);
+  write_device_result_to_file(&file, cpu0_str);
 
   // "cuda" 字符串
   c10::Device cuda_str("cuda");
-  write_device_result_to_file(file, cuda_str);
+  write_device_result_to_file(&file, cuda_str);
 
   // "cuda:0" 字符串
   c10::Device cuda0_str("cuda:0");
-  write_device_result_to_file(file, cuda0_str);
+  write_device_result_to_file(&file, cuda0_str);
 
   // "cuda:1" 字符串
   c10::Device cuda1_str("cuda:1");
-  write_device_result_to_file(file, cuda1_str);
+  write_device_result_to_file(&file, cuda1_str);
 
   file.saveFile();
 }
@@ -244,19 +244,19 @@ TEST_F(DeviceTest, TensorDevice) {
   // 默认 CPU tensor
   at::Tensor cpu_tensor = at::zeros({2, 3});
   c10::Device cpu_dev = cpu_tensor.device();
-  write_device_result_to_file(file, cpu_dev);
+  write_device_result_to_file(&file, cpu_dev);
 
   // 指定 CPU device 的 tensor
   at::Tensor cpu_tensor2 =
       at::zeros({2, 3}, at::TensorOptions().device(c10::kCPU));
   c10::Device cpu_dev2 = cpu_tensor2.device();
-  write_device_result_to_file(file, cpu_dev2);
+  write_device_result_to_file(&file, cpu_dev2);
 
   // 使用 TensorOptions 构造
   at::Tensor cpu_tensor3 =
       at::zeros({2, 3}, at::TensorOptions().device(c10::Device(c10::kCPU)));
   c10::Device cpu_dev3 = cpu_tensor3.device();
-  write_device_result_to_file(file, cpu_dev3);
+  write_device_result_to_file(&file, cpu_dev3);
 
   file.saveFile();
 }
@@ -271,7 +271,7 @@ TEST_F(DeviceTest, TensorOptionsDevice) {
   at::TensorOptions opts_cpu = at::TensorOptions().device(c10::kCPU);
   at::Tensor tensor_cpu = at::zeros({2, 2}, opts_cpu);
   c10::Device dev_cpu = tensor_cpu.device();
-  write_device_result_to_file(file, dev_cpu);
+  write_device_result_to_file(&file, dev_cpu);
 
   file.saveFile();
 }
@@ -286,16 +286,16 @@ TEST_F(DeviceTest, DeviceConstants) {
 
   // 使用 kCPU 常量
   c10::Device dev_kcpu(c10::kCPU);
-  write_device_result_to_file(file, dev_kcpu);
+  write_device_result_to_file(&file, dev_kcpu);
 
   // 使用 kCUDA 常量
   c10::Device dev_kcuda(c10::kCUDA, 0);
-  write_device_result_to_file(file, dev_kcuda);
+  write_device_result_to_file(&file, dev_kcuda);
 
   // 在 TensorOptions 中使用
   at::Tensor tensor_kcpu =
       at::zeros({2}, at::TensorOptions().device(c10::kCPU));
-  write_device_result_to_file(file, tensor_kcpu.device());
+  write_device_result_to_file(&file, tensor_kcpu.device());
 
   file.saveFile();
 }
