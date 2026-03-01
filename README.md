@@ -95,4 +95,3 @@ cd .. && ./test/result_cmp.sh build
 | 对比流程 | 同源代码分别编译 Torch / Paddle 版本，通过输出文件 diff 验证一致性 |
 
 完整指南见 [SKILL.md](.claude/skills/compatibility-testing/SKILL.md)。
-
