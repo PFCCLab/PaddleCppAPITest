@@ -241,26 +241,30 @@ TEST_F(ArangeTest, NegativeStep) {
 }
 
 // 浮点步长
-// TEST_F(ArangeTest, FloatStep) {
-//   auto file_name = g_custom_param.get();
-//   FileManerger file(file_name);
-//   file.openAppend();
-//   file << "FloatStep ";
-//   at::Tensor result = at::arange(0.0, 1.0, 0.1,
-//   at::TensorOptions().dtype(at::kFloat)); write_arange_result_to_file(&file,
-//   result); file << "\n"; file.saveFile();
-// }
+TEST_F(ArangeTest, FloatStep) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "FloatStep ";
+  at::Tensor result =
+      at::arange(0.0, 1.0, 0.1, at::TensorOptions().dtype(at::kFloat));
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
 
 // 负浮点步长
-// TEST_F(ArangeTest, NegativeFloatStep) {
-//   auto file_name = g_custom_param.get();
-//   FileManerger file(file_name);
-//   file.openAppend();
-//   file << "NegativeFloatStep ";
-//   at::Tensor result = at::arange(1.0, 0.0, -0.2,
-//   at::TensorOptions().dtype(at::kFloat)); write_arange_result_to_file(&file,
-//   result); file << "\n"; file.saveFile();
-// }
+TEST_F(ArangeTest, NegativeFloatStep) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NegativeFloatStep ";
+  at::Tensor result =
+      at::arange(1.0, 0.0, -0.2, at::TensorOptions().dtype(at::kFloat));
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
 
 // 大步长
 TEST_F(ArangeTest, LargeStep) {
