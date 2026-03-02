@@ -39,6 +39,7 @@ static void write_op_result_to_file(FileManerger* file, const at::Tensor& result
 注意：
 - 第一个测试用例调用 `file.createFile()` 创建文件，后续用例调用 `file.openAppend()` 追加
 - 每个用例输出前须写入**用例名标签**，输出末尾须追加 `"\n"` 换行，使每个用例占独立一行（详见"输出格式"章节）
+- 输出函数参数使用 `FileManerger*`（指针），调用处传 `&file`。不能使用非 const 引用，否则违反 Google C++ 规范（cpplint `runtime/references`）
 - 对于多 dtype 支持的算子，需按 `result.scalar_type()` 分发到对应的 `data_ptr<T>()` 类型
 
 ### 覆盖率与鲁棒性要求
