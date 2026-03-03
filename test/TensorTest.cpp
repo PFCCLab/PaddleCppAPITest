@@ -190,6 +190,32 @@ TEST_F(TensorTest, IsCuda) {
   file.saveFile();
 }
 
+// 测试 is_sparse
+TEST_F(TensorTest, IsSparse) {
+  // 密集张量应该返回 false
+  EXPECT_FALSE(tensor.is_sparse());
+
+  // 创建稀疏 COO 张量 - 先创建模板，再使用 zeros_like
+  at::TensorOptions sparse_options =
+      at::TensorOptions().dtype(at::kFloat).layout(at::kSparse);
+  at::Tensor sparse_template = at::empty({2, 3}, sparse_options);
+  at::Tensor sparse_tensor = at::zeros_like(sparse_template);
+  EXPECT_TRUE(sparse_tensor.is_sparse());
+}
+
+// 测试 is_sparse_csr
+TEST_F(TensorTest, IsSparseCsr) {
+  // 密集张量应该返回 false
+  EXPECT_FALSE(tensor.is_sparse_csr());
+
+  // 创建稀疏 CSR 张量 - 先创建模板，再使用 zeros_like
+  at::TensorOptions sparse_csr_options =
+      at::TensorOptions().dtype(at::kFloat).layout(at::kSparseCsr);
+  at::Tensor sparse_csr_template = at::empty({2, 3}, sparse_csr_options);
+  at::Tensor sparse_csr_tensor = at::zeros_like(sparse_csr_template);
+  EXPECT_TRUE(sparse_csr_tensor.is_sparse_csr());
+}
+
 // 测试 reshape
 TEST_F(TensorTest, Reshape) {
   auto file_name = g_custom_param.get();
@@ -274,6 +300,23 @@ TEST_F(TensorTest, PinMemoryResult) {
   }
   file << std::to_string(gpu_pin_ok) << " ";
   file.saveFile();
+}
+
+// 测试 sym_size
+TEST_F(TensorTest, SymSize) {
+  // 获取符号化的单个维度大小
+  c10::SymInt sym_size_0 = tensor.sym_size(0);
+  c10::SymInt sym_size_1 = tensor.sym_size(1);
+  c10::SymInt sym_size_2 = tensor.sym_size(2);
+
+  // 验证符号化大小与实际大小一致
+  EXPECT_EQ(sym_size_0, 2);
+  EXPECT_EQ(sym_size_1, 3);
+  EXPECT_EQ(sym_size_2, 4);
+
+  // 测试负索引
+  c10::SymInt sym_size_neg1 = tensor.sym_size(-1);
+  EXPECT_EQ(sym_size_neg1, 4);
 }
 
 // 测试 sym_stride
