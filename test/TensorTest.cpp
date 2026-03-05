@@ -190,6 +190,29 @@ TEST_F(TensorTest, IsCuda) {
   file.saveFile();
 }
 
+// 测试 reshape
+TEST_F(TensorTest, Reshape) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  at::Tensor reshaped = tensor.reshape({6, 4});
+  file << std::to_string(reshaped.sizes()[0]) << " ";
+  file << std::to_string(reshaped.sizes()[1]) << " ";
+  file << std::to_string(reshaped.numel()) << " ";
+  file.saveFile();
+}
+
+// 测试 transpose
+TEST_F(TensorTest, Transpose) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  at::Tensor transposed = tensor.transpose(0, 2);
+  file << std::to_string(transposed.sizes()[0]) << " ";
+  file << std::to_string(transposed.sizes()[2]) << " ";
+  file.saveFile();
+}
+
 // 返回当前用例的结果文件名（用于逐个用例对比）
 std::string GetTestCaseResultFileName() {
   std::string base = g_custom_param.get();
