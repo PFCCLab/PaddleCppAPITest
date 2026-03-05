@@ -1,10 +1,12 @@
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContextLight.h>
 
-// at::cuda::blas::gemm<T> is compiled with hidden symbol visibility inside
-// libtorch and cannot be resolved from external code.  It IS exported by the
-// Paddle compat library, so we only include CUDABlas.h and instantiate the
-// gemm tests when linking against Paddle (USE_PADDLE_API=1).
+// 【差异点1】at::cuda::blas::gemm<T> 符号可见性差异
+// PyTorch（libtorch）将 at::cuda::blas::gemm<T> 编译为 hidden visibility
+// （动态符号表中 nm -D 结果为小写 't'），外部代码无法链接该符号。
+// Paddle compat 库中该符号为公开导出（大写 'T'），可正常从外部调用。
+// 因此仅在 Paddle 构建（USE_PADDLE_API=1）时包含头文件并实例化 gemm 测试；
+// Torch 构建输出 "not_exported" 占位，保持两端输出行对齐。
 #if USE_PADDLE_API
 #include <ATen/cuda/CUDABlas.h>
 #endif
@@ -50,10 +52,13 @@ static void write_gemm_result_to_file(FileManerger* file,
 // at::cuda::getCurrentCUDABlasHandle tests
 // ============================================================
 
-// Verify that getCurrentCUDABlasHandle returns a non-null handle.
-// Uses `auto` to stay type-agnostic between PyTorch (cublasHandle_t) and
-// Paddle compat (at::cuda::CUDAContextBlasHandle which aliases the same type
-// in CUDA builds but differs in HIP/ROCm builds).
+// 验证 getCurrentCUDABlasHandle 返回非空 handle。
+// 使用 `auto` 接收返回值以屏蔽类型差异：
+// 【差异点2】返回类型差异
+//   PyTorch：直接返回 cublasHandle_t
+//   Paddle compat：返回 at::cuda::CUDAContextBlasHandle，
+//     在 CUDA 构建中该类型 typedef 为 cublasHandle_t，
+//     在 HIP/ROCm 构建中则为 phi::blasHandle_t（不同类型）。
 TEST_F(CUDABlasTest, HandleNonNull) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -66,11 +71,13 @@ TEST_F(CUDABlasTest, HandleNonNull) {
     return;
   }
 #if USE_PADDLE_API
-  // Paddle's getCurrentCUDABlasHandle() internally calls
-  // phi::DeviceContextPool::Instance().Get(GPUPlace()), which requires
-  // prior framework initialization via paddle::framework::InitDevices().
-  // In a standalone C++ test binary this pool is not initialized, so
-  // Paddle throws a PreconditionNotMet exception.  Record the difference.
+  // 【差异点3】Paddle 的 getCurrentCUDABlasHandle() 实现依赖框架全局状态
+  // Paddle 内部调用 phi::DeviceContextPool::Instance().Get(GPUPlace())，
+  // 该调用要求事先通过 paddle::framework::InitDevices() 初始化
+  // DeviceContextPool。 在独立 C++ 测试二进制中框架未初始化，Paddle 抛出
+  // PreconditionNotMet 异常。 PyTorch 无此约束，只需 CUDA
+  // 分配器初始化即可正常返回 handle。 输出 "exception_needs_pool_init"
+  // 记录该行为差异。
   try {
     auto handle = at::cuda::getCurrentCUDABlasHandle();
     file << std::to_string(handle != nullptr ? 1 : 0) << " ";
@@ -78,9 +85,8 @@ TEST_F(CUDABlasTest, HandleNonNull) {
     file << "exception_needs_pool_init ";
   }
 #else
-  // PyTorch requires the CUDA caching allocator to be initialized before
-  // the first cuBLAS handle creation.  A dummy tensor allocation on the
-  // GPU is the canonical way to trigger that initialisation.
+  // PyTorch 在首次创建 cuBLAS handle 前要求 CUDA 缓存分配器已初始化。
+  // 分配一个 dummy GPU tensor 是触发该初始化的标准方式。
   {
     auto _init = at::zeros({1}, at::kFloat).cuda();
     (void)_init;
@@ -110,7 +116,8 @@ TEST_F(CUDABlasTest, HandleConsistency) {
     return;
   }
 #if USE_PADDLE_API
-  // Same pool-init constraint as HandleNonNull.
+  // 与 HandleNonNull 相同的 pool-init 限制（见差异点3），
+  // Paddle 在 DeviceContextPool 未初始化时抛出异常。
   try {
     auto handle1 = at::cuda::getCurrentCUDABlasHandle();
     auto handle2 = at::cuda::getCurrentCUDABlasHandle();
@@ -137,9 +144,14 @@ TEST_F(CUDABlasTest, HandleConsistency) {
 
 #if USE_PADDLE_API
 
-// Helper: create a 1-D float32 tensor from an initializer list on CPU and
-// move it to the current CUDA device.  at::tensor(initializer_list<float>)
-// without explicit TensorOptions is not in Paddle's ATen/Utils.h overload set.
+// 【差异点4】at::tensor(initializer_list<T>) 无 TensorOptions 重载缺失
+// PyTorch 的 ATen/Utils.h 提供 at::tensor(std::initializer_list<float>)
+// 直接推断类型的重载； Paddle compat 的 ATen/Utils.h 仅提供
+// at::tensor(ArrayRef<T>, TensorOptions) 形式， 不支持不带 TensorOptions 的
+// initializer_list 重载。 因此此处使用 cpu_fill_f32 辅助函数代替
+// at::tensor({...}) 构造张量。
+
+// 辅助函数：在 CPU 上从 initializer_list 填充 float32 一维张量后移至 GPU。
 static at::Tensor cpu_fill_f32(std::initializer_list<float> vals) {
   auto t = at::zeros({(int64_t)vals.size()}, at::kFloat);
   float* p = t.data_ptr<float>();
@@ -535,8 +547,10 @@ TEST_F(CUDABlasTest, GemmLargeMatrix) {
 
 #else  // !USE_PADDLE_API
 
-// at::cuda::blas::gemm<T> is not exported from libtorch (hidden symbol
-// visibility).  Emit "not_exported" so both output files stay line-aligned.
+// 【差异点1 对应桩代码】
+// at::cuda::blas::gemm<T> 在 libtorch 中为 hidden visibility，外部无法链接。
+// 输出 "not_exported" 占位，保持 torch/paddle 两端输出文件行数对齐，
+// 以便比对脚本（result_cmp.sh）能逐行对比其余可比较的测试结果。
 #define CUDABLAS_GEMM_STUB(name)           \
   TEST_F(CUDABlasTest, name) {             \
     auto file_name = g_custom_param.get(); \
