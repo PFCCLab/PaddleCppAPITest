@@ -77,6 +77,21 @@ file(GLOB_RECURSE TEST_BASE_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 set(PADDLE_TARGET_FOLDER ${CMAKE_BINARY_DIR}/paddle)
 
 # ---------------------------------------------------------------------------
+# CUDA Toolkit (needed for CUDA-specific test headers in the Torch build)
+# ---------------------------------------------------------------------------
+find_package(CUDAToolkit QUIET)
+if(CUDAToolkit_FOUND)
+  message(STATUS "Found CUDA Toolkit: ${CUDAToolkit_INCLUDE_DIRS}")
+  set(CUDA_INCLUDE_DIRS "${CUDAToolkit_INCLUDE_DIRS}")
+elseif(EXISTS "/usr/local/cuda/include")
+  set(CUDA_INCLUDE_DIRS "/usr/local/cuda/include")
+  message(STATUS "Using default CUDA include dir: ${CUDA_INCLUDE_DIRS}")
+else()
+  message(WARNING "CUDA headers not found; CUDA tests may not compile.")
+  set(CUDA_INCLUDE_DIRS "")
+endif()
+
+# ---------------------------------------------------------------------------
 # Build Torch test case
 # ---------------------------------------------------------------------------
 set(TORCH_DIR
@@ -87,8 +102,9 @@ set(TORCH_LIBRARIES "")
 file(GLOB_RECURSE TORCH_LIBRARIES "${TORCH_DIR}/lib/*.so"
      "${TORCH_DIR}/lib/*.a")
 
-set(TORCH_INCLUDE_DIR "${TORCH_DIR}/include"
-                      "${TORCH_DIR}/include/torch/csrc/api/include/")
+set(TORCH_INCLUDE_DIR
+    "${TORCH_DIR}/include" "${TORCH_DIR}/include/torch/csrc/api/include/"
+    "${CUDA_INCLUDE_DIRS}")
 
 set(TORCH_TARGET_FOLDER ${CMAKE_BINARY_DIR}/torch)
 set(BIN_PREFIX "torch_")
@@ -119,7 +135,8 @@ set(PADDLE_INCLUDE_DIR
     "${PADDLE_DIR}/include/third_party"
     "${PADDLE_DIR}/include/paddle/phi/api/include/compat/"
     "${PADDLE_DIR}/include/paddle/phi/api/include/compat/torch/csrc/api/include/"
-)
+    "${CUDA_INCLUDE_DIRS}"
+    "${CUDA_INCLUDE_DIRS}/cccl")
 
 set(PADDLE_LIBRARIES
     "${PADDLE_DIR}/base/libpaddle.so" "${PADDLE_DIR}/libs/libcommon.so"
