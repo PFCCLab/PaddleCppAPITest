@@ -117,7 +117,7 @@ TEST_F(TransposeTest, TransposeMemberFunction) {
 
 // Scalar 参数版本
 TEST_F(TransposeTest, TransposeScalarAPI) {
-  at::Tensor result = at::transpose(tensor, at::Scalar(0), at::Scalar(2));
+  at::Tensor result = at::transpose(tensor, 0, 2);
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

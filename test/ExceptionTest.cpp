@@ -95,10 +95,13 @@ TEST_F(ExceptionTest, TorchCheckEqSuccess) {
 }
 
 // TORCH_CHECK_EQ 失败
+// LibTorch: 失败时调用 abort()，使用 EXPECT_DEATH 捕获进程终止。
+// Paddle:   失败时抛出 C++ 异常，使用 try-catch 捕获。
 TEST_F(ExceptionTest, TorchCheckEqFailure) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+#if USE_PADDLE_API
   bool caught = false;
   try {
     TORCH_CHECK_EQ(3, 4);
@@ -106,10 +109,16 @@ TEST_F(ExceptionTest, TorchCheckEqFailure) {
     caught = true;
   }
   file << std::to_string(caught ? 1 : 0) << " ";
+#else
+  EXPECT_DEATH({ TORCH_CHECK_EQ(3, 4); }, ".*");
+  file << "1 ";
+#endif
   file.saveFile();
 }
 
 // TORCH_CHECK_NE
+// LibTorch: 失败时调用 abort()，使用 EXPECT_DEATH 捕获进程终止。
+// Paddle:   失败时抛出 C++ 异常，使用 try-catch 捕获。
 TEST_F(ExceptionTest, TorchCheckNe) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -122,6 +131,7 @@ TEST_F(ExceptionTest, TorchCheckNe) {
   }
   file << std::to_string(passed ? 1 : 0) << " ";
 
+#if USE_PADDLE_API
   bool caught = false;
   try {
     TORCH_CHECK_NE(3, 3);
@@ -129,6 +139,10 @@ TEST_F(ExceptionTest, TorchCheckNe) {
     caught = true;
   }
   file << std::to_string(caught ? 1 : 0) << " ";
+#else
+  EXPECT_DEATH({ TORCH_CHECK_NE(3, 3); }, ".*");
+  file << "1 ";
+#endif
   file.saveFile();
 }
 

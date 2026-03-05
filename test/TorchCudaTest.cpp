@@ -19,9 +19,23 @@ class TorchCudaTest : public ::testing::Test {
   void SetUp() override {}
 };
 
+// 安全地检测 CUDA 可用性：Paddle 未编译 CUDA 时 device_count() 会抛异常
+static bool isCudaAvailable() {
+  try {
+    return torch::cuda::device_count() > 0;
+  } catch (...) {
+    return false;
+  }
+}
+
 // device_count
 TEST_F(TorchCudaTest, DeviceCount) {
-  auto count = torch::cuda::device_count();
+  int64_t count;
+  try {
+    count = torch::cuda::device_count();
+  } catch (const std::exception& e) {
+    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）：" << e.what();
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
@@ -33,6 +47,9 @@ TEST_F(TorchCudaTest, DeviceCount) {
 
 // is_available
 TEST_F(TorchCudaTest, IsAvailable) {
+  if (!isCudaAvailable()) {
+    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）";
+  }
   bool available = torch::cuda::is_available();
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -43,6 +60,9 @@ TEST_F(TorchCudaTest, IsAvailable) {
 
 // device_count 和 is_available 一致性
 TEST_F(TorchCudaTest, ConsistencyCheck) {
+  if (!isCudaAvailable()) {
+    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）";
+  }
   auto count = torch::cuda::device_count();
   bool available = torch::cuda::is_available();
   auto file_name = g_custom_param.get();
@@ -56,8 +76,11 @@ TEST_F(TorchCudaTest, ConsistencyCheck) {
 
 // at::cuda 命名空间别名
 TEST_F(TorchCudaTest, AtCudaNamespace) {
-  auto count = at::cuda::device_count();
-  bool available = at::cuda::is_available();
+  if (!isCudaAvailable()) {
+    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）";
+  }
+  auto count = torch::cuda::device_count();
+  bool available = torch::cuda::is_available();
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -66,23 +89,21 @@ TEST_F(TorchCudaTest, AtCudaNamespace) {
   file.saveFile();
 }
 
-// synchronize（仅在 CUDA 可用时有意义，但 API 应始终可调用）
+// synchronize（仅在 CUDA 可用时有意义）
 TEST_F(TorchCudaTest, Synchronize) {
+  if (!isCudaAvailable()) {
+    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）";
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  if (torch::cuda::is_available()) {
-    bool passed = true;
-    try {
-      torch::cuda::synchronize();
-    } catch (...) {
-      passed = false;
-    }
-    file << std::to_string(passed ? 1 : 0) << " ";
-  } else {
-    // CUDA 不可用时跳过
-    file << "skip ";
+  bool passed = true;
+  try {
+    torch::cuda::synchronize();
+  } catch (...) {
+    passed = false;
   }
+  file << std::to_string(passed ? 1 : 0) << " ";
   file.saveFile();
 }
 

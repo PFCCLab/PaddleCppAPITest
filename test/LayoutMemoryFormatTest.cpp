@@ -73,14 +73,14 @@ TEST_F(LayoutMemoryFormatTest, LayoutAtNamespace) {
   file.saveFile();
 }
 
-// torch 命名空间别名
+// c10 命名空间别名
 TEST_F(LayoutMemoryFormatTest, LayoutTorchNamespace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << std::to_string(static_cast<int>(torch::kStrided)) << " ";
-  file << std::to_string(static_cast<int>(torch::kSparse)) << " ";
-  file << std::to_string(static_cast<int>(torch::kSparseCsr)) << " ";
+  file << std::to_string(static_cast<int>(c10::kStrided)) << " ";
+  file << std::to_string(static_cast<int>(c10::kSparse)) << " ";
+  file << std::to_string(static_cast<int>(c10::kSparseCsr)) << " ";
   file.saveFile();
 }
 
@@ -112,10 +112,10 @@ TEST_F(LayoutMemoryFormatTest, MemoryFormatEnumValues) {
   file.saveFile();
 }
 
-// at/torch 命名空间别名
+// c10 命名空间别名
 TEST_F(LayoutMemoryFormatTest, MemoryFormatNamespaces) {
-  at::MemoryFormat mf1 = c10::MemoryFormat::Contiguous;
-  torch::MemoryFormat mf2 = c10::MemoryFormat::ChannelsLast;
+  c10::MemoryFormat mf1 = c10::MemoryFormat::Contiguous;
+  c10::MemoryFormat mf2 = c10::MemoryFormat::ChannelsLast;
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

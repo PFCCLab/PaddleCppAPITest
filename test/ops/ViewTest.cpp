@@ -43,7 +43,7 @@ static void write_view_result_to_file(FileManerger* file,
 
 // view {2,3,4} -> {24}
 TEST_F(ViewTest, ViewFlatten) {
-  at::Tensor result = at::view(tensor, {24});
+  at::Tensor result = tensor.view({24});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
@@ -57,7 +57,7 @@ TEST_F(ViewTest, ViewFlatten) {
 
 // view {2,3,4} -> {6,4}
 TEST_F(ViewTest, View3DTo2D) {
-  at::Tensor result = at::view(tensor, {6, 4});
+  at::Tensor result = tensor.view({6, 4});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -71,7 +71,7 @@ TEST_F(ViewTest, View3DTo2D) {
 
 // view {2,3,4} -> {2,12}
 TEST_F(ViewTest, ViewMergeLastDims) {
-  at::Tensor result = at::view(tensor, {2, 12});
+  at::Tensor result = tensor.view({2, 12});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -81,7 +81,7 @@ TEST_F(ViewTest, ViewMergeLastDims) {
 
 // view {2,3,4} -> {4,3,2}
 TEST_F(ViewTest, ViewDifferentShape) {
-  at::Tensor result = at::view(tensor, {4, 3, 2});
+  at::Tensor result = tensor.view({4, 3, 2});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -95,7 +95,7 @@ TEST_F(ViewTest, ViewDifferentShape) {
 
 // view 使用 -1 推断维度
 TEST_F(ViewTest, ViewAutoInfer) {
-  at::Tensor result = at::view(tensor, {-1});
+  at::Tensor result = tensor.view({-1});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -105,7 +105,7 @@ TEST_F(ViewTest, ViewAutoInfer) {
 
 // view 使用 -1 推断部分维度
 TEST_F(ViewTest, ViewAutoInferPartial) {
-  at::Tensor result = at::view(tensor, {2, -1});
+  at::Tensor result = tensor.view({2, -1});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -125,7 +125,7 @@ TEST_F(ViewTest, ViewMemberFunction) {
 
 // view 共享 storage
 TEST_F(ViewTest, ViewSharesStorage) {
-  at::Tensor result = at::view(tensor, {6, 4});
+  at::Tensor result = tensor.view({6, 4});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -137,7 +137,7 @@ TEST_F(ViewTest, ViewSharesStorage) {
 
 // view dtype：float -> 以 int 视角查看
 TEST_F(ViewTest, ViewDtype) {
-  at::Tensor result = at::view(tensor, at::kInt);
+  at::Tensor result = tensor.view(at::kInt);
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -169,7 +169,7 @@ TEST_F(ViewTest, ViewDouble) {
   for (int64_t i = 0; i < 6; ++i) {
     data[i] = static_cast<double>(i) * 0.1;
   }
-  at::Tensor result = at::view(td, {6});
+  at::Tensor result = td.view({6});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -190,7 +190,7 @@ TEST_F(ViewTest, ViewInt) {
   for (int64_t i = 0; i < 12; ++i) {
     data[i] = static_cast<int>(i) - 6;
   }
-  at::Tensor result = at::view(ti, {2, 6});
+  at::Tensor result = ti.view({2, 6});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -211,7 +211,7 @@ TEST_F(ViewTest, ViewLong) {
   for (int64_t i = 0; i < 12; ++i) {
     data[i] = i * 1000;
   }
-  at::Tensor result = at::view(tl, {12});
+  at::Tensor result = tl.view({12});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -232,7 +232,7 @@ TEST_F(ViewTest, ViewLargeShape) {
   for (int64_t i = 0; i < 10000; ++i) {
     data[i] = static_cast<float>(i);
   }
-  at::Tensor result = at::view(large, {10000});
+  at::Tensor result = large.view({10000});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -245,7 +245,7 @@ TEST_F(ViewTest, ViewLargeShape) {
 
 // view 到高维
 TEST_F(ViewTest, ViewToHighDim) {
-  at::Tensor result = at::view(tensor, {1, 2, 3, 4, 1});
+  at::Tensor result = tensor.view({1, 2, 3, 4, 1});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

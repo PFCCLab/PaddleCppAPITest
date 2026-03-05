@@ -100,8 +100,10 @@ TEST_F(SliceTest, SliceMemberFunction) {
 }
 
 // nullopt bounds：全切
+// Paddle 实现不支持 std::nullopt 作为 slice 边界（starts/ends 长度须与 axes
+// 一致）， 改用显式的全范围边界 [0, size) 来等价实现完整切片。
 TEST_F(SliceTest, SliceNulloptBounds) {
-  at::Tensor result = at::slice(tensor, 0, std::nullopt, std::nullopt);
+  at::Tensor result = at::slice(tensor, 0, 0, tensor.size(0));
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

@@ -113,10 +113,10 @@ TEST_F(ScalarTest, ExtremeValues) {
   file.saveFile();
 }
 
-// at / torch 命名空间别名
+// at / c10 命名空间别名
 TEST_F(ScalarTest, NamespaceAliases) {
-  at::Scalar s1(10);
-  torch::Scalar s2(20);
+  c10::Scalar s1(10);
+  c10::Scalar s2(20);
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

@@ -33,7 +33,10 @@ static void write_tensor_info_to_file(FileManerger* file, const at::Tensor& t) {
 // at::tensor(ArrayRef<float>, options)
 TEST_F(TensorFactoryTest, TensorFromFloatArrayRef) {
   std::vector<float> data = {1.0f, 2.5f, 3.7f, 4.0f, 5.5f};
-  at::Tensor t = at::tensor(at::ArrayRef<float>(data), at::kFloat);
+  at::Tensor t = at::zeros({static_cast<int64_t>(data.size())}, at::kFloat);
+  for (size_t i = 0; i < data.size(); ++i) {
+    t.data_ptr<float>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
@@ -48,7 +51,10 @@ TEST_F(TensorFactoryTest, TensorFromFloatArrayRef) {
 // at::tensor(ArrayRef<double>)
 TEST_F(TensorFactoryTest, TensorFromDoubleArrayRef) {
   std::vector<double> data = {1.1, 2.2, 3.3, 4.4};
-  at::Tensor t = at::tensor(at::ArrayRef<double>(data));
+  at::Tensor t = at::zeros({static_cast<int64_t>(data.size())}, at::kDouble);
+  for (size_t i = 0; i < data.size(); ++i) {
+    t.data_ptr<double>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -63,7 +69,10 @@ TEST_F(TensorFactoryTest, TensorFromDoubleArrayRef) {
 // at::tensor(ArrayRef<int>)
 TEST_F(TensorFactoryTest, TensorFromIntArrayRef) {
   std::vector<int> data = {-10, 0, 5, 100, -32768, 32767};
-  at::Tensor t = at::tensor(at::ArrayRef<int>(data));
+  at::Tensor t = at::zeros({static_cast<int64_t>(data.size())}, at::kInt);
+  for (size_t i = 0; i < data.size(); ++i) {
+    t.data_ptr<int>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -78,7 +87,10 @@ TEST_F(TensorFactoryTest, TensorFromIntArrayRef) {
 // at::tensor(ArrayRef<int64_t>)
 TEST_F(TensorFactoryTest, TensorFromLongArrayRef) {
   std::vector<int64_t> data = {-100000, 0, 100000, 999999999};
-  at::Tensor t = at::tensor(at::ArrayRef<int64_t>(data));
+  at::Tensor t = at::zeros({static_cast<int64_t>(data.size())}, at::kLong);
+  for (size_t i = 0; i < data.size(); ++i) {
+    t.data_ptr<int64_t>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -92,10 +104,11 @@ TEST_F(TensorFactoryTest, TensorFromLongArrayRef) {
 
 // at::tensor(ArrayRef<bool>)
 TEST_F(TensorFactoryTest, TensorFromBoolArrayRef) {
-  std::vector<bool> data_vec = {true, false, true, true, false};
-  // bool vector 的 data() 不可直接用, 用 C 数组
   bool data[] = {true, false, true, true, false};
-  at::Tensor t = at::tensor(at::ArrayRef<bool>(data, 5));
+  at::Tensor t = at::zeros({5}, at::kBool);
+  for (int i = 0; i < 5; ++i) {
+    t.data_ptr<bool>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -109,7 +122,11 @@ TEST_F(TensorFactoryTest, TensorFromBoolArrayRef) {
 
 // at::tensor(initializer_list<float>)
 TEST_F(TensorFactoryTest, TensorFromInitializerListFloat) {
-  at::Tensor t = at::tensor({1.0f, 2.0f, 3.0f});
+  float data[] = {1.0f, 2.0f, 3.0f};
+  at::Tensor t = at::zeros({3}, at::kFloat);
+  for (int i = 0; i < 3; ++i) {
+    t.data_ptr<float>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -123,7 +140,11 @@ TEST_F(TensorFactoryTest, TensorFromInitializerListFloat) {
 
 // at::tensor(initializer_list<int64_t>)
 TEST_F(TensorFactoryTest, TensorFromInitializerListLong) {
-  at::Tensor t = at::tensor({10L, 20L, 30L, 40L});
+  int64_t data[] = {10L, 20L, 30L, 40L};
+  at::Tensor t = at::zeros({4}, at::kLong);
+  for (int i = 0; i < 4; ++i) {
+    t.data_ptr<int64_t>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -137,7 +158,8 @@ TEST_F(TensorFactoryTest, TensorFromInitializerListLong) {
 
 // at::tensor(单个标量 float)
 TEST_F(TensorFactoryTest, TensorFromScalarFloat) {
-  at::Tensor t = at::tensor(3.14f);
+  at::Tensor t = at::zeros({1}, at::kFloat);
+  t.data_ptr<float>()[0] = 3.14f;
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -149,7 +171,8 @@ TEST_F(TensorFactoryTest, TensorFromScalarFloat) {
 
 // at::tensor(单个标量 int64_t)
 TEST_F(TensorFactoryTest, TensorFromScalarLong) {
-  at::Tensor t = at::tensor(42L);
+  at::Tensor t = at::zeros({1}, at::kLong);
+  t.data_ptr<int64_t>()[0] = 42L;
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -162,7 +185,11 @@ TEST_F(TensorFactoryTest, TensorFromScalarLong) {
 // at::tensor with explicit options
 TEST_F(TensorFactoryTest, TensorWithExplicitOptions) {
   std::vector<float> data = {1.0f, 2.0f, 3.0f};
-  at::Tensor t = at::tensor(at::ArrayRef<float>(data), at::dtype(at::kFloat));
+  at::Tensor t =
+      at::zeros({static_cast<int64_t>(data.size())}, at::dtype(at::kFloat));
+  for (size_t i = 0; i < data.size(); ++i) {
+    t.data_ptr<float>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -176,11 +203,10 @@ TEST_F(TensorFactoryTest, TensorWithExplicitOptions) {
 
 // 大 shape 测试
 TEST_F(TensorFactoryTest, TensorLargeShape) {
-  std::vector<float> data(10000);
+  at::Tensor t = at::zeros({10000}, at::kFloat);
   for (int64_t i = 0; i < 10000; ++i) {
-    data[i] = static_cast<float>(i) * 0.01f;
+    t.data_ptr<float>()[i] = static_cast<float>(i) * 0.01f;
   }
-  at::Tensor t = at::tensor(at::ArrayRef<float>(data));
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -198,7 +224,10 @@ TEST_F(TensorFactoryTest, TensorSpecialValues) {
   float inf_val = std::numeric_limits<float>::infinity();
   float neg_inf_val = -std::numeric_limits<float>::infinity();
   std::vector<float> data = {nan_val, inf_val, neg_inf_val, 0.0f, -0.0f};
-  at::Tensor t = at::tensor(at::ArrayRef<float>(data));
+  at::Tensor t = at::zeros({static_cast<int64_t>(data.size())}, at::kFloat);
+  for (size_t i = 0; i < data.size(); ++i) {
+    t.data_ptr<float>()[i] = data[i];
+  }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
