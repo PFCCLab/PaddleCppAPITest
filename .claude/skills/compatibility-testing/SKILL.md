@@ -94,6 +94,8 @@ static void write_abs_result_to_file(FileManerger* file, const at::Tensor& resul
 
 注意：
 - 第一个测试用例调用 `file.createFile()` 创建文件，后续用例调用 `file.openAppend()` 追加
+- 每个用例输出前须写入**用例名标签**，输出末尾须追加 `"\n"` 换行，使每个用例占独立一行（详见"输出格式"章节）
+- 输出函数参数使用 `FileManerger*`（指针），调用处传 `&file`。不能使用非 const 引用，否则违反 Google C++ 规范（cpplint `runtime/references`）
 - 对于多 dtype 支持的算子，需按 `result.scalar_type()` 分发到对应的 `data_ptr<T>()` 类型
 
 ## Shape 覆盖要求
@@ -140,49 +142,74 @@ static void write_abs_result_to_file(FileManerger* file, const at::Tensor& resul
 
 ```cpp
 TEST_F(SomeOpTest, InvalidInputHandling) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "InvalidInputHandling ";
   try {
     at::Tensor result = at::some_op(invalid_tensor);
     // 未抛异常 — 正常记录结果
-    auto file_name = g_custom_param.get();
-    FileManerger file(file_name);
-    file.openAppend();
     write_someop_result_to_file(&file, result);
-    file.saveFile();
-  } catch (const c10::Error& e) {
-    // ATen/c10 层异常
-    auto file_name = g_custom_param.get();
-    FileManerger file(file_name);
-    file.openAppend();
-    file << "c10::Error: " << e.what();
-    file.saveFile();
   } catch (const std::exception& e) {
-    auto file_name = g_custom_param.get();
-    FileManerger file(file_name);
-    file.openAppend();
-    file << "exception: " << e.what();
-    file.saveFile();
+    file << "exception ";
   }
+  file << "\n";
+  file.saveFile();
 }
 ```
 
-> 捕获时优先匹配 `c10::Error`（ATen 的标准异常类型），再兜底 `std::exception`。异常信息写入输出文件后可直接 diff，两框架的异常消息不要求完全一致，但**是否抛异常**须一致。
+**注意事项**：
+- **不要使用 `c10::Error` 作为 catch 类型** — 在 Paddle 兼容层中 `c10::Error` 是 `C10ErrorType` 枚举常量（定义在 `c10/util/Exception.h`），不是异常类。统一使用 `std::exception` 捕获即可。
+- **不要输出 `e.what()`** — 两个框架的异常消息文本不同，会产生大量无意义的 diff。仅记录 `"exception "` 标记是否抛出异常。
+- 两框架的对比重点是**是否抛异常**须一致，异常消息内容不要求匹配。
 
 ## 输出格式
 
-输出文件采用空格分隔的纯文本，按以下字段顺序逐 tensor 追加：
+输出文件采用空格分隔的纯文本，**每个用例独占一行**，格式如下：
 
 ```
-<ndim> <numel> [<size_0> <size_1> ...] <val_0> <val_1> ...
+<TestCaseName> <ndim> <numel> [<size_0> <size_1> ...] <val_0> <val_1> ...\n
 ```
 
-示例（一个 shape 为 `{2, 3}` 的 float tensor）：
+- **用例名标签**：每行以用例名（如 `SumAllElements`）开头，与后续数据以空格分隔
+- **换行分隔**：每个用例输出末尾追加 `"\n"`，使 diff 能逐行定位到具体出错的用例
+
+示例（SumTest 的部分输出）：
 ```
-2 6 2 3 1.000000 2.000000 3.000000 4.000000 5.000000 6.000000
+SumAllElements 0 1 21.000000
+SumWithDtype 7 0 1 21.000000
+SumAlongDim0 1 3 3 5.000000 7.000000 9.000000
+SumInt32 0 1 100
+```
+
+代码示例：
+```cpp
+TEST_F(SumTest, SumAllElements) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();                        // 第一个用例
+  file << "SumAllElements ";                // 用例名标签
+  at::Tensor result = at::sum(test_tensor);
+  write_sum_result_to_file(&file, result);
+  file << "\n";                             // 换行分隔
+  file.saveFile();
+}
+
+TEST_F(SumTest, SumWithDtype) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();                        // 后续用例
+  file << "SumWithDtype ";                  // 用例名标签
+  // ...
+  file << "\n";
+  file.saveFile();
+}
 ```
 
 注意事项：
 - 浮点值通过 `std::to_string()` 序列化，精度为 6 位有效数字
-- 不同测试用例的输出依次追加到同一文件中，以换行或空格分隔，顺序由 GTest 的用例注册顺序决定
+- 用例名标签使得 diff 输出直接可读，无需逐字节计数来定位差异
+- 不同测试用例的输出依次追加到同一文件中，顺序由 GTest 的用例注册顺序决定
 - Place的验证可以取HashValue()
 - Device的比较可以取str()
 - 如果./test/result_cmp.sh的对比结果有差异，请记录下来，在最后总结告诉我，不需要修改测试代码
@@ -237,8 +264,10 @@ cd .. && ./test/result_cmp.sh build
 
 **输出**
 - [ ] `*` 第一个用例使用 `createFile()`，后续使用 `openAppend()`
+- [ ] `*` 每个用例输出前写入用例名标签，末尾追加 `"\n"` 换行
 - [ ] `*` 通过 `write_<op>_result_to_file()` 统一输出
 - [ ] 多 dtype 场景按 `scalar_type()` 分发 `data_ptr<T>()`
+- [ ] 异常捕获统一使用 `std::exception`（不要用 `c10::Error`），不输出 `e.what()`
 
 ## 输出文件路径
 
