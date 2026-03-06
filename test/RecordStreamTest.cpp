@@ -2,15 +2,9 @@
 #include <ATen/core/Tensor.h>
 #include <ATen/ops/zeros.h>
 #include <c10/core/Stream.h>
+#include <c10/cuda/CUDAStream.h>
 #include <gtest/gtest.h>
 #include <torch/all.h>
-
-// Paddle compat 的 c10/cuda/CUDAStream.h 依赖 PADDLE_WITH_CUDA 宏，
-// 不能在普通编译环境中直接包含。libtorch 的版本则依赖 cuda_runtime_api.h。
-// 两者均只在 USE_PADDLE_API=0（libtorch build）下包含。
-#if !USE_PADDLE_API
-#include <c10/cuda/CUDAStream.h>
-#endif
 
 #include <string>
 #include <vector>
@@ -31,17 +25,8 @@ class RecordStreamTest : public ::testing::Test {
   at::Tensor cpu_tensor;
 };
 
-// 返回一个指向 device 0 默认 CUDA stream 的 at::Stream
-// libtorch: 通过 CUDAStream（有 operator Stream() 隐式转换）
-// Paddle compat: CUDAStream 未提供隐式转换，手动以 DEFAULT stream id 0 构造
 static at::Stream get_default_cuda_stream() {
-#if USE_PADDLE_API
-  // Paddle: 直接构造（id=0 = CUDA null/default stream）
-  return at::Stream(at::Stream::DEFAULT, c10::Device(c10::DeviceType::CUDA, 0));
-#else
-  // libtorch: CUDAStream 隐式转换为 at::Stream
   return c10::cuda::getCurrentCUDAStream(0);
-#endif
 }
 
 // --- 基础功能测试：CUDA tensor + CUDA stream ---
