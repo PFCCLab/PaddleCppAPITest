@@ -27,9 +27,8 @@ TEST_F(IndexTest, SliceIndexKeepsStride) {
   FileManerger file(file_name);
   file.createFile();
 
-  at::Tensor base =
-      at::arange(0, 24, at::TensorOptions().dtype(at::kFloat))
-          .reshape({2, 3, 4});
+  at::Tensor base = at::arange(0, 24, at::TensorOptions().dtype(at::kFloat))
+                        .reshape({2, 3, 4});
 
   using at::indexing::Slice;
   at::Tensor result = base.index({Slice(), Slice(1, 3), Slice()});
