@@ -126,12 +126,16 @@ set(PADDLE_INCLUDE_DIR
 )
 if(CUDAToolkit_FOUND)
   list(APPEND PADDLE_INCLUDE_DIR "${CUDAToolkit_INCLUDE_DIRS}")
+  list(APPEND PADDLE_INCLUDE_DIR "${CUDAToolkit_INCLUDE_DIRS}/cccl")
 endif()
 
 set(PADDLE_LIBRARIES
     "${PADDLE_DIR}/base/libpaddle.so" "${PADDLE_DIR}/libs/libcommon.so"
     "${PADDLE_DIR}/libs/libphi.so" "${PADDLE_DIR}/libs/libphi_core.so"
     "${PADDLE_DIR}/libs/libphi_gpu.so")
+if(CUDAToolkit_FOUND)
+  list(APPEND PADDLE_LIBRARIES CUDA::cudart)
+endif()
 link_directories("${PADDLE_DIR}/base")
 link_directories("${PADDLE_DIR}/libs")
 
