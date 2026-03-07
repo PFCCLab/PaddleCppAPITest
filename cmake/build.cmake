@@ -6,6 +6,10 @@ function(
   DEPS_LIBRARIES
   INCLUDE_DIR
   USE_PADDLE_API)
+  # Optional named-keyword args (parsed after positional arg USE_PADDLE_API):
+  # EXTRA_DEFS  -- extra compile definitions (e.g. PADDLE_WITH_CUDA) EXTRA_INCS
+  # -- extra include directories
+  cmake_parse_arguments(PARSE_ARGV 6 _CPT "" "" "EXTRA_DEFS;EXTRA_INCS")
 
   foreach(_test_file ${TEST_SRC_FILES})
     get_filename_component(_file_name ${_test_file} NAME_WE)
@@ -23,6 +27,12 @@ function(
     message(STATUS "include dir: ${INCLUDE_DIR}")
     target_compile_definitions(${_test_name}
                                PRIVATE USE_PADDLE_API=${USE_PADDLE_API})
+    if(_CPT_EXTRA_DEFS)
+      target_compile_definitions(${_test_name} PRIVATE ${_CPT_EXTRA_DEFS})
+    endif()
+    if(_CPT_EXTRA_INCS)
+      target_include_directories(${_test_name} PRIVATE ${_CPT_EXTRA_INCS})
+    endif()
     message(STATUS "USE_PADDLE_API: ${USE_PADDLE_API}")
     add_test(NAME ${_test_name} COMMAND ${_test_name})
     set_tests_properties(${_test_name} PROPERTIES TIMEOUT 5)
