@@ -1,4 +1,5 @@
 #include <ATen/ATen.h>
+#include <ATen/AccumulateType.h>
 #include <c10/util/accumulate.h>
 #include <gtest/gtest.h>
 
@@ -171,6 +172,142 @@ TEST_F(AccumulateTypeTest, LargeValues) {
   file.openAppend();
   file << std::to_string(sum_result) << " ";
   file << std::to_string(mul_result) << " ";
+  file.saveFile();
+}
+
+// toAccumulateType(c10::ScalarType type, c10::DeviceType device) - CPU
+TEST_F(AccumulateTypeTest, ToAccumulateTypeCPUDevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+  // CPU accumulate types
+  file << "BFloat16->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::BFloat16, c10::DeviceType::CPU)))
+       << " ";
+  file << "Half->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Half, c10::DeviceType::CPU)))
+       << " ";
+  file << "Float->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Float, c10::DeviceType::CPU)))
+       << " ";
+  file << "Double->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Double, c10::DeviceType::CPU)))
+       << " ";
+  file << "Char->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Char, c10::DeviceType::CPU)))
+       << " ";
+  file << "Int16->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Short, c10::DeviceType::CPU)))
+       << " ";
+  file << "Int32->"
+       << std::to_string(static_cast<int>(
+              at::toAccumulateType(c10::ScalarType::Int, c10::DeviceType::CPU)))
+       << " ";
+  file << "Int64->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Long, c10::DeviceType::CPU)))
+       << " ";
+  // file << "Bool->" <<
+  // std::to_string(static_cast<int>(at::toAccumulateType(c10::ScalarType::Bool,
+  // c10::DeviceType::CPU))) << " "; Diff 2026-03-07: Paddle 已修复，现返回 11
+  // (与 PyTorch 一致)，注释掉等待后续处理
+  file.saveFile();
+}
+
+// toAccumulateType(c10::ScalarType type, c10::DeviceType device) - CUDA
+TEST_F(AccumulateTypeTest, ToAccumulateTypeCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+  // CUDA accumulate types
+  file << "BFloat16->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::BFloat16, c10::DeviceType::CUDA)))
+       << " ";
+  file << "Half->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Half, c10::DeviceType::CUDA)))
+       << " ";
+  file << "Float->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Float, c10::DeviceType::CUDA)))
+       << " ";
+  file << "Double->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Double, c10::DeviceType::CUDA)))
+       << " ";
+  file << "Char->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Char, c10::DeviceType::CUDA)))
+       << " ";
+  file << "Int16->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Short, c10::DeviceType::CUDA)))
+       << " ";
+  file << "Int32->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Int, c10::DeviceType::CUDA)))
+       << " ";
+  file << "Int64->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Long, c10::DeviceType::CUDA)))
+       << " ";
+  // file << "Bool->" <<
+  // std::to_string(static_cast<int>(at::toAccumulateType(c10::ScalarType::Bool,
+  // c10::DeviceType::CUDA))) << " "; Diff 2026-03-07: Paddle 已修复，现返回 11
+  // (与 PyTorch 一致)，注释掉等待后续处理
+  file.saveFile();
+}
+
+// toAccumulateType(c10::ScalarType type, bool is_cuda) - is_cuda = false
+TEST_F(AccumulateTypeTest, ToAccumulateTypeBoolFalse) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+  // is_cuda = false (equivalent to CPU)
+  file << "Float->"
+       << std::to_string(static_cast<int>(
+              at::toAccumulateType(c10::ScalarType::Float, false)))
+       << " ";
+  file << "Double->"
+       << std::to_string(static_cast<int>(
+              at::toAccumulateType(c10::ScalarType::Double, false)))
+       << " ";
+  file << "Int32->"
+       << std::to_string(static_cast<int>(
+              at::toAccumulateType(c10::ScalarType::Int, false)))
+       << " ";
+  file.saveFile();
+}
+
+// toAccumulateType(c10::ScalarType type, bool is_cuda) - is_cuda = true
+TEST_F(AccumulateTypeTest, ToAccumulateTypeBoolTrue) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+  // is_cuda = true (equivalent to CUDA)
+  file << "Float->"
+       << std::to_string(static_cast<int>(
+              at::toAccumulateType(c10::ScalarType::Float, true)))
+       << " ";
+  file << "Double->"
+       << std::to_string(static_cast<int>(
+              at::toAccumulateType(c10::ScalarType::Double, true)))
+       << " ";
+  file << "Int32->"
+       << std::to_string(static_cast<int>(
+              at::toAccumulateType(c10::ScalarType::Int, true)))
+       << " ";
   file.saveFile();
 }
 

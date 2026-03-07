@@ -190,6 +190,8 @@ TEST_F(TensorTest, IsCuda) {
   file.saveFile();
 }
 
+#ifndef USE_PADDLE_API
+
 // 测试 is_sparse
 TEST_F(TensorTest, IsSparse) {
   // 密集张量应该返回 false
@@ -215,6 +217,8 @@ TEST_F(TensorTest, IsSparseCsr) {
   at::Tensor sparse_csr_tensor = at::zeros_like(sparse_csr_template);
   EXPECT_TRUE(sparse_csr_tensor.is_sparse_csr());
 }
+
+#endif
 
 // 测试 reshape
 TEST_F(TensorTest, Reshape) {

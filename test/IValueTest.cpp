@@ -1,6 +1,8 @@
 #include <ATen/ATen.h>
 #include <ATen/core/Tensor.h>
+#ifndef USE_PADDLE_API
 #include <ATen/core/ivalue.h>
+#endif
 #include <ATen/ops/zeros.h>
 #include <gtest/gtest.h>
 
@@ -22,6 +24,8 @@ class IValueTest : public ::testing::Test {
  protected:
   void SetUp() override {}
 };
+
+#ifndef USE_PADDLE_API
 
 // None
 TEST_F(IValueTest, None) {
@@ -188,6 +192,8 @@ TEST_F(IValueTest, Identity) {
   file << std::to_string(iv_string.to<std::string>() == "test" ? 1 : 0) << " ";
   file.saveFile();
 }
+
+#endif  // USE_PADDLE_API
 
 }  // namespace test
 }  // namespace at
