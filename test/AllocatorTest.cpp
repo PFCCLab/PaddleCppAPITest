@@ -1,10 +1,5 @@
 #include <ATen/ATen.h>
 #include <c10/core/Allocator.h>
-#if USE_PADDLE_API
-#include <phi/phi.h>
-#else
-#include <c10/Device.h>
-#endif
 #include <gtest/gtest.h>
 
 #include <string>
@@ -67,13 +62,12 @@ TEST_F(AllocatorTest, ConstructorWithDataAndDevice) {
   FileManerger file(file_name);
   file.openAppend();
 
-  c10::DataPtr data_ptr(static_cast<void*>(test_data_),  // NOLINT
 #if USE_PADDLE_API
-                        phi::CPUPlace()
+  c10::DataPtr data_ptr(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
-                        c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
-  );
+  c10::DataPtr data_ptr(static_cast<void*>(test_data_),
+                        c10::Device(c10::DeviceType::CPU));
+#endif
 
   // 指针应该正确设置
   file << std::to_string(data_ptr.get() == static_cast<void*>(test_data_))
@@ -96,14 +90,15 @@ TEST_F(AllocatorTest, ConstructorWithDeleter) {
 
   g_deleter_called = false;
 
+#if USE_PADDLE_API
+  c10::DataPtr data_ptr(
+      static_cast<void*>(test_data_), test_ctx_, test_deleter, phi::CPUPlace());
+#else
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         test_ctx_,
                         test_deleter,
-#if USE_PADDLE_API
-            phi::CPUPlace()
-#else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+                        c10::Device(c10::DeviceType::CPU));
+#endif
 
   // 指针应该正确设置
   file << std::to_string(data_ptr.get() == static_cast<void*>(test_data_))
@@ -122,11 +117,12 @@ TEST_F(AllocatorTest, MoveConstructor) {
   FileManerger file(file_name);
   file.openAppend();
 
-  c10::DataPtr original(static_cast<void*>(test_data_), #if USE_PADDLE_API
-            phi::CPUPlace()
+#if USE_PADDLE_API
+  c10::DataPtr original(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+  c10::DataPtr original(static_cast<void*>(test_data_),
+                        c10::Device(c10::DeviceType::CPU));
+#endif
   void* original_ptr = original.get();
   c10::DataPtr moved(std::move(original));
 
@@ -143,11 +139,12 @@ TEST_F(AllocatorTest, MoveAssignment) {
   FileManerger file(file_name);
   file.openAppend();
 
-  c10::DataPtr original(static_cast<void*>(test_data_), #if USE_PADDLE_API
-            phi::CPUPlace()
+#if USE_PADDLE_API
+  c10::DataPtr original(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+  c10::DataPtr original(static_cast<void*>(test_data_),
+                        c10::Device(c10::DeviceType::CPU));
+#endif
   void* original_ptr = original.get();
   c10::DataPtr assigned;
   assigned = std::move(original);
@@ -167,14 +164,17 @@ TEST_F(AllocatorTest, Clear) {
   FileManerger file(file_name);
   file.openAppend();
 
+#if USE_PADDLE_API
+  c10::DataPtr data_ptr(
+      static_cast<void*>(test_data_), test_ctx_, test_deleter, phi::CPUPlace());
+#else
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         test_ctx_,
                         test_deleter,
-#if USE_PADDLE_API
-            phi::CPUPlace()
-#else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+                        c10::Device(c10::DeviceType::CPU));
+#endif
+
+  // clear 前验证状态
   file << std::to_string(data_ptr.get() != nullptr) << " ";
   file << std::to_string(static_cast<bool>(data_ptr)) << " ";
 
@@ -196,11 +196,12 @@ TEST_F(AllocatorTest, NullptrComparison) {
   file.openAppend();
 
   c10::DataPtr null_ptr;
-  c10::DataPtr valid_ptr(static_cast<void*>(test_data_), #if USE_PADDLE_API
-            phi::CPUPlace()
+#if USE_PADDLE_API
+  c10::DataPtr valid_ptr(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+  c10::DataPtr valid_ptr(static_cast<void*>(test_data_),
+                         c10::Device(c10::DeviceType::CPU));
+#endif
 
   // null_ptr == nullptr 应该为 true
   file << std::to_string(null_ptr == nullptr) << " ";
@@ -226,11 +227,12 @@ TEST_F(AllocatorTest, AtDataPtrAlias) {
   file.openAppend();
 
   // at::DataPtr 应该是 c10::DataPtr 的别名
-  at::DataPtr at_ptr(static_cast<void*>(test_data_), #if USE_PADDLE_API
-            phi::CPUPlace()
+#if USE_PADDLE_API
+  at::DataPtr at_ptr(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+  at::DataPtr at_ptr(static_cast<void*>(test_data_),
+                     c10::Device(c10::DeviceType::CPU));
+#endif
 
   file << std::to_string(at_ptr.get() == static_cast<void*>(test_data_)) << " ";
   file << std::to_string(static_cast<bool>(at_ptr)) << " ";
@@ -249,13 +251,14 @@ TEST_F(AllocatorTest, ArrowOperator) {
   FileManerger file(file_name);
   file.openAppend();
 
-  c10::DataPtr data_ptr(static_cast<void*>(test_data_),  // NOLINT
 #if USE_PADDLE_API
-                        phi::CPUPlace()
+  c10::DataPtr data_ptr(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
-                        c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
-  );
+  c10::DataPtr data_ptr(static_cast<void*>(test_data_),
+                        c10::Device(c10::DeviceType::CPU));
+#endif
+
+  // operator-> 应该返回原始指针
   file << std::to_string(data_ptr.operator->() ==
                          static_cast<void*>(test_data_))
        << " ";
@@ -290,11 +293,13 @@ TEST_F(AllocatorTest, ChainedMoves) {
   FileManerger file(file_name);
   file.openAppend();
 
-  c10::DataPtr original(static_cast<void*>(test_data_), #if USE_PADDLE_API
-            phi::CPUPlace()
+#if USE_PADDLE_API
+  c10::DataPtr original(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+  c10::DataPtr original(static_cast<void*>(test_data_),
+                        c10::Device(c10::DeviceType::CPU));
+#endif
+  void* ptr = original.get();
 
   // 链式移动
   c10::DataPtr moved1(std::move(original));
@@ -302,7 +307,7 @@ TEST_F(AllocatorTest, ChainedMoves) {
   c10::DataPtr moved3 = std::move(moved2);
 
   // 最终应该指向原始数据
-  file << std::to_string(moved3.get() == static_cast<void*>(test_data_)) << " ";
+  file << std::to_string(moved3.get() == ptr) << " ";
   file << std::to_string(moved3.get() == static_cast<void*>(test_data_)) << " ";
 
   file.saveFile();
@@ -317,14 +322,17 @@ TEST_F(AllocatorTest, DeleterCalledOnDestruction) {
   {
     // 在作用域内创建 DataPtr
     float* local_data = new float[2]{1.0f, 2.0f};
-    c10::DataPtr data_ptr(static_cast<void*>(local_data),
-                  local_data,
-                  real_float_deleter,
 #if USE_PADDLE_API
-            phi::CPUPlace()
+    c10::DataPtr data_ptr(static_cast<void*>(local_data),
+                          local_data,
+                          real_float_deleter,
+                          phi::CPUPlace());
 #else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+    c10::DataPtr data_ptr(static_cast<void*>(local_data),
+                          local_data,
+                          real_float_deleter,
+                          c10::Device(c10::DeviceType::CPU));
+#endif
     file << std::to_string(data_ptr.get() != nullptr) << " ";
   }
   // DataPtr 出作用域后，deleter 应该被调用（内存已释放）
@@ -338,13 +346,14 @@ TEST_F(AllocatorTest, GetReturnsCorrectPointer) {
   FileManerger file(file_name);
   file.openAppend();
 
-  c10::DataPtr data_ptr(static_cast<void*>(test_data_),  // NOLINT
 #if USE_PADDLE_API
-                        phi::CPUPlace()
+  c10::DataPtr data_ptr(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
-                        c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
-  );
+  c10::DataPtr data_ptr(static_cast<void*>(test_data_),
+                        c10::Device(c10::DeviceType::CPU));
+#endif
+
+  // get() 返回 void*，可以转换为原始类型
   void* void_ptr = data_ptr.get();
   float* float_ptr = static_cast<float*>(void_ptr);
 
@@ -367,14 +376,15 @@ TEST_F(AllocatorTest, DeleterFnPtrType) {
   c10::DeleterFnPtr deleter = test_deleter;
   file << std::to_string(deleter != nullptr) << " ";
 
+#if USE_PADDLE_API
+  c10::DataPtr data_ptr(
+      static_cast<void*>(test_data_), test_ctx_, deleter, phi::CPUPlace());
+#else
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         test_ctx_,
                         deleter,
-#if USE_PADDLE_API
-            phi::CPUPlace()
-#else
-            c10::Device(c10::DeviceType::CPU)
-#endif  // USE_PADDLE_API
+                        c10::Device(c10::DeviceType::CPU));
+#endif
 
   file << std::to_string(data_ptr.get_deleter() == deleter) << " ";
 
