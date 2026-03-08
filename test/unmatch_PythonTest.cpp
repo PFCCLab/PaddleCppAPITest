@@ -3,7 +3,6 @@
  * @brief: 兼容性对齐审计报告
  *
  * [异常点 1]
- * - 所在行号：第 7 行（原第 3 行）
  * - 测试用例：整个文件的公共头文件引入部分
  * - 当前状况：`#include <torch/python.h>` 被 `#ifndef USE_PADDLE_API` 宏包裹，
  *             在 Paddle 构建模式下该头文件完全不被包含。
@@ -21,7 +20,6 @@
  * 无需使用宏保护即可统一包含。
  *
  * [异常点 2]
- * - 所在行号：第 28 行（原第 24 行）
  * - 测试用例：GetTHPDtype / PyObjectToDtype / NamespaceExists /
  *             GetTHPDtypeAllTypes / TorchNamespaceGetTHPDtype
  *             （共 5 个 TEST_F，全部被禁用）

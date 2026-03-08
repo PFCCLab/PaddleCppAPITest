@@ -3,7 +3,6 @@
  * @brief: 兼容性对齐审计报告
  *
  * [异常点 1]
- * - 所在行号：第 10 行（原第 7 行）
  * - 测试用例：整个文件的公共头文件引入部分
  * - 当前状况：`#include <c10/core/Event.h>` 被 `#ifndef USE_PADDLE_API`
  * 宏包裹， 在 Paddle 构建模式下该头文件完全不被包含。
@@ -20,7 +19,6 @@
  *             `#include` 语句。
  *
  * [异常点 2]
- * - 所在行号：第 27 行（原第 24 行）
  * - 测试用例：EventPoolDefault / EventPoolCopy / EventPoolMove /
  *             EventPoolInstance / EventPoolCreateCudaEventFromPool /
  *             EventDefault / EventWithDeviceType / EventRecord / EventCudaEvent
@@ -45,8 +43,6 @@
  *             `#ifndef USE_PADDLE_API` 宏，仅保留核心 Event 用例。
  *
  * [异常点 3]
- * - 所在行号：第 34、49、65、81、97、112、128 行（原第
- * 31、46、62、78、94、109、125 行）
  * - 测试用例：EventPoolDefault / EventPoolCopy / EventPoolMove /
  *             EventPoolInstance / EventDefault / EventWithDeviceType /
  *             EventRecord / EventCudaEvent

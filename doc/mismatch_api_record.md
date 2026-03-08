@@ -89,3 +89,31 @@
 > 注：OptionalArrayRef 核心功能（has_value、size、元素访问、reset、swap、emplace、slice 等）在两个框架中完全兼容，仅运行时地址和标识符存在差异。
 
 ---
+
+# at::indexing（Slice / EllipsisIndexType）类与 torch 存在差异
+
+> Paddle 头文件：`ATen/indexing.h`（位于 `paddle/phi/api/include/compat/ATen/indexing.h`）
+> PyTorch 头文件：`ATen/TensorIndexing.h`
+
+## 差异点列表
+
+1.  **头文件路径不同**：PyTorch 为 `ATen/TensorIndexing.h`；Paddle compat 为 `ATen/indexing.h`
+2.  **`Tensor::operator[](Slice)` 不支持**：PyTorch 的 `Tensor::operator[]` 接受 `at::indexing::Slice`；Paddle compat 的 `operator[]` 仅重载 `int64_t`，传入 `Slice` 会编译报错
+3.  **多维 Slice 索引写法不同**：
+    - PyTorch：`t.index({Slice(0,2), Slice(1,3)})` —— 接受 `std::initializer_list<TensorIndex>`
+    - Paddle：`t.index(std::vector<at::indexing::Slice>{Slice(0,2), Slice(1,3)})` —— 仅重载 `std::vector<Slice>`
+4.  **`TensorIndex` 类不存在**：Paddle compat 的 `indexing.h` 未定义 `TensorIndex` 类，注释掉了 `index(ArrayRef<TensorIndex>)` 重载，仅保留 `index(const std::vector<Slice>&)`
+
+## 修复方式
+
+在Paddle源文件修改前先使用 `USE_PADDLE_API` 宏在编译期分支，分别调用各自支持的接口：
+
+```cpp
+#if USE_PADDLE_API
+  at::Tensor result = t.index(std::vector<at::indexing::Slice>{at::indexing::Slice(0, 2), at::indexing::Slice(1, 3)});
+#else
+  at::Tensor result = t.index({at::indexing::Slice(0, 2), at::indexing::Slice(1, 3)});
+#endif
+```
+
+---

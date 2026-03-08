@@ -3,8 +3,6 @@
  * @brief: 兼容性对齐审计报告
  *
  * [异常点 1]
- * - 所在行号：第 46 行～第 243 行（原第 40～199 行，共 6 处 #if USE_PADDLE_API
- * 块）
  * - 测试用例：IValueBasicConstruction / IValueVectorConstruction /
  *             IValueGet / IValueIsNone / IValueSizeToInt64 / IValueTensor
  * - 当前状况：每个测试用例内均使用 `#if USE_PADDLE_API … #else … #endif` 将
@@ -25,7 +23,6 @@
  *             `#if USE_PADDLE_API` 分支。
  *
  * [异常点 2]
- * - 所在行号：第 251 行（原第 204 行，`#ifndef USE_PADDLE_API`）
  * - 测试用例：TensorOperations
  * - 当前状况：`at::Tensor::add()` 调用被 `#ifndef USE_PADDLE_API` 保护，
  *             Paddle 构建模式下用占位字符串 `"tensor_add_skipped"`
@@ -38,8 +35,6 @@
  *             均可编译执行并产生可比对的数值输出。
  *
  * [异常点 3]
- * - 所在行号：第 260 行（原第 213 行）和 第 274 行（原第 228 行），
- *             两个 `#ifndef USE_PADDLE_API` 块
  * - 测试用例：DeviceTest / TensorOptionsTest
  * - 当前状况：`at::Device` 构造测试和 `c10::TensorOptions` 测试被
  *             `#ifndef USE_PADDLE_API` 完全保护，Paddle 构建下跳过。
@@ -53,8 +48,6 @@
  *             然后移除该 `#ifndef USE_PADDLE_API` 保护。
  *
  * [异常点 4]
- * - 所在行号：第 286 行（原第 228 行）和 第 493 行（原第 270/485 行），
- *             共 3 处大块 `#ifndef USE_PADDLE_API` （Library 构造 / CppFunction
  * / 宏测试 / Schema / SelectiveStr / DispatchKey 等相关用例）
  * - 测试用例：LibraryConstruction / CppFunctionFromFunctionPointer /
  *             CppFunctionMakeFromBoxedKernel / CppFunctionMakeFallthrough /

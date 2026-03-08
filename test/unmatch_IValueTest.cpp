@@ -3,7 +3,6 @@
  * @brief: 兼容性对齐审计报告
  *
  * [异常点 1]
- * - 所在行号：第 7 行（原第 3 行）
  * - 测试用例：整个文件的公共头文件引入部分
  * - 当前状况：`#include <ATen/core/ivalue.h>` 被 `#ifndef USE_PADDLE_API`
  * 宏包裹， 在 Paddle 构建模式下该头文件完全不被包含。
@@ -18,7 +17,6 @@
  *             命名空间来源。届时可移除该 `#ifndef USE_PADDLE_API` 宏。
  *
  * [异常点 2]
- * - 所在行号：第 34 行（原第 28 行）
  * - 测试用例：None / Bool / Int / Double / String / StringFromCharPtr /
  *             Tensor / ListOfInts / ListOfDoubles / ToTemplate / Tuple /
  *             ScalarType / Identity（共 13 个 TEST_F，全部被禁用）

@@ -14,6 +14,7 @@
 #include "../src/file_manager.h"
 
 extern paddle_api_test::ThreadSafeParam g_custom_param;
+
 static int get_dtype_as_int(const c10::TensorOptions& opts) {
   return static_cast<int>(at::empty({0}, opts).scalar_type());
 }
