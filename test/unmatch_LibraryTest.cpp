@@ -1,3 +1,110 @@
+/*
+ * =====================================================================================
+ * @brief: 兼容性对齐审计报告
+ *
+ * [异常点 1]
+ * - 所在行号：第 46 行～第 243 行（原第 40～199 行，共 6 处 #if USE_PADDLE_API
+ * 块）
+ * - 测试用例：IValueBasicConstruction / IValueVectorConstruction /
+ *             IValueGet / IValueIsNone / IValueSizeToInt64 / IValueTensor
+ * - 当前状况：每个测试用例内均使用 `#if USE_PADDLE_API … #else … #endif` 将
+ *             Paddle 路径与 libtorch 路径分离，两侧使用了不同的类型和方法名：
+ *             Paddle 路径用 `torch::IValue`、snake_case 方法（`is_int()`、
+ *             `is_double()`、`is_string()`、`is_none()`、`is_tensor()`、`to_int()`、
+ *             `to_double()`），libtorch 路径用 `c10::IValue`、camelCase 方法
+ *             （`isInt()`、`isDouble()`、`isString()`、`isNone()`、`isTensor()`、
+ *             `toInt()`、`toDouble()`）。
+ * - 根本原因：两库的 `IValue` 类型在命名空间和方法名风格上存在根本性差异：
+ *             libtorch 将 `IValue` 定义在 `c10` 命名空间且全部使用 camelCase，
+ *             Paddle compat 将其定义在 `torch` 命名空间且使用 snake_case。
+ *             此外，Paddle compat 的 `torch::IValue` 是独立的简化实现，并非
+ *             `c10::IValue` 的别名，导致无法写出同名同接口的统一调用代码。
+ * - 期望解决：在 Paddle compat 中将 `torch::IValue` 同时暴露为 `c10::IValue`
+ *             的别名，并补充 camelCase 方法同义接口（`isInt()` = `is_int()`
+ * 等）， 从而统一两库的 IValue 访问路径，移除测试中所有 IValue 相关的
+ *             `#if USE_PADDLE_API` 分支。
+ *
+ * [异常点 2]
+ * - 所在行号：第 251 行（原第 204 行，`#ifndef USE_PADDLE_API`）
+ * - 测试用例：TensorOperations
+ * - 当前状况：`at::Tensor::add()` 调用被 `#ifndef USE_PADDLE_API` 保护，
+ *             Paddle 构建模式下用占位字符串 `"tensor_add_skipped"`
+ * 代替实际运算。
+ * - 根本原因：Paddle compat 的 `ATen/ops/` 目录中**没有 `add.h`**，即
+ *             `at::Tensor::add(other_tensor)` 方法在 Paddle 兼容层中未被实现，
+ *             直接调用会导致编译/链接失败。
+ * - 期望解决：在 Paddle compat 的 `ATen/ops/` 目录中补充 `add.h`，实现基本的
+ *             逐元素加法运算（对接 `paddle::add`），使 `t1.add(t2)` 在两库下
+ *             均可编译执行并产生可比对的数值输出。
+ *
+ * [异常点 3]
+ * - 所在行号：第 260 行（原第 213 行）和 第 274 行（原第 228 行），
+ *             两个 `#ifndef USE_PADDLE_API` 块
+ * - 测试用例：DeviceTest / TensorOptionsTest
+ * - 当前状况：`at::Device` 构造测试和 `c10::TensorOptions` 测试被
+ *             `#ifndef USE_PADDLE_API` 完全保护，Paddle 构建下跳过。
+ * - 根本原因：Paddle compat 中虽有 `c10/core/Device.h`（含 `Device` 类定义）、
+ *             `c10/core/TensorOptions.h`（含
+ * `TensorOptions`），但实测中两个类的 接口细节（如 `TensorOptions::dtype()`
+ * 返回类型比较）在 Paddle 的 实现中存在差异或编译问题，作者选择以宏绕过。
+ * - 期望解决：对齐 `c10::Device` 和 `c10::TensorOptions` 的基础接口签名，
+ *             保证 `device.type() == c10::DeviceType::CPU` 和
+ *             `opts.dtype() == at::kFloat` 等简单断言能在两库下统一通过，
+ *             然后移除该 `#ifndef USE_PADDLE_API` 保护。
+ *
+ * [异常点 4]
+ * - 所在行号：第 286 行（原第 228 行）和 第 493 行（原第 270/485 行），
+ *             共 3 处大块 `#ifndef USE_PADDLE_API` （Library 构造 / CppFunction
+ * / 宏测试 / Schema / SelectiveStr / DispatchKey 等相关用例）
+ * - 测试用例：LibraryConstruction / CppFunctionFromFunctionPointer /
+ *             CppFunctionMakeFromBoxedKernel / CppFunctionMakeFallthrough /
+ *             CppFunctionMakeNamedNotSupported / CppFunctionDebug /
+ *             DispatchWithDispatchKey / DispatchWithDeviceType /
+ *             SchemaFromString / SchemaWithAliasAnalysis /
+ *             SelectiveStrEnabled / ClassNotSelected / DispatchKeyEnum /
+ *             FunctionSchemaBasic / FunctionSchemaWithDefault /
+ *             AliasAnalysisKindEnum / MakeTorchLibraryMacro /
+ *             MakeTorchLibraryImplMacro / OperatorNameConstruction /
+ *             FunctionSchemaArgumentTypes / FunctionSchemaReturnType /
+ *             ArgTest / FunctionArgsTest / FunctionResultTest /
+ *             CppFunctionCallTest / GlobalRegistryTest
+ *             （共约 26 个 TEST_F 被禁用）
+ * - 当前状况：上述用例全部被 `#ifndef USE_PADDLE_API` 包裹，Paddle 构建下跳过。
+ * - 根本原因：两库的 `torch::Library` 架构存在根本性差异：
+ *             ① libtorch 的 `torch::Library` 通过 `c10::FunctionSchema`、
+ *             `c10::BoxedKernel`、`c10::DispatchKey` 体系进行算子注册，调度使用
+ *             `c10::Dispatcher`；`torch::CppFunction::makeFromBoxedKernel()`、
+ *             `makeFallthrough()`、`makeNamedNotSupported()` 等静态工厂函数及
+ *             `MAKE_TORCH_LIBRARY` / `MAKE_TORCH_LIBRARY_IMPL` 宏均来自
+ *             libtorch 完整的算子注册框架。
+ *             ② Paddle compat 的 `torch::Library` 是独立简化版实现（`library.h`
+ *             中约 893 行的本地实现），通过 `FunctionArgs`、`FunctionResult`、
+ *             `CppFunction`（接受 lambda 包装）以及自定义的 `ClassRegistry`、
+ *             `OperatorRegistry` 完成算子/类注册，**与 libtorch
+ * 的调度体系完全不同**。 ③
+ * `c10::BoxedKernel::makeFallthrough()`、`c10::AliasAnalysisKind`、
+ *             `c10::FunctionSchema`（含 `arguments()`/`returns()` 方法）、
+ *             `torch::detail::SelectiveStr`、`torch::detail::ClassNotSelected`、
+ *             `torch::detail::TorchLibraryInit`、`MAKE_TORCH_LIBRARY` 宏等
+ *             在 Paddle compat 中均不存在或接口签名不同。
+ *             ④ Paddle compat 提供了 libtorch
+ * 中不存在的专有类：`FunctionArgs`、
+ *             `FunctionResult`、`ClassRegistry`、`OperatorRegistry`、
+ *             `ClassRegistration`、`OperatorRegistration`、`invoke_function`、
+ *             `invoke_member_function`，使得两库无法共享同一段测试逻辑。
+ * - 期望解决：`torch::Library` 算子注册框架是两库间架构差异最大的模块，不建议
+ *             强行在一个文件中对齐。建议的分层策略：
+ *             ①
+ * 将两库均支持的"纯功能"测试（`LibraryKindEnum`、`DispatchKeyEnum`
+ *             等枚举值比对）保留在公共测试文件中；
+ *             ② 将涉及具体注册框架实现的测试（LibraryConstruction 等）拆分为
+ *             独立的 `LibraryTest_torch.cpp` 和 `LibraryTest_paddle.cpp`，
+ *             通过外部脚本对比其运行输出，而非在代码中混用宏；
+ *             ③ 若要深度对齐，需要在 Paddle compat 中实补充
+ * `c10::BoxedKernel`、 `c10::FunctionSchema`、`c10::AliasAnalysisKind`
+ * 的完整接口，并统一 `MAKE_TORCH_LIBRARY` / `MAKE_TORCH_LIBRARY_IMPL` 宏行为。
+ * =====================================================================================
+ */
 #include <ATen/ATen.h>
 #include <gtest/gtest.h>
 #include <torch/library.h>

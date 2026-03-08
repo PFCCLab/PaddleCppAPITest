@@ -1,3 +1,27 @@
+/*
+ * =====================================================================================
+ * @brief: 兼容性对齐审计报告
+ *
+ * [异常点 1]
+ * - 所在行号：第 201 行（原第 193 行）
+ * - 测试用例：IsSparse / IsSparseCsr（共 2 个，被整块 `#ifndef USE_PADDLE_API`
+ * 保护）
+ * - 当前状况：这 2 个测试在 Paddle 构建模式下被完全跳过。
+ * - 根本原因：经查证，**这两个测试实际上可以对齐**：
+ *             ① Paddle compat 的 `ATen/core/TensorBase.h` 中已实现
+ *                `is_sparse()` 和 `is_sparse_csr()`，方法签名一致。
+ *             ② Paddle compat 的 `ATen/ops/empty.h` 和 `ATen/ops/zeros_like.h`
+ *                中已支持 `at::kSparse` 和 `at::kSparseCsr` layout 选项，
+ *                并通过 `_PD_ConvertToSparseIfNeeded` 完成稀疏格式转换。
+ *             ③ `c10/core/Layout.h` 中已定义 `kSparse`、`kSparseCsr` 常量。
+ *             因此，`IsSparse` 和 `IsSparseCsr` 两个测试用例被 `#ifndef`
+ *             保护是**误判**的妥协写法，并非因为真实的接口缺失，而是未经充分
+ *             验证就保守地将其排除了 Paddle 构建。
+ * - 期望解决：将 `IsSparse` 和 `IsSparseCsr` 两个测试从
+ *             `#ifndef USE_PADDLE_API` 块中移出，使其在两库下均参与编译和对比
+ *             测试，以验证稀疏张量创建和判断接口的实际对齐程度。
+ * =====================================================================================
+ */
 #include <ATen/ATen.h>
 #include <ATen/core/Tensor.h>
 #include <ATen/ops/ones.h>
@@ -190,8 +214,6 @@ TEST_F(TensorTest, IsCuda) {
   file.saveFile();
 }
 
-#ifndef USE_PADDLE_API
-
 // 测试 is_sparse
 TEST_F(TensorTest, IsSparse) {
   // 密集张量应该返回 false
@@ -217,8 +239,6 @@ TEST_F(TensorTest, IsSparseCsr) {
   at::Tensor sparse_csr_tensor = at::zeros_like(sparse_csr_template);
   EXPECT_TRUE(sparse_csr_tensor.is_sparse_csr());
 }
-
-#endif
 
 // 测试 reshape
 TEST_F(TensorTest, Reshape) {

@@ -1,3 +1,72 @@
+/*
+ * =====================================================================================
+ * @brief: 兼容性对齐审计报告
+ *
+ * [异常点 1]
+ * - 所在行号：第 121、204、255、291 行（分别对应 TensorAccessorBasic、
+ *             TensorAccessorBaseDirect、TensorAccessorBaseConstData、
+ *             TensorAccessorDirect 测试内部的 `#if USE_PADDLE_API` 分支）
+ * - 测试用例：TensorAccessorBasic / TensorAccessorBaseDirect /
+ *             TensorAccessorBaseConstData / TensorAccessorDirect
+ * - 当前状况：在上述 4 个测试中，`sizes()` 和 `strides()` 的调用被
+ *             `#if USE_PADDLE_API … #else …` 拆分成两套逻辑——Paddle 路径使用
+ *             `accessor.sizes()` 返回 `c10::IntArrayRef`，libtorch 路径则
+ *             硬编码输出 `"3 "` 等字面量后改用 `accessor.size(i)` 逐个获取，
+ *             导致输出内容不一致且可比性差。
+ * - 根本原因：**误判造成的不必要妥协**。经查证，libtorch 的
+ *             `ATen/core/TensorAccessor.h` 和 Paddle compat 的同路径头文件
+ *             在 `TensorAccessorBase` 中均实现了：
+ *             `C10_HOST IntArrayRef sizes() const`
+ *             `C10_HOST IntArrayRef strides() const`
+ *             两个方法签名完全一致，返回类型均为 `c10::IntArrayRef`，无需
+ *             分叉处理。
+ * - 期望解决：移除这 4 处的 `#if USE_PADDLE_API` 条件编译，统一使用
+ *             `accessor.sizes()` / `accessor.strides()` 返回 `IntArrayRef`
+ *             的写法，两库应输出相同结果。
+ *
+ * [异常点 2]
+ * - 所在行号：第 383 行（`#ifndef USE_PADDLE_API` 开始处）
+ * - 测试用例：GenericPackedTensorAccessorBaseDirect /
+ *             GenericPackedTensorAccessorDirect /
+ *             GenericPackedTensorAccessorTranspose /
+ *             GenericPackedTensorAccessor1D /
+ *             PackedTensorAccessor64Alias /
+ *             PackedTensorAccessor32Alias /
+ *             GenericPackedTensorAccessorInt64Source /
+ *             TensorAccessor2D / ConstGenericPackedTensorAccessor /
+ *             ConstGenericPackedTensorAccessorBaseData /
+ *             GenericPackedTensorAccessor1DTranspose /
+ *             PackedAccessor64Write / TensorAccessorWrite /
+ *             TensorAccessorCoverage（共 14 个 TEST_F，全部被禁用）
+ * - 当前状况：14 个测试被整块 `#ifndef USE_PADDLE_API … #endif` 保护，
+ *             Paddle 构建模式下无任何用例参与对比测试。
+ * - 根本原因（分两类）：
+ *   ① `GenericPackedTensorAccessorBase` / `GenericPackedTensorAccessor` /
+ *      `PackedTensorAccessor64` / `PackedTensorAccessor32` 相关的 9 个测试：
+ *      Paddle compat 的 `ATen/core/TensorAccessor.h` 中**未实现**这些模板类，
+ *      而 libtorch 同路径文件中它们与 `TensorAccessorBase` 并列定义。这是
+ *      真实的接口缺失——Paddle compat 仅对 CPU `TensorAccessor` 系列做了对齐，
+ *      未覆盖 CUDA 侧使用的 `GenericPackedTensorAccessor` 系列。
+ *   ② `GenericPackedTensorAccessorDirect`（426 行）和
+ *      `GenericPackedTensorAccessorDirect`（450 行）内部还嵌套了
+ *      `#if USE_PADDLE_API … #else …` 的双路 `sizes()/strides()` 逻辑，
+ *      与异常点 1 性质相同，属于叠加的误判妥协写法。
+ *   ③ `TensorAccessorWrite` 和 `TensorAccessorCoverage` 这 2 个测试仅使用
+ *      基础的 `TensorAccessor<float,2>` 接口，两库均支持，属于可被移出宏块
+ *      的**误保护**测试。
+ * - 期望解决：
+ *   ① 在 Paddle compat 的 `ATen/core/TensorAccessor.h` 中补充
+ *      `GenericPackedTensorAccessorBase<T,N,PtrTraits,index_t>` 和
+ *      `GenericPackedTensorAccessor<T,N,PtrTraits,index_t>` 模板类的完整实现，
+ *      包括对应的 `PackedTensorAccessor32` / `PackedTensorAccessor64`
+ * 类型别名， 与 libtorch 接口保持一致；同时在 `ATen/core/Tensor.h` 中补充
+ *      `packed_accessor64<T,N>()` 方法。
+ *   ② 消除 `GenericPackedTensorAccessorDirect` 内部的 `#if USE_PADDLE_API`
+ *      分叉，统一使用 `sizes()`/`strides()` 返回 `IntArrayRef`（见异常点 1）。
+ *   ③ 将 `TensorAccessorWrite` 和 `TensorAccessorCoverage` 从宏块中提取出来，
+ *      移至无条件编译区域参与双库对比。
+ * =====================================================================================
+ */
 #include <ATen/ATen.h>
 #include <ATen/core/Tensor.h>
 #include <ATen/core/TensorAccessor.h>
@@ -117,19 +186,12 @@ TEST_F(TensorAccessorTest, TensorAccessorBasic) {
   // 使用 accessor 方法获取 TensorAccessor (仅适用于 contiguous tensor)
   auto accessor = tensor.accessor<float, 3>();
 
-  // 测试 sizes() 和 strides()
-#if USE_PADDLE_API
+  // 测试 sizes() 和 strides() -- 两库接口一致，无需分叉
   c10::IntArrayRef s = accessor.sizes();
   c10::IntArrayRef str = accessor.strides();
   file << std::to_string(s.size()) << " ";
   file << std::to_string(s[0]) << " ";
   file << std::to_string(str[0]) << " ";
-#else
-  // libtorch: size(i) 和 stride(i) 返回单个值
-  file << "3 ";
-  file << std::to_string(accessor.size(0)) << " ";
-  file << std::to_string(accessor.stride(0)) << " ";
-#endif
 
   // 测试 size 方法
   file << std::to_string(accessor.size(0)) << " ";
@@ -200,8 +262,7 @@ TEST_F(TensorAccessorTest, TensorAccessorBaseDirect) {
   at::TensorAccessorBase<float, 2, at::DefaultPtrTraits, int64_t> base(
       data, sizes, strides);
 
-  // 测试 sizes() 方法 - 返回 IntArrayRef
-#if USE_PADDLE_API
+  // 测试 sizes() 方法 - 返回 IntArrayRef（两库接口一致，无需分叉）
   c10::IntArrayRef sizes_ref = base.sizes();
   file << std::to_string(sizes_ref.size()) << " ";
   file << std::to_string(sizes_ref[0]) << " ";
@@ -212,15 +273,6 @@ TEST_F(TensorAccessorTest, TensorAccessorBaseDirect) {
   file << std::to_string(strides_ref.size()) << " ";
   file << std::to_string(strides_ref[0]) << " ";
   file << std::to_string(strides_ref[1]) << " ";
-#else
-  // libtorch: 使用 size(i) 和 stride(i)
-  file << "2 ";
-  file << std::to_string(base.size(0)) << " ";
-  file << std::to_string(base.size(1)) << " ";
-  file << "2 ";
-  file << std::to_string(base.stride(0)) << " ";
-  file << std::to_string(base.stride(1)) << " ";
-#endif
 
   // 测试 size(index_t i) 方法
   file << std::to_string(base.size(0)) << " ";
@@ -251,17 +303,11 @@ TEST_F(TensorAccessorTest, TensorAccessorBaseConstData) {
   const at::TensorAccessorBase<float, 1, at::DefaultPtrTraits, int64_t> base(
       data, sizes, strides);
 
-  // 测试 sizes() 和 strides() - const 版本
-#if USE_PADDLE_API
+  // 测试 sizes() 和 strides() - const 版本（两库接口一致，无需分叉）
   c10::IntArrayRef s = base.sizes();
   c10::IntArrayRef str = base.strides();
   file << std::to_string(s[0]) << " ";
   file << std::to_string(str[0]) << " ";
-#else
-  // libtorch: 使用 size(i) 和 stride(i)
-  file << std::to_string(base.size(0)) << " ";
-  file << std::to_string(base.stride(0)) << " ";
-#endif
 
   // 测试 const data() 方法
   const float* const_ptr = base.data();
@@ -287,8 +333,7 @@ TEST_F(TensorAccessorTest, TensorAccessorDirect) {
   at::TensorAccessor<float, 3, at::DefaultPtrTraits, int64_t> accessor(
       data, sizes, strides);
 
-  // 测试 sizes() 方法
-#if USE_PADDLE_API
+  // 测试 sizes() 方法（两库接口一致，无需分叉）
   c10::IntArrayRef s = accessor.sizes();
   file << std::to_string(s.size()) << " ";
   file << std::to_string(s[0]) << " ";
@@ -301,17 +346,6 @@ TEST_F(TensorAccessorTest, TensorAccessorDirect) {
   file << std::to_string(str[0]) << " ";
   file << std::to_string(str[1]) << " ";
   file << std::to_string(str[2]) << " ";
-#else
-  // libtorch: 使用 size(i) 和 stride(i)
-  file << "3 ";
-  file << std::to_string(accessor.size(0)) << " ";
-  file << std::to_string(accessor.size(1)) << " ";
-  file << std::to_string(accessor.size(2)) << " ";
-  file << "3 ";
-  file << std::to_string(accessor.stride(0)) << " ";
-  file << std::to_string(accessor.stride(1)) << " ";
-  file << std::to_string(accessor.stride(2)) << " ";
-#endif
 
   // 测试 size(index_t i) 方法
   file << std::to_string(accessor.size(0)) << " ";
@@ -713,7 +747,9 @@ TEST_F(TensorAccessorTest, PackedAccessor64Write) {
   file.saveFile();
 }
 
-// 测试 TensorAccessor 数据修改
+#endif  // USE_PADDLE_API
+
+// 测试 TensorAccessor 数据修改（两库均支持，无需条件编译）
 TEST_F(TensorAccessorTest, TensorAccessorWrite) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -771,8 +807,6 @@ TEST_F(TensorAccessorTest, TensorAccessorCoverage) {
 
   file.saveFile();
 }
-
-#endif  // USE_PADDLE_API
 
 }  // namespace test
 }  // namespace at
