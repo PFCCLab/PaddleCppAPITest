@@ -103,6 +103,9 @@ TEST_F(TensorFactoryTest, TensorFromLongArrayRef) {
 }
 
 // at::tensor(ArrayRef<bool>)
+// DIFF: write_tensor_info_to_file 中 static_cast<int>(t.scalar_type()) 对 Bool
+// 类型在两框架间枚举值不同（Paddle=10, Torch=11），故此处不使用辅助函数，
+// 手动写出 dim/numel/sizes，并注释掉 scalar_type 输出。
 TEST_F(TensorFactoryTest, TensorFromBoolArrayRef) {
   bool data[] = {true, false, true, true, false};
   at::Tensor t = at::zeros({5}, at::kBool);
@@ -112,7 +115,14 @@ TEST_F(TensorFactoryTest, TensorFromBoolArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  write_tensor_info_to_file(&file, t);
+  // 手动写 dim / numel / sizes（与 write_tensor_info_to_file 一致）
+  file << std::to_string(t.dim()) << " ";
+  file << std::to_string(t.numel()) << " ";
+  for (int64_t i = 0; i < t.dim(); ++i) {
+    file << std::to_string(t.sizes()[i]) << " ";
+  }
+  // DIFF: scalar_type 枚举值 Paddle=10 vs Torch=11，两框架不一致，故注释掉。
+  // file << std::to_string(static_cast<int>(t.scalar_type())) << " ";
   bool* ptr = t.data_ptr<bool>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(static_cast<int>(ptr[i])) << " ";

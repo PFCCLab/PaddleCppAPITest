@@ -19,6 +19,22 @@ class TorchCudaTest : public ::testing::Test {
   void SetUp() override {}
 };
 
+static std::string getCudaUnavailableReason() {
+  try {
+    auto count = torch::cuda::device_count();
+    if (count <= 0) {
+      return "CUDA 运行时可访问，但没有可见 GPU 设备";
+    }
+    return "";
+  } catch (const std::exception& e) {
+    return std::string("CUDA 不可用：") + e.what() +
+           "（注意：仅安装 CUDA Toolkit 不足，还需要 GPU 版 Paddle/libtorch）";
+  } catch (...) {
+    return "CUDA 不可用：未知异常（注意：仅安装 CUDA Toolkit 不足，还需要 GPU "
+           "版 Paddle/libtorch）";
+  }
+}
+
 // 安全地检测 CUDA 可用性：Paddle 未编译 CUDA 时 device_count() 会抛异常
 static bool isCudaAvailable() {
   try {
@@ -34,7 +50,9 @@ TEST_F(TorchCudaTest, DeviceCount) {
   try {
     count = torch::cuda::device_count();
   } catch (const std::exception& e) {
-    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）：" << e.what();
+    GTEST_SKIP()
+        << std::string("CUDA 不可用：") << e.what()
+        << "（注意：仅安装 CUDA Toolkit 不足，还需要 GPU 版 Paddle/libtorch）";
   }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -48,7 +66,7 @@ TEST_F(TorchCudaTest, DeviceCount) {
 // is_available
 TEST_F(TorchCudaTest, IsAvailable) {
   if (!isCudaAvailable()) {
-    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）";
+    GTEST_SKIP() << getCudaUnavailableReason();
   }
   bool available = torch::cuda::is_available();
   auto file_name = g_custom_param.get();
@@ -61,7 +79,7 @@ TEST_F(TorchCudaTest, IsAvailable) {
 // device_count 和 is_available 一致性
 TEST_F(TorchCudaTest, ConsistencyCheck) {
   if (!isCudaAvailable()) {
-    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）";
+    GTEST_SKIP() << getCudaUnavailableReason();
   }
   auto count = torch::cuda::device_count();
   bool available = torch::cuda::is_available();
@@ -77,7 +95,7 @@ TEST_F(TorchCudaTest, ConsistencyCheck) {
 // at::cuda 命名空间别名
 TEST_F(TorchCudaTest, AtCudaNamespace) {
   if (!isCudaAvailable()) {
-    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）";
+    GTEST_SKIP() << getCudaUnavailableReason();
   }
   auto count = torch::cuda::device_count();
   bool available = torch::cuda::is_available();
@@ -92,7 +110,7 @@ TEST_F(TorchCudaTest, AtCudaNamespace) {
 // synchronize（仅在 CUDA 可用时有意义）
 TEST_F(TorchCudaTest, Synchronize) {
   if (!isCudaAvailable()) {
-    GTEST_SKIP() << "CUDA 不可用（未编译 CUDA）";
+    GTEST_SKIP() << getCudaUnavailableReason();
   }
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);

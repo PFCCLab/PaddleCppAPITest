@@ -202,6 +202,11 @@ TEST_F(OptionalArrayRefTest, SwapMethod) {
 }
 
 // emplace 方法
+// DIFF: emplace(initializer_list) 所构造的临时 initializer_list
+// 在语句结束后被销毁， OptionalArrayRef 内部 ArrayRef
+// 持有悬空指针，遍历元素时输出随机内存内容， 导致 Paddle 与 Torch
+// 结果不一致（element[0]/[2]/[3] 均为随机值）。 仅保留 has_value 和 size
+// 的输出（两者一致），注释掉元素遍历。
 TEST_F(OptionalArrayRefTest, EmplaceMethod) {
   c10::OptionalArrayRef<int64_t> arr;
   auto file_name = g_custom_param.get();
@@ -210,9 +215,11 @@ TEST_F(OptionalArrayRefTest, EmplaceMethod) {
   arr.emplace(std::initializer_list<int64_t>{1, 2, 3, 4});
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
+  // DIFF: 以下元素遍历输出悬空引用（initializer_list 临时对象已销毁），
+  // 结果为随机内存值，Paddle 与 Torch 间不可复现，故注释掉。
+  // for (const auto& v : *arr) {
+  //   file << std::to_string(v) << " ";
+  // }
   file.saveFile();
 }
 
@@ -331,6 +338,10 @@ TEST_F(OptionalArrayRefTest, EmptyArray) {
 }
 
 // from vector (more reliable than initializer_list)
+// DIFF: std::vector<int64_t>{1, 2, 3, 4, 5} 是临时对象，传入 OptionalArrayRef
+// 后即被销毁， 内部 ArrayRef 持有悬空指针，遍历元素时输出随机内存内容， 导致
+// Paddle 与 Torch 结果不一致（element[0]-[3] 均为随机值，element[4]
+// 偶然相同）。 仅保留 has_value 和 size 的输出（两者一致），注释掉元素遍历。
 TEST_F(OptionalArrayRefTest, InPlaceConstruction) {
   c10::OptionalArrayRef<int64_t> arr(std::vector<int64_t>{1, 2, 3, 4, 5});
   auto file_name = g_custom_param.get();
@@ -338,9 +349,11 @@ TEST_F(OptionalArrayRefTest, InPlaceConstruction) {
   file.openAppend();
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
+  // DIFF: 以下元素遍历输出悬空引用（临时 vector 已销毁），
+  // 结果为随机内存值，Paddle 与 Torch 间不可复现，故注释掉。
+  // for (const auto& v : *arr) {
+  //   file << std::to_string(v) << " ";
+  // }
   file.saveFile();
 }
 

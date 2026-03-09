@@ -22,6 +22,37 @@ include(external)
 
 find_package(Threads REQUIRED)
 
+# ---------------------------------------------------------------------------
+# CUDA Toolkit (optional) — needed for HAS_CUDA tests
+# ---------------------------------------------------------------------------
+# Prefer auto-detection; if it fails, fall back to CUDA_TOOLKIT_ROOT cache var.
+set(CUDA_TOOLKIT_ROOT
+    ""
+    CACHE PATH "Path to CUDA toolkit root (e.g. /home/aistudio/cuda-11.8). \
+Leave empty to let CMake auto-detect.")
+
+if(CUDA_TOOLKIT_ROOT)
+  set(CUDAToolkit_ROOT "${CUDA_TOOLKIT_ROOT}")
+endif()
+
+find_package(CUDAToolkit QUIET)
+
+if(CUDAToolkit_FOUND)
+  message(STATUS "CUDA Toolkit ${CUDAToolkit_VERSION} found: \
+${CUDAToolkit_INCLUDE_DIRS}")
+  include_directories(${CUDAToolkit_INCLUDE_DIRS})
+else()
+  # Last-resort: accept a bare include path supplied by the user
+  if(CUDA_TOOLKIT_ROOT AND EXISTS "${CUDA_TOOLKIT_ROOT}/include/cuda.h")
+    message(STATUS "CUDA headers found via CUDA_TOOLKIT_ROOT: \
+${CUDA_TOOLKIT_ROOT}/include")
+    include_directories("${CUDA_TOOLKIT_ROOT}/include")
+  else()
+    message(STATUS "CUDA Toolkit not found — CUDA tests will be skipped. \
+Set -DCUDA_TOOLKIT_ROOT=/home/aistudio/cuda-11.8 to enable them.")
+  endif()
+endif()
+
 set(EXE_TARGET_NAME "all_api_tests")
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ansi -Wno-deprecated")
