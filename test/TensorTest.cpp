@@ -893,8 +893,8 @@ TEST_F(TensorTest, IndexSelect) {
 TEST_F(TensorTest, DtypeMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.createFile();
-  // dtype() 在 TensorBody 中返回 TypeMeta，使用 scalar_type() 获取
-  // ScalarType
+  // dtype() 在 TensorBody 中返回 TypeMeta，
+  // 使用 scalar_type() 获取 ScalarType
   c10::ScalarType dt = tensor.scalar_type();
   file << std::to_string(static_cast<int>(dt)) << " ";
   file.saveFile();
