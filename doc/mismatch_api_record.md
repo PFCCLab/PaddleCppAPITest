@@ -1,6 +1,6 @@
 ##### 记录PaddleCPPAPITest仓库检测出来的接口不一致情况
 
-# Allocator 类与 torch 存在差异
+# Allocator
 
 ## 差异点列表
 
@@ -17,7 +17,7 @@
 
 ---
 
-# Device 类与 torch 存在差异
+# Device
 
 > Paddle 头文件：`c10\core\Device.h`
 
@@ -31,7 +31,11 @@
 
 ---
 
-# BFloat16 类与 torch 存在差异
+提交的对齐 PR：https://github.com/PaddlePaddle/Paddle/pull/78066
+
+---
+
+# BFloat16
 
 > Paddle 头文件：`c10\util\BFloat16.h`
 
@@ -42,7 +46,7 @@
 
 ---
 
-# DefaultDtype 类与 torch 存在差异
+# DefaultDtype
 
 > Paddle 头文件：`c10\core\DefaultDtype.h`
 
@@ -53,7 +57,7 @@
 
 ---
 
-# IValue 类与 torch 存在差异
+# IValue
 
 > Paddle 头文件：`ATen/core/ivalue.h`
 
@@ -63,11 +67,10 @@
 2.  **方法命名风格**：PyTorch 使用 camelCase（如 `isNone()`、`toBool()`）；Paddle 使用 snake_case（如 `is_none()`、`to_bool()`）
 3.  **`tagKind()` 方法**：PyTorch 存在；Paddle 中**不存在**
 4.  **字符串提取方法**：PyTorch 为 `toStringRef()`；Paddle 为 `to_string()`
-5.  **Optional 支持命名空间**：PyTorch 使用 `c10::optional`；Paddle 使用 `paddle::optional`
 
 ---
 
-# SparseTensor 类与 torch 存在差异
+# SparseTensor
 
 > Paddle 头文件：`ATen/ops/sparse_coo_tensor.h`、`ATen/ops/sparse_csr_tensor.h`
 
@@ -77,7 +80,7 @@
 
 ---
 
-# OptionalArrayRef 类与 torch 存在差异
+# OptionalArrayRef
 
 > Paddle 头文件：`c10\util\OptionalArrayRef.h`
 
@@ -90,9 +93,9 @@
 
 ---
 
-# at::indexing（Slice / EllipsisIndexType）类与 torch 存在差异
+# at::indexing（Slice / EllipsisIndexType）
 
-> Paddle 头文件：`ATen/indexing.h`（位于 `paddle/phi/api/include/compat/ATen/indexing.h`）
+> Paddle 头文件：`ATen/indexing.h`
 > PyTorch 头文件：`ATen/TensorIndexing.h`
 
 ## 差异点列表
@@ -104,16 +107,149 @@
     - Paddle：`t.index(std::vector<at::indexing::Slice>{Slice(0,2), Slice(1,3)})` —— 仅重载 `std::vector<Slice>`
 4.  **`TensorIndex` 类不存在**：Paddle compat 的 `indexing.h` 未定义 `TensorIndex` 类，注释掉了 `index(ArrayRef<TensorIndex>)` 重载，仅保留 `index(const std::vector<Slice>&)`
 
-## 修复方式
 
-在Paddle源文件修改前先使用 `USE_PADDLE_API` 宏在编译期分支，分别调用各自支持的接口：
+---
 
-```cpp
-#if USE_PADDLE_API
-  at::Tensor result = t.index(std::vector<at::indexing::Slice>{at::indexing::Slice(0, 2), at::indexing::Slice(1, 3)});
-#else
-  at::Tensor result = t.index({at::indexing::Slice(0, 2), at::indexing::Slice(1, 3)});
-#endif
-```
+# ScalarType 扩展类型函数
+
+> Paddle 头文件：`c10/core/ScalarType.h`
+
+## 差异点列表
+
+### 1. 量化类型 `elementSize` 未实现
+
+`c10::elementSize()` 对量化整型不支持：
+
+| ScalarType | PyTorch 返回值 | Paddle 状态 |
+|------------|--------------|------------|
+| `QInt8`    | 1            | 未实现，编译报错 |
+| `QUInt8`   | 1            | 未实现，编译报错 |
+| `QInt32`   | 4            | 未实现，编译报错 |
+
+### 2. Float8 扩展枚举值缺失
+
+Paddle compat 的 `ScalarType` 枚举未定义以下两个值，`isFloat8Type` 实现中也将其注释掉：
+
+- `ScalarType::Float8_e5m2fnuz`
+- `ScalarType::Float8_e4m3fnuz`
+
+PyTorch 完整支持这两个 Float8 变体，Paddle compat 仅保留了 `Float8_e5m2` 和 `Float8_e4m3fn`。
+
+### 3. `ComplexHalf` 枚举值缺失
+
+Paddle compat 的 `ScalarType` 枚举未包含 `ComplexHalf`，`isComplexType` 实现中对该分支也已注释掉。PyTorch 完整支持。
+
+### 4. 以下 10 个函数/常量在 Paddle compat 中完全缺失
+
+整块 `#ifndef USE_PADDLE_API` 保护了如下 10 个测试，Paddle 下全部跳过：
+
+| 函数/常量 | 说明 |
+|-----------|------|
+| `c10::isQIntType()` | 判断量化整型 |
+| `c10::isBitsType()` | 判断位类型 |
+| `c10::isBarebonesUnsignedType()` | 判断裸无符号整型 |
+| `c10::toQIntType()` | 转换为量化整型 |
+| `c10::toUnderlying()` | 量化类型的底层类型 |
+| `c10::isUnderlying()` | 判断底层类型关系 |
+| `c10::toRealValueType()` | 复数类型转实数类型 |
+| `c10::toComplexType()` | 实数类型转复数类型 |
+| `c10::canCast()` | 类型间是否可转换 |
+| `c10::NumScalarTypes` | ScalarType 枚举总数常量 |
+
+## 修复方向
+
+在 Paddle compat 的 `c10/core/ScalarType.h` 中逐一补全上述枚举值和函数实现，完成后将对应测试移出 `#ifndef USE_PADDLE_API` 块。
+
+---
+
+# TensorAccessor / GenericPackedTensorAccessor
+
+> Paddle 头文件：`ATen/core/TensorAccessor.h`
+
+## 差异点列表
+
+### `GenericPackedTensorAccessorBase` / `GenericPackedTensorAccessor` 系列类缺失
+
+Paddle compat 的 `ATen/core/TensorAccessor.h` 中**未实现**以下类和类型别名：
+
+- `at::GenericPackedTensorAccessorBase<T, N, PtrTraits, index_t>`
+- `at::GenericPackedTensorAccessor<T, N, PtrTraits, index_t>`
+- `at::PackedTensorAccessor32<T, N, PtrTraits>`（`index_t = int32_t` 别名）
+- `at::PackedTensorAccessor64<T, N, PtrTraits>`（`index_t = int64_t` 别名）
+
+以及 `at::Tensor` 上的 `packed_accessor64<T,N>()` 方法（Paddle compat 仅有 `packed_accessor32`）。
+
+libtorch 在同路径头文件中完整定义了上述类，供 CUDA kernel 使用。
+
+受影响测试（共 14 个，全被 `#ifndef USE_PADDLE_API` 保护跳过）：
+`GenericPackedTensorAccessorBaseDirect`、`GenericPackedTensorAccessorDirect`、`GenericPackedTensorAccessorTranspose`、`GenericPackedTensorAccessor1D`、`PackedTensorAccessor64Alias`、`PackedTensorAccessor32Alias`、`GenericPackedTensorAccessorInt64Source`、`TensorAccessor2D`、`ConstGenericPackedTensorAccessor`、`ConstGenericPackedTensorAccessorBaseData`、`GenericPackedTensorAccessor1DTranspose`、`PackedAccessor64Write`、`TensorAccessorWrite`、`TensorAccessorCoverage`。
+
+## 修复方向
+
+在 Paddle compat 的 `ATen/core/TensorAccessor.h` 中补充 `GenericPackedTensorAccessorBase`、`GenericPackedTensorAccessor` 完整实现及 `PackedTensorAccessor32/64` 类型别名；并在 `ATen/core/Tensor.h` 中补充 `packed_accessor64<T,N>()` 方法。
+
+---
+
+# Exception 宏（TORCH_CHECK_EQ / TORCH_CHECK_NE 失败语义差异）
+
+> Paddle 头文件：`c10/util/Exception.h`
+
+## 差异点列表
+
+1. **`TORCH_CHECK_EQ` 失败行为**：PyTorch 调用 `abort()` 终止进程（测试用 `EXPECT_DEATH` 捕获）；Paddle 抛出 C++ 异常（测试用 try-catch 捕获）。
+2. **`TORCH_CHECK_NE` 失败行为**：同上，两者失败行为不一致。
+
+当前代码通过 `#if USE_PADDLE_API` 分叉两套检测逻辑以绕过差异，但这导致两个平台实际走不同测试路径，无法真正对比行为。
+
+---
+
+# CUDA Context（`at::cuda::getCurrentCUDAStream` 缺失）
+
+> Paddle 头文件：`ATen/cuda/CUDAContext.h`（Paddle compat 中不存在）
+
+## 差异点列表
+
+1. **`at::cuda::getCurrentCUDAStream()` 不存在**：Paddle compat 未提供该函数，整个调用块被 `#ifndef USE_PADDLE_API` 保护，Paddle 下只输出固定字符串 `"stream_skipped_paddle"`，无法进行真实对比。
+
+---
+
+# CUDA 工具类（CUDAGuard / CUDAStream / PhiloxCudaState 全部缺失）
+
+> Paddle 头文件：`c10/cuda/CUDAGuard.h`、`c10/cuda/CUDAStream.h`、`c10/cuda/PhiloxCudaState.h`（Paddle compat 中均不存在）
+> 测试文件：`test/CUDATest2.cpp`
+
+## 差异点列表
+
+以下类和相关头文件在 Paddle compat 中**完全缺失**，对应测试被 `#ifndef USE_PADDLE_API` 整块保护跳过：
+
+| 缺失类/结构 | 头文件 |
+|-------------|--------|
+| `c10::cuda::CUDAGuard` | `c10/cuda/CUDAGuard.h` |
+| `c10::cuda::OptionalCUDAGuard` | `c10/cuda/CUDAGuard.h` |
+| `c10::cuda::CUDAStream` | `c10/cuda/CUDAStream.h` |
+| `c10::cuda::getCurrentCUDAStream()` | `c10/cuda/CUDAStream.h` |
+| `c10::cuda::PhiloxCudaState` | `c10/cuda/PhiloxCudaState.h` |
+
+受影响测试（约 17 个）：`CUDAGuardDefault`、`CUDAGuardDeviceIndex`、`CUDAGuardDevice`、`CUDAGuardSetDevice`、`CUDAGuardResetDevice`、`CUDAGuardSetIndex`、`CUDAGuardCurrentDevice`、`OptionalCUDAGuardDefault`、`CUDAStreamDefault`、`CUDAStreamFromStream`、`CUDAStreamId`、`CUDAStreamDeviceType`、`CUDAStreamStream`、`CUDAStreamRawStream`、`GetCurrentCUDAStream`、`PhiloxCudaStateDefault`、`PhiloxCudaStateWithParams`。
+
+---
+
+# TensorOptions（`requires_grad` 传递问题）
+
+> Paddle 头文件：`c10/core/TensorOptions.h`
+
+## 差异点列表
+
+1. **`at::empty()` 不支持含 `requires_grad` 的 `TensorOptions`**：Paddle 在通过 `at::empty({...}, opts)` 创建 tensor 时，若 `opts` 含有 `requires_grad(true)` 会抛出异常。PyTorch 完整支持。当前测试已绕过：将含 `requires_grad` 的 `opts` 与用于创建 tensor 的 `opts_for_dtype` 分离，单独测试 `requires_grad()` 的读取，但实际上 Paddle 无法通过 `TensorOptions` 在 tensor 创建时传递梯度需求。
+
+---
+
+# Tensor::resize_（Paddle 不支持）
+
+> Paddle 头文件：`ATen/core/Tensor.h`
+
+## 差异点列表
+
+1. **`resize_()` 不支持**：Paddle 调用 `tensor.resize_({...})` 会抛出异常，PyTorch 完整支持原地调整 tensor 形状。当前测试用 try-catch 捕获异常并输出 `"1 "` 表示异常发生，无法对比实际 resize 结果。
 
 ---
