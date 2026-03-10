@@ -6,10 +6,18 @@
 #include <ATen/ops/zeros_like.h>
 #include <gtest/gtest.h>
 
+#include <string>
 #include <vector>
+
+#include "../../src/file_manager.h"
+
+extern paddle_api_test::ThreadSafeParam g_custom_param;
 
 namespace at {
 namespace test {
+
+using paddle_api_test::FileManerger;
+using paddle_api_test::ThreadSafeParam;
 
 class ReshapeTest : public ::testing::Test {
  protected:
@@ -24,96 +32,116 @@ class ReshapeTest : public ::testing::Test {
 };
 
 TEST_F(ReshapeTest, Reshape2DTo1D) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::reshape(original_tensor, {6});
-
-  EXPECT_EQ(result.dim(), 1);
-  EXPECT_EQ(result.numel(), 6);
-  EXPECT_EQ(result.sizes()[0], 6);
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
   float* data = result.data_ptr<float>();
   for (int64_t i = 0; i < 6; ++i) {
-    EXPECT_FLOAT_EQ(data[i], static_cast<float>(i));
+    file << std::to_string(data[i]) << " ";
   }
+  file.saveFile();
 }
 
 TEST_F(ReshapeTest, Reshape2DTo3D) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::reshape(original_tensor, {1, 2, 3});
-
-  EXPECT_EQ(result.dim(), 3);
-  EXPECT_EQ(result.numel(), 6);
-  EXPECT_EQ(result.sizes()[0], 1);
-  EXPECT_EQ(result.sizes()[1], 2);
-  EXPECT_EQ(result.sizes()[2], 3);
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file << std::to_string(result.sizes()[2]) << " ";
   float* data = result.data_ptr<float>();
   for (int64_t i = 0; i < 6; ++i) {
-    EXPECT_FLOAT_EQ(data[i], static_cast<float>(i));
+    file << std::to_string(data[i]) << " ";
   }
+  file.saveFile();
 }
 
 TEST_F(ReshapeTest, ReshapeAutoInferDim) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::reshape(original_tensor, {-1});
-
-  EXPECT_EQ(result.dim(), 1);
-  EXPECT_EQ(result.numel(), 6);
-  EXPECT_EQ(result.sizes()[0], 6);
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file.saveFile();
 }
 
 TEST_F(ReshapeTest, ReshapeInferOneDim) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::reshape(original_tensor, {3, -1});
-
-  EXPECT_EQ(result.dim(), 2);
-  EXPECT_EQ(result.sizes()[0], 3);
-  EXPECT_EQ(result.sizes()[1], 2);  // 6/3 = 2
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file.saveFile();
 }
 
 TEST_F(ReshapeTest, EmptyLike) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::empty_like(original_tensor);
-
-  EXPECT_EQ(result.dim(), 2);
-  EXPECT_EQ(result.sizes()[0], 2);
-  EXPECT_EQ(result.sizes()[1], 3);
-  EXPECT_EQ(result.dtype(), original_tensor.dtype());
-  EXPECT_NE(result.data_ptr(), nullptr);
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file << std::to_string(result.data_ptr() != nullptr) << " ";
+  file.saveFile();
 }
 
 TEST_F(ReshapeTest, ZerosLike) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result = at::zeros_like(original_tensor);
-
-  EXPECT_EQ(result.dim(), 2);
-  EXPECT_EQ(result.sizes()[0], 2);
-  EXPECT_EQ(result.sizes()[1], 3);
-  EXPECT_EQ(result.dtype(), original_tensor.dtype());
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   float* data = result.data_ptr<float>();
   for (int64_t i = 0; i < 6; ++i) {
-    EXPECT_FLOAT_EQ(data[i], 0.0f);
+    file << std::to_string(data[i]) << " ";
   }
+  file.saveFile();
 }
 
 TEST_F(ReshapeTest, EmptyLikeWithOptions) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result =
       at::empty_like(original_tensor, at::TensorOptions().dtype(at::kDouble));
-
-  EXPECT_EQ(result.dim(), 2);
-  EXPECT_EQ(result.sizes()[0], 2);
-  EXPECT_EQ(result.sizes()[1], 3);
-  EXPECT_EQ(result.dtype(), at::kDouble);
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file.saveFile();
 }
 
 TEST_F(ReshapeTest, ZerosLikeWithOptions) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
   at::Tensor result =
       at::zeros_like(original_tensor, at::TensorOptions().dtype(at::kInt));
-
-  EXPECT_EQ(result.dim(), 2);
-  EXPECT_EQ(result.sizes()[0], 2);
-  EXPECT_EQ(result.sizes()[1], 3);
-  EXPECT_EQ(result.dtype(), at::kInt);
-
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   int* data = result.data_ptr<int>();
   for (int64_t i = 0; i < 6; ++i) {
-    EXPECT_EQ(data[i], 0);
+    file << std::to_string(data[i]) << " ";
   }
+  file.saveFile();
 }
 
 }  // namespace test

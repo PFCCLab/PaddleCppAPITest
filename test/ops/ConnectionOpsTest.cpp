@@ -4,10 +4,18 @@
 #include <ATen/ops/zeros.h>
 #include <gtest/gtest.h>
 
+#include <string>
 #include <vector>
+
+#include "../../src/file_manager.h"
+
+extern paddle_api_test::ThreadSafeParam g_custom_param;
 
 namespace at {
 namespace test {
+
+using paddle_api_test::FileManerger;
+using paddle_api_test::ThreadSafeParam;
 
 class ConnectionOpsTest : public ::testing::Test {
  protected:
@@ -30,32 +38,35 @@ class ConnectionOpsTest : public ::testing::Test {
 TEST_F(ConnectionOpsTest, CatDim0) {
   std::vector<at::Tensor> tensors = {tensor1, tensor2};
   at::Tensor result = at::cat(tensors, 0);
-
-  EXPECT_EQ(result.dim(), 2);
-  EXPECT_EQ(result.sizes()[0], 4);  // 2+2
-  EXPECT_EQ(result.sizes()[1], 3);
-  EXPECT_EQ(result.numel(), 12);
-
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file << std::to_string(result.numel()) << " ";
   float* data = result.data_ptr<float>();
   for (int64_t i = 0; i < 12; ++i) {
-    EXPECT_FLOAT_EQ(data[i], static_cast<float>(i));
+    file << std::to_string(data[i]) << " ";
   }
+  file.saveFile();
 }
 
 TEST_F(ConnectionOpsTest, CatDim1) {
   std::vector<at::Tensor> tensors = {tensor1, tensor2};
   at::Tensor result = at::cat(tensors, 1);
-
-  EXPECT_EQ(result.dim(), 2);
-  EXPECT_EQ(result.sizes()[0], 2);
-  EXPECT_EQ(result.sizes()[1], 6);  // 3+3
-  EXPECT_EQ(result.numel(), 12);
-
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file << std::to_string(result.numel()) << " ";
   float* data = result.data_ptr<float>();
-  float expected_values[12] = {0, 1, 2, 6, 7, 8, 3, 4, 5, 9, 10, 11};
   for (int64_t i = 0; i < 12; ++i) {
-    EXPECT_FLOAT_EQ(data[i], expected_values[i]);
+    file << std::to_string(data[i]) << " ";
   }
+  file.saveFile();
 }
 
 TEST_F(ConnectionOpsTest, CatThreeTensors) {
@@ -67,10 +78,13 @@ TEST_F(ConnectionOpsTest, CatThreeTensors) {
 
   std::vector<at::Tensor> tensors = {tensor1, tensor2, tensor3};
   at::Tensor result = at::cat(tensors, 0);
-
-  EXPECT_EQ(result.sizes()[0], 6);  // 2+2+2
-  EXPECT_EQ(result.sizes()[1], 3);
-  EXPECT_EQ(result.numel(), 18);
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file << std::to_string(result.numel()) << " ";
+  file.saveFile();
 }
 
 TEST_F(ConnectionOpsTest, CatWithDifferentTypes) {
@@ -79,11 +93,13 @@ TEST_F(ConnectionOpsTest, CatWithDifferentTypes) {
 
   std::vector<at::Tensor> tensors = {int_tensor, float_tensor};
   at::Tensor result = at::cat(tensors, 0);
-
-  // Tensors should be promoted to common type
-  EXPECT_EQ(result.dtype(), at::kInt);
-  EXPECT_EQ(result.sizes()[0], 2);
-  EXPECT_EQ(result.sizes()[1], 2);
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.sizes()[1]) << " ";
+  file.saveFile();
 }
 
 }  // namespace test

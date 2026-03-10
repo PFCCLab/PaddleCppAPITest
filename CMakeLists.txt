@@ -58,7 +58,8 @@ set(COMMAND_TO_RUN
 include_directories(${Python3_INCLUDE_DIRS})
 link_directories("${Python3_LIBRARY_DIRS}")
 
-set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include)
+set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include
+                    ${PROJECT_SOURCE_DIR}/src)
 
 enable_testing()
 include_directories(${COMMON_INCLUDES})
@@ -66,6 +67,12 @@ include(cmake/build.cmake)
 
 file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp
      ${PROJECT_SOURCE_DIR}/test/ops/*.cpp)
+# 排除已unmatch开头的文件
+file(GLOB UNMATCH_FILES ${PROJECT_SOURCE_DIR}/test/unmatch*.cpp
+     ${PROJECT_SOURCE_DIR}/test/ops/unmatch*.cpp)
+
+list(REMOVE_ITEM TEST_SRC_FILES ${UNMATCH_FILES})
+
 file(GLOB_RECURSE TEST_BASE_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 set(PADDLE_TARGET_FOLDER ${CMAKE_BINARY_DIR}/paddle)
 

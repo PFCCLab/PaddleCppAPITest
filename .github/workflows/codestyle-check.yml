@@ -1,0 +1,55 @@
+name: codestyle-check
+
+on:
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  check-bypass:
+    name: Check bypass
+    uses: ./.github/workflows/check-bypass.yml
+    with:
+      workflow-name: "codestyle"
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  pre-commit:
+    name: Run pre-commit checks
+    needs: check-bypass
+    if: ${{ github.repository_owner == 'PFCCLab' && needs.check-bypass.outputs.can-skip != 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      PR_ID: ${{ github.event.pull_request.number }}
+
+    steps:
+      - name: Checkout base repo
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 200
+
+      - name: Merge PR to test branch
+        run: |
+          git fetch origin pull/${PR_ID}/merge
+          git checkout -b test FETCH_HEAD
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.14"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv venv -p 3.14
+          source .venv/bin/activate
+          uv pip install cpplint==1.6.0 clang-format==13.0.0
+
+      - name: Install prek
+        run: |
+          uv tool install prek
+
+      - name: Run prek
+        run: |
+          source .venv/bin/activate
+          prek run --all-files

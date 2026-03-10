@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
-import sys
 import re
+import sys
 
 
 def parse_coverage_info(info_path):
@@ -114,7 +114,11 @@ def get_cpp_functions(header_file):
         line_num = idx + 1
         line = line.strip()
         # 跳过注释
-        if line.startswith("//") or line.startswith("/*") or line.startswith("*"):
+        if (
+            line.startswith("//")
+            or line.startswith("/*")
+            or line.startswith("*")
+        ):
             continue
         # 跳过宏定义
         if line.startswith("#"):
@@ -262,7 +266,11 @@ def main():
     print(f"Scanning headers in {header_folder}...")
     for root, dirs, files in os.walk(header_folder):
         for file in files:
-            if file.endswith(".h") or file.endswith(".hpp") or file.endswith(".cuh"):
+            if (
+                file.endswith(".h")
+                or file.endswith(".hpp")
+                or file.endswith(".cuh")
+            ):
                 full_path = os.path.join(root, file)
                 # 提取函数
                 funcs = get_cpp_functions(full_path)
