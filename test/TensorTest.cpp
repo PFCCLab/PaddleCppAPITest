@@ -1,6 +1,11 @@
 #include <ATen/ATen.h>
 #include <ATen/core/Tensor.h>
+#include <ATen/ops/new_empty.h>
+#include <ATen/ops/new_full.h>
+#include <ATen/ops/new_ones.h>
+#include <ATen/ops/new_zeros.h>
 #include <ATen/ops/ones.h>
+#include <ATen/ops/resize.h>
 #include <gtest/gtest.h>
 #include <torch/all.h>
 
