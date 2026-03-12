@@ -3,6 +3,7 @@
 #include <functional>
 #include <mutex>
 #include <shared_mutex>
+#include <sstream>
 #include <string>
 
 namespace paddle_api_test {
@@ -16,6 +17,12 @@ class FileManerger {
   void openAppend();
   void writeString(const std::string& str);
   FileManerger& operator<<(const std::string& str);
+  template <typename T>
+  FileManerger& operator<<(const T& value) {
+    std::ostringstream oss;
+    oss << value;
+    return operator<<(oss.str());
+  }
   void saveFile();
 
   // 捕获标准输出到文件

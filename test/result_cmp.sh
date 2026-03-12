@@ -8,6 +8,14 @@ PADDLE_PATH=${BUILD_PATH}/paddle/
 TORCH_PATH=${BUILD_PATH}/torch/
 RESULT_FILE_PATH="/tmp/paddle_cpp_api_test/"
 
+# 保存原始终端输出，并在退出时稳定打印日志路径
+LOG_FILE="${RESULT_FILE_PATH}result_cmp_$(date +%Y%m%d_%H%M%S).log"
+mkdir -p "${RESULT_FILE_PATH}"
+exec 3>&1 4>&2
+trap 'status=$?; printf "\nDone. Full output saved to: %s\n" "$LOG_FILE" | tee -a "$LOG_FILE" >&3; exit $status' EXIT
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "Log file: $LOG_FILE"
+
 # 记录PADDLE_PATH下所有可执行文件到列表
 echo "Collecting and executing Paddle executables..."
 PADDLE_EXECUTABLES=()
