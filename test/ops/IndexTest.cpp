@@ -32,6 +32,7 @@ class IndexTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
+// 输出 shape、numel、stride、is_contiguous
 static void write_index_result_to_file(FileManerger* file,
                                        const at::Tensor& result) {
   *file << std::to_string(result.dim()) << " ";
@@ -39,6 +40,11 @@ static void write_index_result_to_file(FileManerger* file,
   for (int64_t i = 0; i < result.dim(); ++i) {
     *file << std::to_string(result.sizes()[i]) << " ";
   }
+  auto strides = result.strides();
+  for (int64_t i = 0; i < result.dim(); ++i) {
+    *file << std::to_string(strides[i]) << " ";
+  }
+  *file << std::to_string(static_cast<int>(result.is_contiguous())) << " ";
 }
 
 // Slice 构造测试
@@ -46,6 +52,7 @@ TEST_F(IndexTest, SliceConstruction) {
   at::indexing::Slice s1(0, 3);
   at::indexing::Slice s2(1, 5, 2);
   at::indexing::Slice s3;  // 默认构造
+  (void)s3;
 
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -76,7 +83,8 @@ TEST_F(IndexTest, IndexSingleSlice) {
   FileManerger file(file_name);
   file.openAppend();
   write_index_result_to_file(&file, result);
-  float* data = result.data_ptr<float>();
+  at::Tensor c = result.contiguous();
+  float* data = c.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
   file.saveFile();
 }
@@ -89,8 +97,9 @@ TEST_F(IndexTest, IndexMultiSlice) {
   FileManerger file(file_name);
   file.openAppend();
   write_index_result_to_file(&file, result);
-  float* data = result.data_ptr<float>();
-  for (int64_t i = 0; i < result.numel(); ++i) {
+  at::Tensor c = result.contiguous();
+  float* data = c.data_ptr<float>();
+  for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(data[i]) << " ";
   }
   file.saveFile();
@@ -104,9 +113,10 @@ TEST_F(IndexTest, IndexMemberFunction) {
   FileManerger file(file_name);
   file.openAppend();
   write_index_result_to_file(&file, result);
-  float* data = result.data_ptr<float>();
+  at::Tensor c = result.contiguous();
+  float* data = c.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
-  file << std::to_string(data[result.numel() - 1]) << " ";
+  file << std::to_string(data[c.numel() - 1]) << " ";
   file.saveFile();
 }
 
@@ -123,8 +133,9 @@ TEST_F(IndexTest, Index2D) {
   FileManerger file(file_name);
   file.openAppend();
   write_index_result_to_file(&file, result);
-  float* rdata = result.data_ptr<float>();
-  for (int64_t i = 0; i < result.numel(); ++i) {
+  at::Tensor c = result.contiguous();
+  float* rdata = c.data_ptr<float>();
+  for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
   file.saveFile();
@@ -145,8 +156,14 @@ TEST_F(IndexTest, IndexDouble) {
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
-  double* rdata = result.data_ptr<double>();
-  for (int64_t i = 0; i < result.numel(); ++i) {
+  auto strides = result.strides();
+  for (int64_t i = 0; i < result.dim(); ++i) {
+    file << std::to_string(strides[i]) << " ";
+  }
+  file << std::to_string(static_cast<int>(result.is_contiguous())) << " ";
+  at::Tensor c = result.contiguous();
+  double* rdata = c.data_ptr<double>();
+  for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
   file.saveFile();
@@ -167,8 +184,14 @@ TEST_F(IndexTest, IndexInt) {
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
-  int* rdata = result.data_ptr<int>();
-  for (int64_t i = 0; i < result.numel(); ++i) {
+  auto strides = result.strides();
+  for (int64_t i = 0; i < result.dim(); ++i) {
+    file << std::to_string(strides[i]) << " ";
+  }
+  file << std::to_string(static_cast<int>(result.is_contiguous())) << " ";
+  at::Tensor c = result.contiguous();
+  int* rdata = c.data_ptr<int>();
+  for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
   file.saveFile();
@@ -189,8 +212,14 @@ TEST_F(IndexTest, IndexLong) {
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
-  int64_t* rdata = result.data_ptr<int64_t>();
-  for (int64_t i = 0; i < result.numel(); ++i) {
+  auto strides = result.strides();
+  for (int64_t i = 0; i < result.dim(); ++i) {
+    file << std::to_string(strides[i]) << " ";
+  }
+  file << std::to_string(static_cast<int>(result.is_contiguous())) << " ";
+  at::Tensor c = result.contiguous();
+  int64_t* rdata = c.data_ptr<int64_t>();
+  for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
   file.saveFile();
@@ -209,9 +238,10 @@ TEST_F(IndexTest, IndexLargeShape) {
   FileManerger file(file_name);
   file.openAppend();
   write_index_result_to_file(&file, result);
-  float* rdata = result.data_ptr<float>();
+  at::Tensor c = result.contiguous();
+  float* rdata = c.data_ptr<float>();
   file << std::to_string(rdata[0]) << " ";
-  file << std::to_string(rdata[result.numel() - 1]) << " ";
+  file << std::to_string(rdata[c.numel() - 1]) << " ";
   file.saveFile();
 }
 
