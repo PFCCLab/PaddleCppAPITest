@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # 出错时退出
+set -u
 
 # using guide: ./result_cmp.sh <BUILD_PATH>
 BUILD_PATH=$1
@@ -22,10 +22,11 @@ PADDLE_EXECUTABLES=()
 for test_file in ${PADDLE_PATH}/*; do
     if [[ -x "$test_file" && -f "$test_file" ]]; then
         filename=$(basename $test_file)
-        ${PADDLE_PATH}${filename}
         PADDLE_EXECUTABLES+=("$filename")
         echo "Executing Paddle test: $filename"
-        $test_file
+        if ! "$test_file"; then
+            echo "FAILED TO RUN: $filename"
+        fi
     fi
 done
 
@@ -35,15 +36,19 @@ TORCH_EXECUTABLES=()
 for test_file in ${TORCH_PATH}/*; do
     if [[ -x "$test_file" && -f "$test_file" ]]; then
         filename=$(basename $test_file)
-        ${TORCH_PATH}${filename}
         TORCH_EXECUTABLES+=("$filename")
         echo "Executing Torch test: $filename"
-        $test_file
+        if ! "$test_file"; then
+            echo "FAILED TO RUN: $filename"
+        fi
     fi
 done
 
 # 比较结果文件
 echo "Comparing result files..."
+match_count=0
+diff_count=0
+missing_count=0
 for ((i=0; i<${#PADDLE_EXECUTABLES[@]}; i++)); do
     paddle_file="${RESULT_FILE_PATH}/${PADDLE_EXECUTABLES[i]}.txt"
     torch_file="${RESULT_FILE_PATH}/${TORCH_EXECUTABLES[i]}.txt"
@@ -51,11 +56,23 @@ for ((i=0; i<${#PADDLE_EXECUTABLES[@]}; i++)); do
     if [[ -f "$paddle_file" && -f "$torch_file" ]]; then
         if diff -q "$paddle_file" "$torch_file" >/dev/null; then
             echo "MATCH: ${PADDLE_EXECUTABLES[i]} and ${TORCH_EXECUTABLES[i]}"
+            ((match_count++))
         else
             echo "DIFFER: ${PADDLE_EXECUTABLES[i]} and ${TORCH_EXECUTABLES[i]}"
-            diff "$paddle_file" "$torch_file"
+            diff "$paddle_file" "$torch_file" || true
+            ((diff_count++))
         fi
     else
         echo "MISSING: ${paddle_file} or ${torch_file}"
+        ((missing_count++))
     fi
 done
+
+echo "========================================"
+echo "SUMMARY: MATCH=${match_count}, DIFFER=${diff_count}, MISSING=${missing_count}"
+
+if ((diff_count > 0 || missing_count > 0)); then
+    exit 1
+fi
+
+exit 0
