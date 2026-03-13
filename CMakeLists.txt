@@ -87,8 +87,12 @@ set(TORCH_LIBRARIES "")
 file(GLOB_RECURSE TORCH_LIBRARIES "${TORCH_DIR}/lib/*.so"
      "${TORCH_DIR}/lib/*.a")
 
+find_package(CUDAToolkit QUIET)
 set(TORCH_INCLUDE_DIR "${TORCH_DIR}/include"
                       "${TORCH_DIR}/include/torch/csrc/api/include/")
+if(CUDAToolkit_FOUND)
+  list(APPEND TORCH_INCLUDE_DIR "${CUDAToolkit_INCLUDE_DIRS}")
+endif()
 
 set(TORCH_TARGET_FOLDER ${CMAKE_BINARY_DIR}/torch)
 set(BIN_PREFIX "torch_")
@@ -120,11 +124,18 @@ set(PADDLE_INCLUDE_DIR
     "${PADDLE_DIR}/include/paddle/phi/api/include/compat/"
     "${PADDLE_DIR}/include/paddle/phi/api/include/compat/torch/csrc/api/include/"
 )
+if(CUDAToolkit_FOUND)
+  list(APPEND PADDLE_INCLUDE_DIR "${CUDAToolkit_INCLUDE_DIRS}")
+  list(APPEND PADDLE_INCLUDE_DIR "${CUDAToolkit_INCLUDE_DIRS}/cccl")
+endif()
 
 set(PADDLE_LIBRARIES
     "${PADDLE_DIR}/base/libpaddle.so" "${PADDLE_DIR}/libs/libcommon.so"
     "${PADDLE_DIR}/libs/libphi.so" "${PADDLE_DIR}/libs/libphi_core.so"
     "${PADDLE_DIR}/libs/libphi_gpu.so")
+if(CUDAToolkit_FOUND)
+  list(APPEND PADDLE_LIBRARIES CUDA::cudart)
+endif()
 link_directories("${PADDLE_DIR}/base")
 link_directories("${PADDLE_DIR}/libs")
 
