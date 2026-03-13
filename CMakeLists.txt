@@ -130,6 +130,30 @@ link_directories("${PADDLE_DIR}/libs")
 
 set(BIN_PREFIX "paddle_")
 
+# Detect CUDA toolkit to enable PADDLE_WITH_CUDA for Paddle tests that need
+# CUDA-specific Paddle compat headers (e.g. CUDAGeneratorImpl).
+find_package(CUDAToolkit QUIET)
+if(CUDAToolkit_FOUND)
+  message(STATUS "CUDAToolkit found: ${CUDAToolkit_INCLUDE_DIRS}")
+  # CUDA 13+ ships Thrust inside cccl/; add it so <thrust/...> resolves.
+  set(_paddle_cuda_incs "${CUDAToolkit_INCLUDE_DIRS}"
+                        "${CUDAToolkit_INCLUDE_DIRS}/cccl")
+  set(_paddle_cuda_defs "PADDLE_WITH_CUDA")
+  # CUDA runtime is needed by Paddle GPU compat headers.
+  list(APPEND PADDLE_LIBRARIES CUDA::cudart)
+else()
+  set(_paddle_cuda_incs "")
+  set(_paddle_cuda_defs "")
+endif()
+
 create_paddle_tests(
-  "${BIN_PREFIX}" "${TEST_SRC_FILES}" "${PADDLE_TARGET_FOLDER}"
-  "${PADDLE_LIBRARIES}" "${PADDLE_INCLUDE_DIR}" 1)
+  "${BIN_PREFIX}"
+  "${TEST_SRC_FILES}"
+  "${PADDLE_TARGET_FOLDER}"
+  "${PADDLE_LIBRARIES}"
+  "${PADDLE_INCLUDE_DIR}"
+  1
+  EXTRA_DEFS
+  ${_paddle_cuda_defs}
+  EXTRA_INCS
+  ${_paddle_cuda_incs})
