@@ -1,131 +1,116 @@
-##### Allocator.h 头文件 API 兼容情况
-
-
 ##### Allocator.h 头文件 API 兼容性
 
-✅ 表示已经支持
-🚧 表示正在支持
-❌ 表示不准备支持
-🔧 表示部分支持（有功能限制）
+对比文件：
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Allocator.h`
+- `/home/may/pytorch/c10/core/Allocator.h`
 
-**按照功能分类排序**
-
----
-
-### 类型定义
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `DeleterFnPtr`               | ✅               | ✅          |   P0  | 删除器函数指针类型 |
+状态说明：
+- `✅` 已实现（接口存在且签名兼容）
+- `🔧` 部分兼容（接口存在，但行为/能力有差异）
+- `❌` 未实现（PyTorch 有，Paddle compat 头文件无）
 
 ---
 
-### DataPtr 类
+### 类型与基础定义
 
-#### 构造与赋值
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `DataPtr()`                  | ✅               | ✅          |   P0  | 默认构造函数 |
-| `DataPtr(void*, Device)`     | ✅               | ✅          |   P0  | 数据指针+设备构造 |
-| `DataPtr(void*, void*, DeleterFnPtr, Device)` | ✅ | ✅       |   P0  | 完整构造函数 |
-| `DataPtr(const DataPtr&)`    | ✅               | ✅          |   P0  | 拷贝构造函数 |
-| `DataPtr(DataPtr&&)`         | ✅               | ✅          |   P0  | 移动构造函数 |
-| `operator=(const DataPtr&)`  | ✅               | ✅          |   P0  | 拷贝赋值运算符 |
-| `operator=(DataPtr&&)`       | ✅               | ✅          |   P0  | 移动赋值运算符 |
-
-#### 数据访问 API
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `get()`                      | ✅               | ✅          |   P0  | 获取原始指针 |
-| `operator->()`               | ✅               | ✅          |   P0  | 指针访问运算符 |
-| `operator bool()`            | ✅               | ✅          |   P0  | 布尔转换 |
-| `device()`                   | ✅               | ✅          |   P0  | 获取设备 |
-| `get_deleter()`              | ✅               | ✅          |   P1  | 获取删除器 |
-| `get_context()`              | ✅               | ✅          |   P1  | 获取上下文 |
-| `clear()`                    | ✅               | ✅          |   P1  | 清空数据 |
-| `mutable_get()`              | - [ ]            | - [ ]       |   P2  | 获取可变指针 |
-| `release_context()`          | - [ ]            | - [ ]       |   P2  | 释放上下文 |
-| `move_context()`             | - [ ]            | - [ ]       |   P2  | 移动上下文 |
-| `compare_exchange_deleter()` | - [ ]            | - [ ]       |   P3  | 比较交换删除器 |
-| `unsafe_set_device()`        | - [ ]            | - [ ]       |   P3  | 不安全设置设备 |
-
-#### 比较运算符
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `operator==(DataPtr, nullptr_t)` | ✅           | ✅          |   P0  |  |
-| `operator==(nullptr_t, DataPtr)` | ✅           | ✅          |   P0  |  |
-| `operator!=(DataPtr, nullptr_t)` | ✅           | ✅          |   P0  |  |
-| `operator!=(nullptr_t, DataPtr)` | ✅           | ✅          |   P0  |  |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `DeleterFnPtr` | ✅ | 已定义 |
+| `CaptureId_t` | ❌ | 未定义 |
+| `MempoolId_t` | ❌ | 未定义 |
+| `MempoolIdHash` | ❌ | 未定义 |
 
 ---
 
-### Allocator 基类
+### `DataPtr`
 
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `allocate(size_t)`           | - [ ]            | - [ ]       |   P2  | 分配内存 |
-| `clone(void*, size_t)`       | - [ ]            | - [ ]       |   P3  | 克隆分配 |
-| `is_simple_data_ptr()`       | - [ ]            | - [ ]       |   P3  |  |
-| `raw_deleter()`              | - [ ]            | - [ ]       |   P2  | 获取原始删除器 |
-| `raw_allocate(size_t)`       | - [ ]            | - [ ]       |   P2  | 原始分配 |
-| `raw_deallocate(void*)`      | - [ ]            | - [ ]       |   P2  | 原始释放 |
-| `copy_data()`                | - [ ]            | - [ ]       |   P3  | 复制数据 |
-
----
-
-### 全局函数
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `SetAllocator()`             | - [ ]            | - [ ]       |   P3  | 设置分配器 |
-| `GetAllocator()`             | - [ ]            | - [ ]       |   P3  | 获取分配器 |
-
----
-
-### InefficientStdFunctionContext
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `makeDataPtr()`              | - [ ]            | - [ ]       |   P3  | 创建带自定义删除器的 DataPtr |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `DataPtr()` | ✅ | 已实现 |
+| `DataPtr(void*, Device)` | 🔧 | 已实现；设备映射仅覆盖 CPU/CUDA，其他类型归为 `UNDEFINED` |
+| `DataPtr(void*, void*, DeleterFnPtr, Device)` | 🔧 | 已实现；设备语义同上 |
+| `operator->()` | ✅ | 已实现 |
+| `unsafe_reset_data_and_ctx()` | ✅ | 已实现 |
+| `clear()` | ✅ | 已实现 |
+| `get()` | ✅ | 已实现 |
+| `mutable_get()` | ✅ | 已实现 |
+| `get_context()` | ✅ | 已实现 |
+| `release_context()` | ✅ | 已实现 |
+| `move_context()` | ✅ | 已实现 |
+| `operator bool()` | ✅ | 已实现 |
+| `cast_context<T>()` | ✅ | 已实现 |
+| `get_deleter()` | ✅ | 已实现 |
+| `device()` | 🔧 | 已实现；通过 `phi::Place` 反向映射到 `c10::Device` |
+| `compare_exchange_deleter()` | ❌ | 未实现 |
+| `unsafe_set_device()` | ❌ | 未实现 |
+| `operator==(DataPtr, nullptr_t)` | ✅ | 已实现 |
+| `operator==(nullptr_t, DataPtr)` | ✅ | 已实现 |
+| `operator!=(DataPtr, nullptr_t)` | ✅ | 已实现 |
+| `operator!=(nullptr_t, DataPtr)` | ✅ | 已实现 |
 
 ---
 
-### Paddle 兼容层特有 API
+### `Allocator`
 
-| API                          | 说明 |
-|------------------------------|------|
-| `DataPtr(shared_ptr<phi::Allocation>)` | 从 Paddle Allocation 构造 |
-| `allocation()`               | 获取底层 phi::Allocation |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `allocate(size_t)` | ✅ | 纯虚接口已声明 |
+| `clone(const void*, size_t)` | ✅ | 已实现 |
+| `is_simple_data_ptr(const DataPtr&)` | ✅ | 已实现 |
+| `raw_deleter()` | ✅ | 默认返回 `nullptr` |
+| `raw_allocate(size_t)` | ✅ | 已实现 |
+| `raw_deallocate(void*)` | ✅ | 已实现 |
+| `copy_data(void*, const void*, size_t)` | ✅ | 纯虚接口已声明 |
+| `default_copy_data(void*, const void*, size_t)` | ✅ | `protected` 辅助实现 |
 
 ---
 
-### 兼容性统计
+### 全局注册与扩展接口
+
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `SetAllocator(DeviceType, Allocator*, uint8_t)` | ❌ | 未实现 |
+| `GetAllocator(const DeviceType&)` | ❌ | 未实现 |
+| `AllocatorRegisterer` | ❌ | 未实现 |
+| `REGISTER_ALLOCATOR` | ❌ | 未实现 |
+| `InefficientStdFunctionContext` | ❌ | 未实现 |
+| `InefficientStdFunctionContext::makeDataPtr()` | ❌ | 未实现 |
+
+---
+
+### 内存分析相关接口
+
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `MemoryReportingInfoBase` | ❌ | 未实现 |
+| `memoryProfilingEnabled()` | ❌ | 未实现 |
+| `reportMemoryUsageToProfiler()` | ❌ | 未实现 |
+| `reportOutOfMemoryToProfiler()` | ❌ | 未实现 |
+| `GatheredContext` | ❌ | 未实现 |
+| `CachingAllocator::Stat/StatType/...` | ❌ | 未实现 |
+
+---
+
+### 命名空间别名
+
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `at::DataPtr = c10::DataPtr` | ✅ | 已实现 |
+
+---
+
+### 兼容性统计（基于以上条目）
 
 | 状态 | 数量 |
-|------|------|
-| ✅ 已完全支持 | 18 |
-| 🚧 正在支持 | 0 |
-| 🔧 部分支持 | 0 |
-| - [ ] 未实现 | 12 |
+|---|---|
+| ✅ 已实现 | 22 |
+| 🔧 部分兼容 | 3 |
+| ❌ 未实现 | 17 |
 
 ---
 
-### 备注
+### 结论
 
-1. **优先级说明**：
-   - P0: 核心功能，必须支持
-   - P1: 常用功能，高优先级
-   - P2: 进阶功能，中优先级
-   - P3: 边缘功能，低优先级
-
-2. **实现说明**：
-   - Paddle 兼容层的 `DataPtr` 基于 `phi::Allocation` 实现
-   - 设备类型使用 `phi::Place` 而非 `c10::Device`
-   - `Allocator` 基类暂未实现，使用 Paddle 原生的 `phi::Allocator`
-
-3. **命名空间**：
-   - `c10::DataPtr` - 主命名空间
-   - `at::DataPtr` - 别名
+- `DataPtr` 核心接口和 `Allocator` 主体接口在 compat 头文件中已基本具备。
+- 与上游 PyTorch 的主要差距集中在：全局分配器注册机制、`InefficientStdFunctionContext`、内存分析与 `CachingAllocator` 相关接口。
+- 设备语义是当前的主要“部分兼容”点：Paddle 侧实现基于 `phi::Place`，并非完全等价于 PyTorch 的 `c10::Device` 语义集合。
