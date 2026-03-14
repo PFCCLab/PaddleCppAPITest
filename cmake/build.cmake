@@ -23,6 +23,20 @@ function(
     message(STATUS "include dir: ${INCLUDE_DIR}")
     target_compile_definitions(${_test_name}
                                PRIVATE USE_PADDLE_API=${USE_PADDLE_API})
+    if(${USE_PADDLE_API})
+      # Paddle's CUDA compat headers (CUDAContextLight.h, CUDAFunctions.h)
+      # require PADDLE_WITH_CUDA to be defined so that GPU type aliases
+      # (gpuStream_t, cudaDeviceProp) are resolved via cuda_runtime.h.
+      target_compile_definitions(${_test_name} PRIVATE PADDLE_WITH_CUDA)
+      # Link libcudart for CUDA runtime symbols used by the Paddle CUDA compat
+      # layer.
+      if(TARGET CUDA::cudart)
+        target_link_libraries(${_test_name} CUDA::cudart)
+      elseif(EXISTS "/usr/local/cuda/lib64/libcudart.so")
+        target_link_libraries(${_test_name}
+                              "/usr/local/cuda/lib64/libcudart.so")
+      endif()
+    endif()
     message(STATUS "USE_PADDLE_API: ${USE_PADDLE_API}")
     add_test(NAME ${_test_name} COMMAND ${_test_name})
     set_tests_properties(${_test_name} PROPERTIES TIMEOUT 5)
