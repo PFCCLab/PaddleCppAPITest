@@ -35,9 +35,9 @@
 | `mutable_data_ptr()`         | ✅               | ✅          |   P0  | 返回可变 `void*` |
 | `mutable_data_ptr<T>()`      | ✅               | ✅          |   P0  | 返回可变类型化指针 |
 | `accessor<T, N>()`           | ✅               | ✅          |   P1  | TensorAccessor |
-| `generic_packed_accessor<T, N>()` | 🚧          | 🚧          |   P2  | CUDA PackedTensorAccessor |
-| `packed_accessor32<T, N>()`  | 🚧               | 🚧          |   P2  | 32位索引 PackedAccessor |
-| `packed_accessor64<T, N>()`  | 🚧               | 🚧          |   P2  | 64位索引 PackedAccessor |
+| `generic_packed_accessor<T, N>()` | ✅          | 🚧          |   P2  | CUDA PackedTensorAccessor |
+| `packed_accessor32<T, N>()`  | ✅               | 🚧          |   P2  | 32位索引 PackedAccessor |
+| `packed_accessor64<T, N>()`  | ✅               | 🚧          |   P2  | 64位索引 PackedAccessor |
 
 ---
 
@@ -52,13 +52,13 @@
 | `stride(dim)`                | ✅               | ✅          |   P0  | 支持负索引 |
 | `strides()`                  | ✅               | ✅          |   P0  | 返回 IntArrayRef |
 | `numel()`                    | ✅               | ✅          |   P0  | 元素总数 |
-| `storage_offset()`           | 🚧               | 🚧          |   P2  |  |
-| `sym_size(dim)`              | 🚧               | 🚧          |   P3  | 符号化 size |
-| `sym_stride(dim)`            | 🚧               | 🚧          |   P3  | 符号化 stride |
-| `sym_sizes()`                | 🚧               | 🚧          |   P3  | 符号化 sizes |
-| `sym_strides()`              | 🚧               | 🚧          |   P3  | 符号化 strides |
-| `sym_numel()`                | 🚧               | 🚧          |   P3  | 符号化 numel |
-| `sym_storage_offset()`       | 🚧               | 🚧          |   P3  | 符号化 storage_offset |
+| `storage_offset()`           | 🔧               | 🚧          |   P2  | 仅 DenseTensor 路径有意义，其他场景退化为 0 |
+| `sym_size(dim)`              | 🔧               | 🚧          |   P3  | 由静态 `size` 包装，不支持真实符号表达 |
+| `sym_stride(dim)`            | 🔧               | 🚧          |   P3  | 由静态 `stride` 包装，不支持真实符号表达 |
+| `sym_sizes()`                | 🔧               | 🚧          |   P3  | 由静态 `sizes` 包装，不支持真实符号表达 |
+| `sym_strides()`              | 🔧               | 🚧          |   P3  | 由静态 `strides` 包装，不支持真实符号表达 |
+| `sym_numel()`                | 🔧               | 🚧          |   P3  | 由静态 `numel` 包装，不支持真实符号表达 |
+| `sym_storage_offset()`       | 🔧               | 🚧          |   P3  | 由 `storage_offset` 包装，不支持真实符号表达 |
 
 ---
 
@@ -67,6 +67,7 @@
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
 | `nbytes()`                   | ✅               | ✅          |   P0  | 总字节数 |
+| `sym_nbytes()`               | - [ ]            | - [ ]       |   P3  | PyTorch 提供，compat 暂未实现 |
 | `itemsize()`                 | ✅               | ✅          |   P0  | 单元素字节数 |
 | `element_size()`             | ✅               | ✅          |   P0  | 同 `itemsize()` |
 
@@ -80,7 +81,7 @@
 | `scalar_type()`              | ✅               | ✅          |   P0  | 同 `dtype()` |
 | `device()`                   | ✅               | ✅          |   P0  | 返回 Device |
 | `get_device()`               | ✅               | ✅          |   P0  | 返回设备索引 |
-| `options()`                  | ✅               | ✅          |   P0  | 返回 TensorOptions |
+| `options()`                  | 🔧               | ✅          |   P0  | 当前仅设置 dtype/device，未完整保留 layout |
 | `layout()`                   | ✅               | 🚧          |   P2  | 返回 Layout |
 | `key_set()`                  | - [ ]            | - [ ]       |   P3  | DispatchKeySet |
 
@@ -102,6 +103,7 @@
 | `is_ve()`                    | - [ ]            | - [ ]       |   P3  | VE 后端检查 |
 | `is_privateuseone()`         | - [ ]            | - [ ]       |   P3  | PrivateUse1 后端检查 |
 | `is_meta()`                  | - [ ]            | - [ ]       |   P3  | Meta tensor 检查 |
+| `is_maia()`                  | - [ ]            | - [ ]       |   P3  | Maia 后端检查 |
 
 ---
 
@@ -110,15 +112,15 @@
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
 | `defined()`                  | ✅               | ✅          |   P0  | 是否已定义 |
-| `is_contiguous()`            | ✅               | ✅          |   P0  | 连续性检查 |
+| `is_contiguous()`            | 🔧               | ✅          |   P0  | 仅支持 `MemoryFormat::Contiguous` |
 | `sym_is_contiguous()`        | - [ ]            | - [ ]       |   P3  | 符号化连续性检查 |
-| `is_contiguous_or_false()`   | 🚧               | 🚧          |   P3  |  |
-| `is_non_overlapping_and_dense()` | 🚧           | 🚧          |   P3  |  |
-| `is_complex()`               | 🚧               | 🚧          |   P2  | 是否复数类型 |
-| `is_floating_point()`        | 🚧               | 🚧          |   P2  | 是否浮点类型 |
-| `is_signed()`                | 🚧               | 🚧          |   P2  | 是否有符号类型 |
-| `is_sparse()`                | 🚧               | 🚧          |   P3  | 是否稀疏张量 |
-| `is_sparse_csr()`            | 🚧               | 🚧          |   P3  | 是否 CSR 稀疏张量 |
+| `is_contiguous_or_false()`   | 🔧               | 🚧          |   P3  | 当前行为与 `is_contiguous()` 基本一致 |
+| `is_non_overlapping_and_dense()` | 🔧           | 🚧          |   P3  | 自定义 stride 判定逻辑，与 PyTorch 细节可能有差异 |
+| `is_complex()`               | ✅               | 🚧          |   P2  | 是否复数类型 |
+| `is_floating_point()`        | ✅               | 🚧          |   P2  | 是否浮点类型 |
+| `is_signed()`                | ✅               | 🚧          |   P2  | 是否有符号类型 |
+| `is_sparse()`                | ✅               | 🚧          |   P3  | 是否稀疏张量 |
+| `is_sparse_csr()`            | ✅               | 🚧          |   P3  | 是否 CSR 稀疏张量 |
 | `is_mkldnn()`                | - [ ]            | - [ ]       |   P3  | 是否 MKLDNN 张量 |
 | `is_mps()`                   | - [ ]            | - [ ]       |   P3  | 是否 MPS 张量 |
 | `is_vulkan()`                | - [ ]            | - [ ]       |   P3  | 是否 Vulkan 张量 |
@@ -171,9 +173,9 @@
 
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
-| `has_storage()`              | 🚧               | 🚧          |   P2  |  |
-| `storage()`                  | 🚧               | 🚧          |   P2  |  |
-| `is_alias_of(other)`         | 🚧               | 🚧          |   P2  |  |
+| `has_storage()`              | 🔧               | 🚧          |   P2  | 当前等价于 `defined()`，语义弱于 PyTorch |
+| `storage()`                  | 🔧               | 🚧          |   P2  | 依赖 DenseTensor Holder，不同 layout 下语义有限 |
+| `is_alias_of(other)`         | 🔧               | 🚧          |   P2  | 基于 allocation 指针比较，语义近似 |
 | `share_memory_()`            | - [ ]            | - [ ]       |   P3  |  |
 
 ---
@@ -182,9 +184,10 @@
 
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
-| `is_same(other)`             | 🚧               | 🚧          |   P2  | 是否同一张量 |
-| `use_count()`                | 🚧               | 🚧          |   P3  | 引用计数 |
-| `weak_use_count()`           | 🚧               | 🚧          |   P3  | 弱引用计数 |
+| `is_same(other)`             | ✅               | 🚧          |   P2  | 是否同一张量 |
+| `use_count()`                | ✅               | 🚧          |   P3  | 引用计数 |
+| `weak_use_count()`           | 🔧               | 🚧          |   P3  | 当前固定返回 0 |
+| `is_uniquely_owned()`        | - [ ]            | - [ ]       |   P3  | PyTorch 提供，compat 暂未实现 |
 | `reset()`                    | ✅               | 🚧          |   P2  | 重置张量 |
 | `_is_zerotensor()`           | - [ ]            | - [ ]       |   P3  |  |
 | `_set_zero(zero)`            | - [ ]            | - [ ]       |   P3  |  |
@@ -210,7 +213,7 @@
 
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
-| `has_names()`                | 🚧               | 🚧          |   P3  |  |
+| `has_names()`                | 🔧               | 🚧          |   P3  | 已实现但当前固定返回 false |
 | `opt_names()`                | - [ ]            | - [ ]       |   P3  |  |
 | `names()`                    | - [ ]            | - [ ]       |   P3  |  |
 | `get_named_tensor_meta()`    | - [ ]            | - [ ]       |   P3  |  |
@@ -238,6 +241,8 @@
 | `_version()`                 | - [ ]            | - [ ]       |   P3  |  |
 | `tensor_data()`              | - [ ]            | - [ ]       |   P3  |  |
 | `variable_data()`            | - [ ]            | - [ ]       |   P3  |  |
+| `grad_dtype()`               | - [ ]            | - [ ]       |   P3  |  |
+| `set_grad_dtype(...)`        | - [ ]            | - [ ]       |   P3  |  |
 
 ---
 
@@ -254,8 +259,8 @@
 
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
-| `toString()`                 | 🚧               | 🚧          |   P3  |  |
-| `print()`                    | 🚧               | 🚧          |   P3  |  |
+| `toString()`                 | 🔧               | 🚧          |   P3  | 已实现简化版本（backend + dtype） |
+| `print()`                    | 🔧               | 🚧          |   P3  | 已实现简化输出 |
 | `name()`                     | - [ ]            | - [ ]       |   P3  |  |
 | `quantizer()`                | - [ ]            | - [ ]       |   P3  | 量化器 |
 
@@ -273,10 +278,10 @@
 
 | 状态 | 数量 |
 |------|------|
-| ✅ 已完全支持 | 35 |
-| 🚧 正在支持 | 7 |
-| 🔧 部分支持 | 2 |
-| - [ ] 未实现 | 63+ |
+| ✅ 已完全支持 | 47 |
+| 🚧 正在支持 | 0 |
+| 🔧 部分支持 | 20 |
+| - [ ] 未实现 | 61 |
 
 ---
 
@@ -292,6 +297,6 @@
    - `contiguous()`: 目前仅支持 `MemoryFormat::Contiguous`，不支持 ChannelsLast 等格式
    - `to()`: 目前仅支持 dtype 转换，不支持 device 和 memory_format 选项
 
-3. **符号化 API** (`sym_*`): 用于动态形状场景，目前均未支持
+3. **符号化 API** (`sym_*`): 已提供接口，但当前主要是静态数值包装，尚未对齐 PyTorch 的完整符号语义
 
 4. **自动求导 API**: 需要与 Paddle 的自动求导机制对接，待后续实现
