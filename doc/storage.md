@@ -1,186 +1,152 @@
-##### Storage.h 头文件 API 兼容情况
-
-
 ##### Storage.h 头文件 API 兼容性
 
-✅ 表示已经支持
-🚧 表示正在支持
-❌ 表示不准备支持
-🔧 表示部分支持（有功能限制）
+对比文件：
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Storage.h`
+- `/home/may/pytorch/c10/core/Storage.h`
 
-**按照功能分类排序**
-
----
-
-### 标签类型
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `Storage::use_byte_size_t`   | ✅               | ✅          |   P0  | 构造函数标签 |
-| `Storage::unsafe_borrow_t`   | ✅               | ✅          |   P2  | 借用构造标签 |
+状态说明：
+- `✅` 已实现（接口存在且签名/语义基本一致）
+- `🔧` 部分兼容（接口存在，但签名或实现语义有差异）
+- `❌` 未实现（PyTorch 有，Paddle compat 头文件无）
 
 ---
 
-### 构造与赋值
+### 全局与标签类型
 
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `Storage()`                  | ✅               | ✅          |   P0  | 默认构造函数 |
-| `Storage(const Storage&)`    | ✅               | ✅          |   P0  | 拷贝构造函数 |
-| `Storage(Storage&&)`         | ✅               | ✅          |   P0  | 移动构造函数 |
-| `operator=(const Storage&)`  | ✅               | ✅          |   P0  | 拷贝赋值运算符 |
-| `operator=(Storage&&)`       | ✅               | ✅          |   P0  | 移动赋值运算符 |
-| `Storage(intrusive_ptr<StorageImpl>)` | 🔧      | 🔧          |   P1  | 使用 shared_ptr<Allocation> |
-| `Storage(use_byte_size_t, SymInt, Allocator*, bool)` | 🔧 | 🔧 |   P1  | 不支持 SymInt |
-| `Storage(use_byte_size_t, size_t, DataPtr, Allocator*, bool)` | ✅ | ✅ |   P1  | 预分配内存构造 |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `isSharedStorageAlias(const Storage&, const Storage&)` | ✅ | 已实现 |
+| `Storage::use_byte_size_t` | ✅ | 已实现 |
+| `Storage::unsafe_borrow_t` | ✅ | 已实现 |
 
 ---
 
-### 状态查询 API
+### 构造与初始化
 
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `operator bool()`            | ✅               | ✅          |   P0  | 有效性检查 |
-| `nbytes()`                   | ✅               | ✅          |   P0  | 获取字节数 |
-| `sym_nbytes()`               | - [ ]            | - [ ]       |   P3  | 符号化字节数 |
-| `resizable()`                | ✅               | ✅          |   P1  | 是否可调整大小 |
-| `unique()`                   | ✅               | ✅          |   P1  | 是否唯一持有 |
-| `use_count()`                | ✅               | ✅          |   P1  | 引用计数 |
-
----
-
-### 数据访问 API
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `data()`                     | ✅               | ✅          |   P0  | 获取 const 数据指针 |
-| `mutable_data()`             | ✅               | ✅          |   P0  | 获取可变数据指针 |
-| `data_ptr()`                 | ✅               | ✅          |   P0  | 获取 DataPtr |
-| `mutable_data_ptr()`         | ✅               | ✅          |   P0  | 获取可变 DataPtr |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `Storage()` | ✅ | 已实现 |
+| `Storage(intrusive_ptr<StorageImpl>)` | ❌ | Paddle 使用 `shared_ptr<phi::Allocation>`，无 `StorageImpl` 构造 |
+| `Storage(use_byte_size_t, const SymInt&, Allocator*, bool)` | ❌ | 缺少 `SymInt` 版本 |
+| `Storage(use_byte_size_t, size_t, DataPtr, Allocator*, bool)` | ❌ | Paddle 该重载第三参为 `shared_ptr<phi::Allocation>`，非 `DataPtr` |
+| `Storage(use_byte_size_t, SymInt, DataPtr, Allocator*, bool)` | ❌ | 缺少 `SymInt + DataPtr` 版本 |
+| `Storage(const Storage&)` | ✅ | 已实现 |
+| `Storage(Storage&&)` | ✅ | 已实现 |
+| `operator=(const Storage&)` | ✅ | 已实现 |
+| `operator=(Storage&&)` | ✅ | 已实现 |
 
 ---
 
-### 设备相关 API
+### 生命周期与容量
 
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `device()`                   | ✅               | ✅          |   P0  | 获取设备 |
-| `device_type()`              | ✅               | ✅          |   P0  | 获取设备类型 |
-| `allocator()`                | ✅               | ✅          |   P1  | 获取分配器 |
-
----
-
-### 数据修改 API
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `set_nbytes(size_t)`         | ✅               | ✅          |   P1  | 设置字节数 |
-| `set_nbytes(SymInt)`         | - [ ]            | - [ ]       |   P3  | 符号化设置字节数 |
-| `set_data_ptr(DataPtr&&)`    | ✅               | ✅          |   P1  | 设置数据指针（交换） |
-| `set_data_ptr_noswap(DataPtr&&)` | ✅           | ✅          |   P1  | 设置数据指针（不交换） |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `create_legacy(Device)` | ❌ | 缺失 |
+| `reset_legacy()` | ❌ | 缺失 |
+| `set_nbytes(size_t)` | ✅ | 已实现 |
+| `set_nbytes(SymInt)` | ❌ | 缺少 `SymInt` 版本 |
+| `resizable()` | ✅ | 已实现 |
+| `nbytes()` | ✅ | 已实现 |
+| `sym_nbytes()` | ❌ | 缺失 |
 
 ---
 
-### 别名检测 API
+### 数据访问与替换
 
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `is_alias_of(Storage)`       | ✅               | ✅          |   P1  | 检查是否为别名 |
-| `isSharedStorageAlias()`     | ✅               | ✅          |   P1  | 全局别名检测函数 |
-
----
-
-### 内部访问 API
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `unsafeGetStorageImpl()`     | 🔧               | 🔧          |   P2  | 返回 phi::Allocation* |
-| `unsafeReleaseStorageImpl()` | 🔧               | 🔧          |   P2  | 返回 phi::Allocation* |
-| `getWeakStorageImpl()`       | - [ ]            | - [ ]       |   P3  | 弱引用 |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `data()` | ✅ | 已实现 |
+| `mutable_data()` | ✅ | 已实现 |
+| `mutable_data_ptr()` | 🔧 | PyTorch 返回 `DataPtr&`，Paddle 返回按值 `DataPtr` |
+| `data_ptr()` | 🔧 | PyTorch 返回 `const DataPtr&`，Paddle 返回按值 `DataPtr` |
+| `set_data_ptr(DataPtr&&)` | 🔧 | 已实现，但通过 `new_data_ptr.get()` 直接包装为 `phi::Allocation*`，语义与 `StorageImpl` 版不同 |
+| `set_data_ptr_noswap(DataPtr&&)` | 🔧 | 已实现，语义同上存在差异 |
 
 ---
 
-### 静态工厂方法
+### 设备与分配器
 
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `create_legacy(Device)`      | - [ ]            | - [ ]       |   P3  | 创建遗留存储 |
-| `reset_legacy()`             | - [ ]            | - [ ]       |   P3  | 重置遗留存储 |
-
----
-
-### 外部指针共享 API
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `UniqueStorageShareExternalPointer(void*, size_t, DeleterFnPtr)` | - [ ] | - [ ] | P2 |  |
-| `UniqueStorageShareExternalPointer(DataPtr&&, size_t)` | - [ ] | - [ ] | P2 |  |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `device_type()` | 🔧 | PyTorch 为 `DeviceType`，Paddle 为 `phi::AllocationType` |
+| `allocator()` | 🔧 | PyTorch 返回 `at::Allocator*`，Paddle 返回 `phi::Allocator*` |
+| `device()` | 🔧 | PyTorch 返回 `at::Device`，Paddle 返回 `phi::Place` |
 
 ---
 
-### MaybeOwnedTraits 特化
+### 内部句柄与别名
 
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `createBorrow()`             | ✅               | ✅          |   P2  | 创建借用 |
-| `assignBorrow()`             | ✅               | ✅          |   P2  | 赋值借用 |
-| `destroyBorrow()`            | ✅               | ✅          |   P2  | 销毁借用 |
-| `referenceFromBorrow()`      | ✅               | ✅          |   P2  | 从借用获取引用 |
-| `pointerFromBorrow()`        | ✅               | ✅          |   P2  | 从借用获取指针 |
-| `debugBorrowIsValid()`       | ✅               | ✅          |   P3  | 调试检查 |
-
----
-
-### ExclusivelyOwnedTraits 特化
-
-| torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|------------------------------|------------------|------------|-------|------|
-| `nullRepr()`                 | ✅               | ✅          |   P2  | 空表示 |
-| `createInPlace()`            | ✅               | ✅          |   P2  | 就地创建 |
-| `moveToRepr()`               | ✅               | ✅          |   P2  | 移动到表示 |
-| `take()`                     | ✅               | ✅          |   P2  | 取走所有权 |
-| `getImpl()`                  | ✅               | ✅          |   P2  | 获取实现指针 |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `unsafeReleaseStorageImpl()` | ❌ | 缺失 |
+| `unsafeGetStorageImpl()` | ❌ | 缺失 |
+| `getWeakStorageImpl()` | ❌ | 缺失 |
+| `operator bool()` | ✅ | 已实现 |
+| `use_count()` | ✅ | 已实现 |
+| `unique()` | ✅ | 已实现 |
+| `is_alias_of(const Storage&)` | ✅ | 已实现 |
 
 ---
 
-### Paddle 兼容层特有 API
+### 外部指针共享
 
-| API                          | 说明 |
-|------------------------------|------|
-| `valid()`                    | 检查存储是否有效（有分配） |
-| `allocation()`               | 获取底层 phi::Allocation |
-| `unsafeGetAllocation()`      | 不安全获取 phi::Allocation 指针 |
-| `unsafeReleaseAllocation()`  | 不安全释放 phi::Allocation |
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `UniqueStorageShareExternalPointer(void*, size_t, DeleterFnPtr)` | ❌ | 缺失 |
+| `UniqueStorageShareExternalPointer(DataPtr&&, size_t)` | ❌ | 缺失 |
 
 ---
 
-### 兼容性统计
+### `MaybeOwnedTraits<c10::Storage>`
+
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `createBorrow(const owned_type&)` | ✅ | 已实现 |
+| `assignBorrow(...)` | 🔧 | PyTorch 签名为引用参数；Paddle 为指针参数 |
+| `destroyBorrow(...)` | 🔧 | PyTorch 通过 `unsafeReleaseStorageImpl()` 处理；Paddle 直接重置为空 `Storage()` |
+| `referenceFromBorrow(const borrow_type&)` | ✅ | 已实现 |
+| `pointerFromBorrow(const borrow_type&)` | ✅ | 已实现 |
+| `debugBorrowIsValid(const borrow_type&)` | ✅ | 已实现 |
+
+---
+
+### `ExclusivelyOwnedTraits<c10::Storage>`
+
+| torch API | paddle API 兼容性 | 备注 |
+|---|---|---|
+| `nullRepr()` | ✅ | 已实现 |
+| `createInPlace(...)` | ✅ | 已实现 |
+| `moveToRepr(Storage&&)` | ✅ | 已实现 |
+| `take(...)` | 🔧 | PyTorch 参数是 `Storage&`；Paddle 为 `Storage*` |
+| `getImpl(repr_type&)` | ❌ | Paddle 无该重载 |
+| `getImpl(const repr_type&)` | ✅ | 已实现 |
+
+---
+
+### Paddle compat 特有接口
+
+| API | 说明 |
+|---|---|
+| `Storage(shared_ptr<phi::Allocation>, unique_ptr<phi::StorageProperties>)` | 直接从 `phi::Allocation` 构造 |
+| `Storage(size_t, phi::Allocator*)` | 简化尺寸构造 |
+| `valid()` | 检查是否持有 allocation |
+| `allocation()` | 返回底层 `shared_ptr<phi::Allocation>` |
+| `set_data_ptr_noswap(shared_ptr<phi::Allocation>)` | 直接替换 allocation |
+
+---
+
+### 兼容性统计（基于以上条目）
 
 | 状态 | 数量 |
-|------|------|
-| ✅ 已完全支持 | 35 |
-| 🚧 正在支持 | 0 |
-| 🔧 部分支持 | 4 |
-| - [ ] 未实现 | 8 |
+|---|---|
+| ✅ 已实现 | 25 |
+| 🔧 部分兼容 | 10 |
+| ❌ 未实现 | 14 |
 
 ---
 
-### 备注
+### 结论
 
-1. **优先级说明**：
-   - P0: 核心功能，必须支持
-   - P1: 常用功能，高优先级
-   - P2: 进阶功能，中优先级
-   - P3: 边缘功能，低优先级
-
-2. **实现说明**：
-   - Paddle 兼容层的 `Storage` 基于 `phi::Allocation` 实现，而非 `StorageImpl`
-   - 分配器使用 `phi::Allocator*` 而非 `c10::Allocator*`
-   - 设备类型使用 `phi::Place` 和 `phi::AllocationType`
-
-3. **部分支持说明**：
-   - `Storage(intrusive_ptr<StorageImpl>)`: 使用 `shared_ptr<phi::Allocation>` 替代
-   - `Storage(use_byte_size_t, SymInt, ...)`: 不支持符号化整数，仅支持 `size_t`
-   - `unsafeGetStorageImpl()` / `unsafeReleaseStorageImpl()`: 返回 `phi::Allocation*` 而非 `StorageImpl*`
-
-4. **符号化 API** (`sym_*`): 用于动态形状场景，目前均未支持
+- Paddle compat 的 `Storage` 已覆盖基础生命周期、数据访问与别名检查主路径。
+- 与 PyTorch 的主要差距在 `StorageImpl` 体系相关接口（`intrusive_ptr/weak_ptr/legacy/external pointer/SymInt`）。
+- 主要“部分兼容”来自底层模型差异：Paddle 以 `phi::Allocation` 和 `phi::Place` 为核心，导致 `data_ptr` 引用语义、设备类型与 traits 签名与上游不完全一致。
