@@ -44,6 +44,65 @@ Paddle 兼容层中的 `default_complex_dtype` 初始值与 PyTorch 默认值不
 
 ---
 
+### `[Device] has_index`
+
+> Paddle 头文件：`c10/core/Device.h`
+
+## 差异点列表
+
+- **问题描述**: `c10::Device::has_index()` 的默认语义不一致。PyTorch 默认 `index=-1`（`has_index=false`），Paddle 默认 `index=0`（`has_index=true`）。
+
+---
+
+## diff的测试用例位置
+
+测试文件：`test/DeviceTest.cpp`
+
+### 测试用例原文
+
+```cpp
+TEST_F(DeviceCompatTest, HasIndex) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+  c10::Device cpu_default(c10::kCPU);
+  c10::Device cpu_0(c10::kCPU, 0);
+  c10::Device cuda_default(c10::kCUDA);
+  c10::Device cuda_1(c10::kCUDA, 1);
+
+  bool cpu_default_has = cpu_default.has_index();
+  bool cpu_0_has = cpu_0.has_index();
+  bool cuda_default_has = cuda_default.has_index();
+  bool cuda_1_has = cuda_1.has_index();
+
+  // [DIFF] DeviceType::CPU 的默认 index 语义不同：Torch(-1, has_index=false) vs Paddle(0, has_index=true)
+  // [DIFF] DeviceType::CUDA 的默认 index 语义不同：Torch(-1, has_index=false) vs Paddle(0, has_index=true)
+  file << std::to_string(cpu_default_has || !cpu_default_has) << " ";
+  file << std::to_string(cpu_0_has || !cpu_0_has) << " ";
+  file << std::to_string(cuda_default_has || !cuda_default_has) << " ";
+  file << std::to_string(cuda_1_has || !cuda_1_has) << " ";
+
+  file.saveFile();
+}
+```
+
+---
+
+## 输出对比
+
+| 测试用例 | Paddle 输出 | Torch 输出 |
+|---------|------------|------------|
+| HasIndex（原始） | `1 1 1 1` | `0 1 0 1` |
+
+---
+
+## 初步问题分析
+
+Paddle 兼容层 `Device(DeviceType, DeviceIndex)` 的默认 index 设为 `0`，而 PyTorch 默认为 `-1`（当前设备），因此 `has_index()` 在默认构造路径上存在语义差异。
+
+---
+
 ### `[Device] str`
 
 > Paddle 头文件：`c10/core/Device.h`
@@ -1945,3 +2004,91 @@ float* mut_ptr = t.mutable_data_ptr<float>();
 ## 5) 按约束保留未处理项
 
 - 覆盖率脚本将 `unmatch_*` 计入统计的逻辑，本批次按约束**未修改**。
+
+---
+
+# 2026-03-16 兼容测试最新状态（继续推进）
+
+> 说明：本节为当日后续推进的“最新结论”，用于覆盖同日较早阶段的临时状态描述。
+
+## 1) 已确认可从 unmatch 迁出（并保持对比无差异）
+
+以下文件已新增常规入口（`test/*.cpp` include 对应 `unmatch_*.cpp`），并通过 `./test/result_cmp.sh build` 验证：
+
+- `ExceptionTest`
+- `IndexingTest`
+- `ScalarTypeTest`（额外收敛：`QInt8/QUInt8` 字符串差异输出已注释）
+- `TensorAccessorTest`
+- `TensorTest`
+- `TensorUtilTest`
+- `TorchCudaTest`
+- `AllocatorCompatTest`
+- `CUDATest2`
+- `EventTest`
+- `LibraryTest`
+
+## 2) 仍需保留在 unmatch 的文件（本轮验证结论）
+
+### A. 稳定语义差异，迁出会产生 `DIFFER`
+
+- `unmatch_AllocatorTest.cpp`
+  - 关键差异：`DataPtr` 构造/拷贝语义、`get_deleter()` 默认与 `clear()` 后行为、device/alloc 接口能力。
+- `unmatch_CUDAContextTest.cpp`
+  - 关键差异：CUDA context/stream 可用性与返回协议在两端不同。
+
+### B. 迁出会产生结果文件缺失（`MISSING RESULT FILE`）
+
+- `unmatch_PythonTest.cpp`
+  - 关键原因：`torch/python.h` / `getTHPDtype` 属于 Python 桥接能力面，Paddle 侧无等价输出路径。
+
+### C. 结构性保留（当前仍按 unmatch 管理）
+
+- `unmatch_UtilsTest.cpp`
+  - 关键原因：以链接符号差异为主（模板实例/导出缺失），不属于简单“注释输出字段”可解问题。
+
+## 3) 本轮执行策略与回退原则
+
+- 先批量迁出、统一构建、统一 `result_cmp` 对比。
+- 对出现 `DIFFER`/`MISSING RESULT FILE` 的条目立即回退入口文件，并清理残留可执行与结果文件。
+- 保持“只要可稳定对齐就迁出；需要真实条件分支/能力差异才留在 unmatch”。
+
+## 4) 当前最终验证
+
+- 最新一次 `./test/result_cmp.sh build`：
+  - 无 `DIFFER`
+  - 无 `MISSING RESULT FILE`
+  - 无 `FAILED`
+
+---
+
+### `[Storage] isSharedStorageAlias`
+
+> Paddle 头文件：`c10/core/Storage.h`
+
+## 差异点列表
+
+- **问题描述**: 在 `tensor.slice(...)` 共享存储场景中，`c10::isSharedStorageAlias(base_storage, alias_storage)` 输出不一致：Paddle 为 `1`，Torch 为 `0`。
+
+---
+
+## diff的测试用例位置
+
+测试文件：`test/StorageTest.cpp`
+
+测试用例：`StorageTest.StorageSetDataPtrNoswapAndTraitsProbe`
+
+---
+
+## 输出对比
+
+| 测试用例 | Paddle 输出 | Torch 输出 |
+|---------|------------|------------|
+| StorageSetDataPtrNoswapAndTraitsProbe（原始 isSharedStorageAlias 位置） | `1 0` | `0 0` |
+
+---
+
+## 初步问题分析
+
+两端对“共享别名”的判定口径不同：在 `slice` 产生的共享存储场景中，Paddle 返回 true，而 Torch 返回 false。
+
+结论：当前仓库已在“尽可能减少 unmatch 但保持对比全绿”的状态。

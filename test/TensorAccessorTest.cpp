@@ -40,6 +40,9 @@ class TensorAccessorTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
+// [DIFF] 文件级说明：TensorAccessor/packed accessor
+// 在两端的接口族与边界行为存在稳定差异。
+
 // 测试 packed_accessor32
 TEST_F(TensorAccessorTest, PackedAccessor32) {
   auto file_name = g_custom_param.get();
@@ -74,6 +77,21 @@ TEST_F(TensorAccessorTest, GenericPackedAccessor) {
   FileManerger file(file_name);
   file.createFile();
   auto accessor = tensor.generic_packed_accessor<float, 3>();
+  file << std::to_string(accessor.size(0)) << " ";
+  file << std::to_string(accessor.size(1)) << " ";
+  file << std::to_string(accessor.size(2)) << " ";
+  file << std::to_string(accessor[0][0][0]) << " ";
+  file << std::to_string(accessor[1][2][3]) << " ";
+  file.saveFile();
+}
+
+// 测试 deprecated packed_accessor
+TEST_F(TensorAccessorTest, PackedAccessorDeprecated) {
+  // [DIFF] 用例级差异：deprecated packed_accessor
+  // 在不同实现中的行为与兼容承诺不一致。
+  FileManerger file(GetTestCaseResultFileName());
+  file.createFile();
+  auto accessor = tensor.packed_accessor<float, 3>();
   file << std::to_string(accessor.size(0)) << " ";
   file << std::to_string(accessor.size(1)) << " ";
   file << std::to_string(accessor.size(2)) << " ";
@@ -164,6 +182,8 @@ TEST_F(TensorAccessorTest, TensorAccessorConstData) {
 
 // 测试 TensorAccessor 在非连续 tensor 上的行为 (应该失败)
 TEST_F(TensorAccessorTest, TensorAccessorNonContiguous) {
+  // [DIFF] 用例级差异：非连续 tensor 的 accessor
+  // 行为在两端触发条件和结果不一致。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
@@ -389,7 +409,8 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorDirect) {
       accessor(data, sizes, strides);
 
 #if USE_PADDLE_API
-  // Paddle 兼容层: sizes() 和 strides() 返回 IntArrayRef
+  // [DIFF] 问题行：此分支体现 GenericPackedTensorAccessor 在 Paddle
+  // 路径的专门适配。 Paddle 兼容层: sizes() 和 strides() 返回 IntArrayRef
   c10::IntArrayRef s = accessor.sizes();
   c10::IntArrayRef str = accessor.strides();
   file << std::to_string(s.size()) << " ";
@@ -739,5 +760,49 @@ TEST_F(TensorAccessorTest, TensorAccessorCoverage) {
   file.saveFile();
 }
 
+TEST(_TensorAccessorTest, BasicMethods) {
+  auto file_name = g_custom_param.get();
+  paddle_api_test::FileManerger file(file_name);
+  file.openAppend();
+
+  float data[] = {1.0f, 2.0f, 3.0f, 4.0f};
+  int64_t sizes[] = {2, 2};
+  int64_t strides[] = {2, 1};
+
+  at::TensorAccessor<float, 2> acc(data, sizes, strides);
+
+  file << std::to_string(acc.size(0)) << " ";
+  file << std::to_string(acc.size(1)) << " ";
+  file << (acc.data() != nullptr ? "1 " : "0 ");
+
+  const at::TensorAccessor<float, 2>& c_acc = acc;
+  file << (c_acc.data() != nullptr ? "1 " : "0 ");
+
+  file.saveFile();
+}
+
+TEST(GenericPackedTensorAccessorBaseTest, BasicMethods) {
+  auto file_name = g_custom_param.get();
+  paddle_api_test::FileManerger file(file_name);
+  file.openAppend();
+
+  float data[] = {1.0f, 2.0f, 3.0f, 4.0f};
+  int64_t sizes[] = {2, 2};
+  int64_t strides[] = {2, 1};
+
+  at::GenericPackedTensorAccessor<float, 2, at::DefaultPtrTraits, int64_t> acc(
+      data, sizes, strides);
+
+  file << std::to_string(acc.size(0)) << " ";
+  file << std::to_string(acc.size(1)) << " ";
+  file << (acc.data() != nullptr ? "1 " : "0 ");
+
+  const at::
+      GenericPackedTensorAccessor<float, 2, at::DefaultPtrTraits, int64_t>&
+          c_acc = acc;
+  file << (c_acc.data() != nullptr ? "1 " : "0 ");
+
+  file.saveFile();
+}
 }  // namespace test
 }  // namespace at

@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <type_traits>
 
 #include "../src/file_manager.h"
 
@@ -16,6 +17,15 @@ namespace test {
 
 using paddle_api_test::FileManerger;
 using paddle_api_test::ThreadSafeParam;
+
+template <typename DType>
+static int dtype_to_int(const DType& dtype) {
+  if constexpr (std::is_same_v<std::decay_t<DType>, c10::ScalarType>) {
+    return static_cast<int>(dtype);
+  } else {
+    return static_cast<int>(dtype.toScalarType());
+  }
+}
 
 class DefaultDtypeTest : public ::testing::Test {
  protected:
@@ -38,8 +48,8 @@ TEST_F(DefaultDtypeTest, GetDefaultDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
-  auto dtype = c10::get_default_dtype_as_scalartype();
-  file << std::to_string(static_cast<int>(dtype)) << " ";
+  auto dtype = c10::get_default_dtype();
+  file << std::to_string(dtype_to_int(dtype)) << " ";
   file.saveFile();
 }
 
@@ -115,15 +125,14 @@ TEST_F(DefaultDtypeTest, SetAndRestore) {
 }
 
 // get_default_complex_dtype
-// [DIFF] PyTorch输出: 8, PaddlePaddle输出: 9
 TEST_F(DefaultDtypeTest, GetDefaultComplexDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  // Create a complex tensor to get the default complex dtype
-  at::Tensor t = at::zeros({1}, at::TensorOptions().dtype(at::kComplexFloat));
-  auto dtype = t.scalar_type();
-  // file << std::to_string(static_cast<int>(dtype)) << " "; // [DIFF]
+  auto dtype = c10::get_default_complex_dtype();
+  // [DIFF] PyTorch输出: 9, PaddlePaddle输出: 8
+  // file << std::to_string(dtype_to_int(dtype)) << " ";
+  (void)dtype;
   file.saveFile();
 }
 

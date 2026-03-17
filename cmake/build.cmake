@@ -12,15 +12,25 @@ function(
     set(_test_name ${BIN_PREFIX}${_file_name})
     add_executable(${_test_name} ${_test_file} ${TEST_BASE_FILES}
                                  ${PROJECT_SOURCE_DIR}/src/file_manager.cpp)
-    add_dependencies(${_test_name} "googletest.git")
+    # add_dependencies(${_test_name} "googletest.git")
     target_link_libraries(
-      ${_test_name} gtest gtest_main ${CMAKE_THREAD_LIBS_INIT}
-      ${DEPS_LIBRARIES} ${Python3_LIBRARIES})
+      ${_test_name}
+      gtest
+      gtest_main
+      ${CMAKE_THREAD_LIBS_INIT}
+      ${DEPS_LIBRARIES}
+      ${Python3_LIBRARIES}
+      dl
+      util
+      pthread)
     target_include_directories(${_test_name} PRIVATE ${Python3_INCLUDE_DIRS})
     target_include_directories(${_test_name} PRIVATE ${INCLUDE_DIR}
                                                      ${PROJECT_SOURCE_DIR}/src)
     target_include_directories(${_test_name} PRIVATE ${PROJECT_SOURCE_DIR}/src)
     message(STATUS "include dir: ${INCLUDE_DIR}")
+    if(BIN_PREFIX STREQUAL "torch_")
+      target_link_options(${_test_name} PRIVATE -Wl,--no-as-needed)
+    endif()
     target_compile_definitions(${_test_name}
                                PRIVATE USE_PADDLE_API=${USE_PADDLE_API})
     message(STATUS "USE_PADDLE_API: ${USE_PADDLE_API}")

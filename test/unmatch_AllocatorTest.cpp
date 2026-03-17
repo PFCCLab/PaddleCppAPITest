@@ -31,6 +31,8 @@ class AllocatorTest : public ::testing::Test {
   void* test_ctx_ = nullptr;
 };
 
+// [DIFF] 文件级说明：本文件集中记录 DataPtr 在 Paddle/Torch 的接口与语义分叉。
+
 // 自定义 deleter 函数用于测试（不真正释放，由测试管理）
 static bool g_deleter_called = false;
 static void test_deleter(void* ptr) { g_deleter_called = true; }
@@ -48,11 +50,13 @@ static void real_float_deleter(void* ptr) { delete[] static_cast<float*>(ptr); }
 // - Paddle:  DataPtr(void* data, phi::Place device = phi::CPUPlace()) 有默认值
 // 影响：Paddle 支持单参数构造，PyTorch 不支持
 TEST_F(AllocatorTest, Diff_ConstructorDefaultDevice) {
+  // [DIFF] 用例级差异：Paddle 支持单参数构造；Torch 要求显式传入 device。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
 
 #if USE_PADDLE_API
+  // [DIFF] 问题行：该构造签名仅在 Paddle 侧成立。
   // Paddle 支持不指定 device 的构造（使用默认 CPUPlace）
   c10::DataPtr ptr_default(static_cast<void*>(test_data_));
   file << "paddle_single_arg_ctor_supported ";
@@ -76,6 +80,7 @@ TEST_F(AllocatorTest, Diff_ConstructorDefaultDevice) {
 // - Paddle:  支持拷贝构造和拷贝赋值
 // 影响：Paddle 可以共享 DataPtr，PyTorch 只能转移所有权
 TEST_F(AllocatorTest, Diff_CopySemantics) {
+  // [DIFF] 用例级差异：Paddle 可拷贝，Torch move-only（拷贝构造/赋值被删除）。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -211,6 +216,7 @@ TEST_F(AllocatorTest, Diff_DeviceType) {
 // - Paddle:  有 allocation() 方法，返回底层的 std::shared_ptr<phi::Allocation>
 // 影响：Paddle 可以获取底层内存分配对象，PyTorch 不能
 TEST_F(AllocatorTest, Diff_AllocationMethod) {
+  // [DIFF] 用例级差异：allocation() 属于 Paddle 扩展 API，Torch 无该成员。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

@@ -21,6 +21,37 @@ class ArrayRefTest : public ::testing::Test {
   void SetUp() override {}
 };
 
+template <typename T>
+static bool arrayref_begin_api_probe(c10::ArrayRef<T> arr) {
+  return arr.begin() == arr.data();
+}
+
+template <typename T>
+static size_t arrayref_end_api_probe(c10::ArrayRef<T> arr) {
+  return static_cast<size_t>(arr.end() - arr.begin());
+}
+
+template <typename T>
+static bool arrayref_cbegin_api_probe(const c10::ArrayRef<T>& arr) {
+  return arr.cbegin() == arr.data();
+}
+
+template <typename T>
+static size_t arrayref_cend_api_probe(const c10::ArrayRef<T>& arr) {
+  return static_cast<size_t>(arr.cend() - arr.cbegin());
+}
+
+template <typename T, typename Predicate>
+static bool arrayref_allmatch_api_probe(const c10::ArrayRef<T>& arr,
+                                        Predicate pred) {
+  return arr.allMatch(pred);
+}
+
+template <typename T>
+static bool arrayref_empty_api_probe(const c10::ArrayRef<T>& arr) {
+  return arr.empty();
+}
+
 // 默认构造（空）
 TEST_F(ArrayRefTest, DefaultConstruction) {
   c10::ArrayRef<int64_t> arr;
@@ -71,6 +102,72 @@ TEST_F(ArrayRefTest, BeginEnd) {
   for (auto it = arr.begin(); it != arr.end(); ++it) {
     file << std::to_string(*it) << " ";
   }
+  file.saveFile();
+}
+
+// begin()/end() 方法
+TEST_F(ArrayRefTest, IteratorMethods) {
+  std::vector<int64_t> vec = {2, 4, 6, 8};
+  c10::ArrayRef<int64_t> arr(vec);
+
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << std::to_string(arrayref_begin_api_probe(arr) ? 1 : 0) << " ";
+  file << std::to_string(arrayref_end_api_probe(arr)) << " ";
+  for (auto it = arr.begin(); it != arr.end(); ++it) {
+    file << std::to_string(*it) << " ";
+  }
+  file.saveFile();
+}
+
+// cbegin()/cend() 方法
+TEST_F(ArrayRefTest, ConstIteratorMethods) {
+  const std::vector<int64_t> vec = {3, 6, 9};
+  const c10::ArrayRef<int64_t> arr(vec);
+
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << std::to_string(arrayref_cbegin_api_probe(arr) ? 1 : 0) << " ";
+  file << std::to_string(arrayref_cend_api_probe(arr)) << " ";
+  for (auto it = arr.cbegin(); it != arr.cend(); ++it) {
+    file << std::to_string(*it) << " ";
+  }
+  file.saveFile();
+}
+
+// allMatch()/empty() 方法
+TEST_F(ArrayRefTest, AllMatchAndEmpty) {
+  c10::ArrayRef<int64_t> empty_arr;
+  std::vector<int64_t> even_vec = {2, 4, 6, 8};
+  std::vector<int64_t> mixed_vec = {2, -1, 6, 8};
+  c10::ArrayRef<int64_t> even_arr(even_vec);
+  c10::ArrayRef<int64_t> mixed_arr(mixed_vec);
+
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << std::to_string(arrayref_empty_api_probe(empty_arr) ? 1 : 0) << " ";
+  file << std::to_string(arrayref_empty_api_probe(even_arr) ? 1 : 0) << " ";
+  file << std::to_string(
+              arrayref_allmatch_api_probe(
+                  empty_arr, [](const int64_t& value) { return value >= 0; })
+                  ? 1
+                  : 0)
+       << " ";
+  file << std::to_string(
+              arrayref_allmatch_api_probe(
+                  even_arr, [](const int64_t& value) { return value % 2 == 0; })
+                  ? 1
+                  : 0)
+       << " ";
+  file << std::to_string(
+              arrayref_allmatch_api_probe(
+                  mixed_arr, [](const int64_t& value) { return value >= 0; })
+                  ? 1
+                  : 0)
+       << " ";
   file.saveFile();
 }
 

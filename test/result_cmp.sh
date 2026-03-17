@@ -16,46 +16,75 @@ trap 'status=$?; printf "\nDone. Full output saved to: %s\n" "$LOG_FILE" | tee -
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "Log file: $LOG_FILE"
 
-# 记录PADDLE_PATH下所有可执行文件到列表
-echo "Collecting and executing Paddle executables..."
-PADDLE_EXECUTABLES=()
-for test_file in ${PADDLE_PATH}/*; do
-    if [[ -x "$test_file" && -f "$test_file" ]]; then
-        filename=$(basename $test_file)
-        ${PADDLE_PATH}${filename}
-        PADDLE_EXECUTABLES+=("$filename")
-        echo "Executing Paddle test: $filename"
-        $test_file
-    fi
-done
+collect_and_run_executables() {
+    local exec_path="$1"
+    local prefix="$2"
+    local label="$3"
+    local -n out_map="$4"
 
-# 记录并执行TORCH_PATH下所有可执行文件
-echo "Collecting and executing Torch executables..."
-TORCH_EXECUTABLES=()
-for test_file in ${TORCH_PATH}/*; do
-    if [[ -x "$test_file" && -f "$test_file" ]]; then
-        filename=$(basename $test_file)
-        ${TORCH_PATH}${filename}
-        TORCH_EXECUTABLES+=("$filename")
-        echo "Executing Torch test: $filename"
-        $test_file
-    fi
-done
+    echo "Collecting and executing ${label} executables..."
+    while IFS= read -r -d '' test_file; do
+        local filename
+        local key
+
+        filename=$(basename "$test_file")
+        if [[ "$filename" != ${prefix}_* ]]; then
+            continue
+        fi
+
+        key="${filename#${prefix}_}"
+        out_map["$key"]="$filename"
+
+        echo "Executing ${label} test: $filename"
+        "$test_file"
+    done < <(find "$exec_path" -maxdepth 1 -type f -perm -u+x -print0 | sort -z)
+}
+
+declare -A PADDLE_EXECUTABLES
+declare -A TORCH_EXECUTABLES
+
+collect_and_run_executables "$PADDLE_PATH" "paddle" "Paddle" PADDLE_EXECUTABLES
+collect_and_run_executables "$TORCH_PATH" "torch" "Torch" TORCH_EXECUTABLES
 
 # 比较结果文件
 echo "Comparing result files..."
-for ((i=0; i<${#PADDLE_EXECUTABLES[@]}; i++)); do
-    paddle_file="${RESULT_FILE_PATH}/${PADDLE_EXECUTABLES[i]}.txt"
-    torch_file="${RESULT_FILE_PATH}/${TORCH_EXECUTABLES[i]}.txt"
+declare -A ALL_KEYS
+has_mismatch=0
+
+for key in "${!PADDLE_EXECUTABLES[@]}"; do
+    ALL_KEYS["$key"]=1
+done
+for key in "${!TORCH_EXECUTABLES[@]}"; do
+    ALL_KEYS["$key"]=1
+done
+
+while IFS= read -r key; do
+    paddle_exec="${PADDLE_EXECUTABLES[$key]}"
+    torch_exec="${TORCH_EXECUTABLES[$key]}"
+
+    if [[ -z "$paddle_exec" || -z "$torch_exec" ]]; then
+        has_mismatch=1
+        echo "MISSING EXECUTABLE: key=${key}, paddle=${paddle_exec:-N/A}, torch=${torch_exec:-N/A}"
+        continue
+    fi
+
+    paddle_file="${RESULT_FILE_PATH}/${paddle_exec}.txt"
+    torch_file="${RESULT_FILE_PATH}/${torch_exec}.txt"
 
     if [[ -f "$paddle_file" && -f "$torch_file" ]]; then
         if diff -q "$paddle_file" "$torch_file" >/dev/null; then
-            echo "MATCH: ${PADDLE_EXECUTABLES[i]} and ${TORCH_EXECUTABLES[i]}"
+            echo "MATCH: ${paddle_exec} and ${torch_exec}"
         else
-            echo "DIFFER: ${PADDLE_EXECUTABLES[i]} and ${TORCH_EXECUTABLES[i]}"
-            diff "$paddle_file" "$torch_file"
+            has_mismatch=1
+            echo "DIFFER: ${paddle_exec} and ${torch_exec}"
+            diff "$paddle_file" "$torch_file" || true
         fi
     else
-        echo "MISSING: ${paddle_file} or ${torch_file}"
+        has_mismatch=1
+        echo "MISSING RESULT FILE: ${paddle_file} or ${torch_file}"
     fi
-done
+done < <(printf '%s\n' "${!ALL_KEYS[@]}" | sort)
+
+if [[ $has_mismatch -ne 0 ]]; then
+    exit 1
+fi

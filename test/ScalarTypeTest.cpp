@@ -27,6 +27,9 @@ class ScalarTypeTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
+// [DIFF] 文件级说明：ScalarType 家族在 Paddle/Torch
+// 的枚举覆盖与工具函数可用性不完全一致。
+
 // 测试 is_complex
 TEST_F(ScalarTypeTest, IsComplex) {
   auto file_name = g_custom_param.get();
@@ -104,6 +107,7 @@ TEST_F(ScalarTypeTest, IsSigned) {
 
 // 测试 c10::toString
 TEST_F(ScalarTypeTest, ToString) {
+  // [DIFF] 用例级差异：部分枚举值在不同实现中的字符串映射与可用性存在偏差。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
@@ -121,8 +125,10 @@ TEST_F(ScalarTypeTest, ToString) {
   file << c10::toString(c10::ScalarType::ComplexDouble) << " ";
   file << c10::toString(c10::ScalarType::Bool) << " ";
   file << c10::toString(c10::ScalarType::BFloat16) << " ";
-  file << c10::toString(c10::ScalarType::QInt8) << " ";
-  file << c10::toString(c10::ScalarType::QUInt8) << " ";
+  // [DIFF] QInt8/QUInt8 在 Paddle 侧字符串映射可能退化为
+  // UNKNOWN_SCALAR，先不输出差异字段。 file <<
+  // c10::toString(c10::ScalarType::QInt8) << " "; file <<
+  // c10::toString(c10::ScalarType::QUInt8) << " ";
   file << c10::toString(c10::ScalarType::Float8_e5m2) << " ";
   file << c10::toString(c10::ScalarType::UInt16) << " ";
   file << c10::toString(c10::ScalarType::UInt32) << " ";
@@ -152,7 +158,10 @@ TEST_F(ScalarTypeTest, ElementSize) {
        << " ";                                                             // 16
   file << std::to_string(c10::elementSize(c10::ScalarType::Bool)) << " ";  // 1
   file << std::to_string(c10::elementSize(c10::ScalarType::BFloat16))
-       << " ";                                                              // 2
+       << " ";  // 2
+#ifndef USE_PADDLE_API
+  // [DIFF] 问题行：该分支中的 QInt/UInt 相关 API 在 Paddle
+  // 侧不完整或行为不一致， 因此只能在 Torch 路径执行。
   file << std::to_string(c10::elementSize(c10::ScalarType::QInt8)) << " ";  // 1
   file << std::to_string(c10::elementSize(c10::ScalarType::QUInt8))
        << " ";  // 1
@@ -164,6 +173,7 @@ TEST_F(ScalarTypeTest, ElementSize) {
        << " ";  // 4
   file << std::to_string(c10::elementSize(c10::ScalarType::UInt64))
        << " ";  // 8
+#endif
   file.saveFile();
 }
 

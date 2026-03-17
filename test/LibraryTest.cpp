@@ -1,103 +1,3 @@
-/*
- * =====================================================================================
- * @brief: 兼容性对齐审计报告
- *
- * [异常点 1]
- * - 测试用例：IValueBasicConstruction / IValueVectorConstruction /
- *             IValueGet / IValueIsNone / IValueSizeToInt64 / IValueTensor
- * - 当前状况：每个测试用例内均使用 `#if USE_PADDLE_API … #else … #endif` 将
- *             Paddle 路径与 libtorch 路径分离，两侧使用了不同的类型和方法名：
- *             Paddle 路径用 `torch::IValue`、snake_case 方法（`is_int()`、
- *             `is_double()`、`is_string()`、`is_none()`、`is_tensor()`、`to_int()`、
- *             `to_double()`），libtorch 路径用 `c10::IValue`、camelCase 方法
- *             （`isInt()`、`isDouble()`、`isString()`、`isNone()`、`isTensor()`、
- *             `toInt()`、`toDouble()`）。
- * - 根本原因：两库的 `IValue` 类型在命名空间和方法名风格上存在根本性差异：
- *             libtorch 将 `IValue` 定义在 `c10` 命名空间且全部使用 camelCase，
- *             Paddle compat 将其定义在 `torch` 命名空间且使用 snake_case。
- *             此外，Paddle compat 的 `torch::IValue` 是独立的简化实现，并非
- *             `c10::IValue` 的别名，导致无法写出同名同接口的统一调用代码。
- * - 期望解决：在 Paddle compat 中将 `torch::IValue` 同时暴露为 `c10::IValue`
- *             的别名，并补充 camelCase 方法同义接口（`isInt()` = `is_int()`
- * 等）， 从而统一两库的 IValue 访问路径，移除测试中所有 IValue 相关的
- *             `#if USE_PADDLE_API` 分支。
- *
- * [异常点 2]
- * - 测试用例：TensorOperations
- * - 当前状况：`at::Tensor::add()` 调用被 `#ifndef USE_PADDLE_API` 保护，
- *             Paddle 构建模式下用占位字符串 `"tensor_add_skipped"`
- * 代替实际运算。
- * - 根本原因：Paddle compat 的 `ATen/ops/` 目录中**没有 `add.h`**，即
- *             `at::Tensor::add(other_tensor)` 方法在 Paddle 兼容层中未被实现，
- *             直接调用会导致编译/链接失败。
- * - 期望解决：在 Paddle compat 的 `ATen/ops/` 目录中补充 `add.h`，实现基本的
- *             逐元素加法运算（对接 `paddle::add`），使 `t1.add(t2)` 在两库下
- *             均可编译执行并产生可比对的数值输出。
- *
- * [异常点 3]
- * - 测试用例：DeviceTest / TensorOptionsTest
- * - 当前状况：`at::Device` 构造测试和 `c10::TensorOptions` 测试被
- *             `#ifndef USE_PADDLE_API` 完全保护，Paddle 构建下跳过。
- * - 根本原因：Paddle compat 中虽有 `c10/core/Device.h`（含 `Device` 类定义）、
- *             `c10/core/TensorOptions.h`（含
- * `TensorOptions`），但实测中两个类的 接口细节（如 `TensorOptions::dtype()`
- * 返回类型比较）在 Paddle 的 实现中存在差异或编译问题，作者选择以宏绕过。
- * - 期望解决：对齐 `c10::Device` 和 `c10::TensorOptions` 的基础接口签名，
- *             保证 `device.type() == c10::DeviceType::CPU` 和
- *             `opts.dtype() == at::kFloat` 等简单断言能在两库下统一通过，
- *             然后移除该 `#ifndef USE_PADDLE_API` 保护。
- *
- * [异常点 4]
- * / 宏测试 / Schema / SelectiveStr / DispatchKey 等相关用例）
- * - 测试用例：LibraryConstruction / CppFunctionFromFunctionPointer /
- *             CppFunctionMakeFromBoxedKernel / CppFunctionMakeFallthrough /
- *             CppFunctionMakeNamedNotSupported / CppFunctionDebug /
- *             DispatchWithDispatchKey / DispatchWithDeviceType /
- *             SchemaFromString / SchemaWithAliasAnalysis /
- *             SelectiveStrEnabled / ClassNotSelected / DispatchKeyEnum /
- *             FunctionSchemaBasic / FunctionSchemaWithDefault /
- *             AliasAnalysisKindEnum / MakeTorchLibraryMacro /
- *             MakeTorchLibraryImplMacro / OperatorNameConstruction /
- *             FunctionSchemaArgumentTypes / FunctionSchemaReturnType /
- *             ArgTest / FunctionArgsTest / FunctionResultTest /
- *             CppFunctionCallTest / GlobalRegistryTest
- *             （共约 26 个 TEST_F 被禁用）
- * - 当前状况：上述用例全部被 `#ifndef USE_PADDLE_API` 包裹，Paddle 构建下跳过。
- * - 根本原因：两库的 `torch::Library` 架构存在根本性差异：
- *             ① libtorch 的 `torch::Library` 通过 `c10::FunctionSchema`、
- *             `c10::BoxedKernel`、`c10::DispatchKey` 体系进行算子注册，调度使用
- *             `c10::Dispatcher`；`torch::CppFunction::makeFromBoxedKernel()`、
- *             `makeFallthrough()`、`makeNamedNotSupported()` 等静态工厂函数及
- *             `MAKE_TORCH_LIBRARY` / `MAKE_TORCH_LIBRARY_IMPL` 宏均来自
- *             libtorch 完整的算子注册框架。
- *             ② Paddle compat 的 `torch::Library` 是独立简化版实现（`library.h`
- *             中约 893 行的本地实现），通过 `FunctionArgs`、`FunctionResult`、
- *             `CppFunction`（接受 lambda 包装）以及自定义的 `ClassRegistry`、
- *             `OperatorRegistry` 完成算子/类注册，**与 libtorch
- * 的调度体系完全不同**。 ③
- * `c10::BoxedKernel::makeFallthrough()`、`c10::AliasAnalysisKind`、
- *             `c10::FunctionSchema`（含 `arguments()`/`returns()` 方法）、
- *             `torch::detail::SelectiveStr`、`torch::detail::ClassNotSelected`、
- *             `torch::detail::TorchLibraryInit`、`MAKE_TORCH_LIBRARY` 宏等
- *             在 Paddle compat 中均不存在或接口签名不同。
- *             ④ Paddle compat 提供了 libtorch
- * 中不存在的专有类：`FunctionArgs`、
- *             `FunctionResult`、`ClassRegistry`、`OperatorRegistry`、
- *             `ClassRegistration`、`OperatorRegistration`、`invoke_function`、
- *             `invoke_member_function`，使得两库无法共享同一段测试逻辑。
- * - 期望解决：`torch::Library` 算子注册框架是两库间架构差异最大的模块，不建议
- *             强行在一个文件中对齐。建议的分层策略：
- *             ①
- * 将两库均支持的"纯功能"测试（`LibraryKindEnum`、`DispatchKeyEnum`
- *             等枚举值比对）保留在公共测试文件中；
- *             ② 将涉及具体注册框架实现的测试（LibraryConstruction 等）拆分为
- *             独立的 `LibraryTest_torch.cpp` 和 `LibraryTest_paddle.cpp`，
- *             通过外部脚本对比其运行输出，而非在代码中混用宏；
- *             ③ 若要深度对齐，需要在 Paddle compat 中实补充
- * `c10::BoxedKernel`、 `c10::FunctionSchema`、`c10::AliasAnalysisKind`
- * 的完整接口，并统一 `MAKE_TORCH_LIBRARY` / `MAKE_TORCH_LIBRARY_IMPL` 宏行为。
- * =====================================================================================
- */
 #include <ATen/ATen.h>
 #include <gtest/gtest.h>
 #include <torch/library.h>
@@ -121,6 +21,9 @@ class LibraryTest : public ::testing::Test {
   void SetUp() override {}
 };
 
+// [DIFF] 文件级说明：torch::Library / IValue
+// 在两端架构差异较大（命名空间、方法名、注册体系）。
+
 // 测试 torch::Library::Kind 枚举
 TEST_F(LibraryTest, LibraryKindEnum) {
   auto file_name = g_custom_param.get();
@@ -136,12 +39,16 @@ TEST_F(LibraryTest, LibraryKindEnum) {
 
 // 测试 IValue 基本构造
 TEST_F(LibraryTest, IValueBasicConstruction) {
+  // [DIFF] 用例级差异：Paddle 用 torch::IValue + snake_case；Torch 用
+  // c10::IValue + camelCase。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
 
 #if USE_PADDLE_API
-  // Paddle 兼容层使用 torch::IValue，方法名是 snake_case
+  // [DIFF] 问题行：Paddle 路径类型与方法名与 Torch
+  // 路径不兼容，无法共用同一实现。 Paddle 兼容层使用 torch::IValue，方法名是
+  // snake_case
   torch::IValue ival_int(42);
   torch::IValue ival_double(3.14);
   torch::IValue ival_string(std::string("test"));
@@ -164,6 +71,7 @@ TEST_F(LibraryTest, IValueBasicConstruction) {
 
 // 测试 IValue 从 vector 构造
 TEST_F(LibraryTest, IValueVectorConstruction) {
+  // [DIFF] 用例级差异：vector 元素类型在两端为 torch::IValue vs c10::IValue。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -759,6 +667,117 @@ TEST_F(LibraryTest, FunctionResultTest) {
   std::string s = r2.to_string();
 
   file << "1 ";
+  file.saveFile();
+}
+
+// 新增测试: FunctionArgs::get<T>(index) - 模板方法
+TEST_F(LibraryTest, FunctionArgsGetTemplate) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+#if USE_PADDLE_API
+  torch::FunctionArgs args(1, 2.5, std::string("test"));
+
+  // 测试模板方法 get<T>(index)
+  int val0 = args.get<int>(0);
+  double val1 = args.get<double>(1);
+  std::string val2 = args.get<std::string>(2);
+
+  file << val0 << " " << val1 << " " << val2.length() << " ";
+#else
+  // libtorch 没有 FunctionArgs，使用占位输出
+  file << "-1 -1 -1 ";
+#endif
+  file.saveFile();
+}
+
+// 新增测试: FunctionArgs::empty
+TEST_F(LibraryTest, FunctionArgsEmpty) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+#if USE_PADDLE_API
+  torch::FunctionArgs empty_args;
+  torch::FunctionArgs non_empty_args(1, 2);
+
+  file << (empty_args.empty() ? 1 : 0) << " ";
+  file << (non_empty_args.empty() ? 0 : 1) << " ";
+#else
+  file << "-1 -1 ";
+#endif
+  file.saveFile();
+}
+
+// 新增测试: FunctionArgs::begin/end 迭代器
+TEST_F(LibraryTest, FunctionArgsIterator) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+#if USE_PADDLE_API
+  torch::FunctionArgs args(10, 20, 30);
+
+  // 测试迭代器
+  auto iter_begin = args.begin();
+  auto iter_end = args.end();
+
+  // 计算迭代器距离
+  size_t distance = 0;
+  for (auto it = args.begin(); it != args.end(); ++it) {
+    distance++;
+  }
+
+  // 获取第一个和最后一个元素
+  int first_val = args.get<int>(0);
+  int last_val = args.get<int>(distance - 1);
+
+  file << distance << " " << first_val << " " << last_val << " ";
+#else
+  file << "-1 -1 -1 ";
+#endif
+  file.saveFile();
+}
+
+// 新增测试: FunctionResult::get<T>() - 模板方法
+TEST_F(LibraryTest, FunctionResultGetTemplate) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+#if USE_PADDLE_API
+  torch::FunctionResult r_int(42);
+  torch::FunctionResult r_double(3.14);
+  torch::FunctionResult r_string(std::string("hello"));
+
+  // 测试模板方法 get<T>()
+  int int_val = r_int.get<int>();
+  double double_val = r_double.get<double>();
+  std::string string_val = r_string.get<std::string>();
+
+  file << int_val << " " << double_val << " " << string_val.length() << " ";
+#else
+  file << "-1 -1 -1 ";
+#endif
+  file.saveFile();
+}
+
+// 新增测试: FunctionResult::has_value
+TEST_F(LibraryTest, FunctionResultHasValue) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+#if USE_PADDLE_API
+  torch::FunctionResult r_with_value(42);
+  torch::FunctionResult r_void = torch::FunctionResult::void_result();
+
+  file << (r_with_value.has_value() ? 1 : 0) << " ";
+  file << (r_void.has_value() ? 0 : 1) << " ";
+#else
+  file << "-1 -1 ";
+#endif
   file.saveFile();
 }
 

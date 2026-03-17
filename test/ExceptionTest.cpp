@@ -19,6 +19,10 @@ class ExceptionTest : public ::testing::Test {
   void SetUp() override {}
 };
 
+// [DIFF] 文件级说明：异常宏在两端失败路径语义不同（LibTorch 常见为
+// abort/死亡测试， Paddle 兼容层常见为 C++
+// 异常），导致断言方式和结果协议必须分叉。
+
 // TORCH_CHECK 成功（条件为 true）
 TEST_F(ExceptionTest, TorchCheckSuccess) {
   auto file_name = g_custom_param.get();
@@ -98,6 +102,7 @@ TEST_F(ExceptionTest, TorchCheckEqSuccess) {
 // LibTorch: 失败时调用 abort()，使用 EXPECT_DEATH 捕获进程终止。
 // Paddle:   失败时抛出 C++ 异常，使用 try-catch 捕获。
 TEST_F(ExceptionTest, TorchCheckEqFailure) {
+  // [DIFF] 用例级差异：同一失败条件在两端终止机制不同，无法共用同一断言写法。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -110,6 +115,8 @@ TEST_F(ExceptionTest, TorchCheckEqFailure) {
   }
   file << std::to_string(caught ? 1 : 0) << " ";
 #else
+  // [DIFF] 问题行：LibTorch 路径必须用 EXPECT_DEATH 捕获 abort；
+  // Paddle 路径若使用该写法会语义不匹配。
   EXPECT_DEATH({ TORCH_CHECK_EQ(3, 4); }, ".*");
   file << "1 ";
 #endif
@@ -120,6 +127,7 @@ TEST_F(ExceptionTest, TorchCheckEqFailure) {
 // LibTorch: 失败时调用 abort()，使用 EXPECT_DEATH 捕获进程终止。
 // Paddle:   失败时抛出 C++ 异常，使用 try-catch 捕获。
 TEST_F(ExceptionTest, TorchCheckNe) {
+  // [DIFF] 用例级差异：NE 失败分支同样是 abort（Torch）vs throw（Paddle）。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -140,6 +148,7 @@ TEST_F(ExceptionTest, TorchCheckNe) {
   }
   file << std::to_string(caught ? 1 : 0) << " ";
 #else
+  // [DIFF] 问题行：EXPECT_DEATH 仅适用于 Torch 失败语义。
   EXPECT_DEATH({ TORCH_CHECK_NE(3, 3); }, ".*");
   file << "1 ";
 #endif

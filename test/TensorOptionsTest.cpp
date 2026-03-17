@@ -8,6 +8,7 @@
 #include <c10/core/TensorOptions.h>
 #include <gtest/gtest.h>
 
+#include <optional>
 #include <sstream>
 #include <string>
 
@@ -216,6 +217,39 @@ TEST_F(TensorOptionsTest, ToString) {
   FileManerger file(file_name);
   file.openAppend();
   file << std::to_string(opts.has_dtype() ? 1 : 0) << " ";
+  file.saveFile();
+}
+
+// layout_or_default / device_or_default / dtype_or_default /
+// pinned_memory_or_default
+TEST_F(TensorOptionsTest, DefaultHelperFunctions) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+
+  auto layout_default = c10::layout_or_default(std::optional<c10::Layout>{});
+  auto layout_sparse =
+      c10::layout_or_default(std::optional<c10::Layout>(c10::kSparse));
+
+  auto device_default = c10::device_or_default(std::optional<c10::Device>{});
+  auto device_cpu = c10::device_or_default(
+      std::optional<c10::Device>(c10::Device(c10::kCPU)));
+
+  auto dtype_default = c10::dtype_or_default(std::optional<c10::ScalarType>{});
+  auto dtype_long =
+      c10::dtype_or_default(std::optional<c10::ScalarType>(c10::kLong));
+
+  bool pinned_default = c10::pinned_memory_or_default(std::optional<bool>{});
+  bool pinned_true = c10::pinned_memory_or_default(std::optional<bool>(true));
+
+  file << std::to_string(static_cast<int>(layout_default)) << " ";
+  file << std::to_string(static_cast<int>(layout_sparse)) << " ";
+  file << std::to_string(device_default.is_cpu() ? 1 : 0) << " ";
+  file << std::to_string(device_cpu.is_cpu() ? 1 : 0) << " ";
+  file << std::to_string(static_cast<int>(dtype_default)) << " ";
+  file << std::to_string(static_cast<int>(dtype_long)) << " ";
+  file << std::to_string(pinned_default ? 1 : 0) << " ";
+  file << std::to_string(pinned_true ? 1 : 0) << " ";
   file.saveFile();
 }
 

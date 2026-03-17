@@ -115,6 +115,17 @@ TEST_F(TransposeTest, TransposeMemberFunction) {
   file.saveFile();
 }
 
+// Inplace 转置
+TEST_F(TransposeTest, TransposeInplace) {
+  at::Tensor temp = at::zeros({2, 3, 4}, at::kFloat);
+  at::Tensor result = temp.transpose_(0, 2);
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  write_transpose_result_to_file(&file, result);
+  file.saveFile();
+}
+
 // Scalar 参数版本
 TEST_F(TransposeTest, TransposeScalarAPI) {
   at::Tensor result = at::transpose(tensor, 0, 2);

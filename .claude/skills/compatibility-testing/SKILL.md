@@ -1,258 +1,128 @@
-# compatibility-testing
+| name | description |
+|------|-------------|
+| compatibility-testing | PaddlePaddle 与 PyTorch C++ API 兼容性测试开发，确保兼容接口的完全对齐。 |
 
-PaddlePaddle 与 PyTorch C++ API 兼容性测试开发规范。
+# Cpp API 兼容性测试开发
 
-## 触发条件
+## When to Activate
 
-适用场景：
-- 编写或扩展 `PaddleCppAPITest\test` 下的兼容性测试
-- 验证 Paddle 兼容层与 PyTorch 对同一 API 的行为一致性
-- 定位某个接口在两个框架间的输出差异
+- 编写或扩展 `PaddleCppAPITest/test` 下的兼容性测试。
+- 验证 Paddle 兼容层与 PyTorch 对同一 API 的行为一致性。
+- 定位某个接口在两个框架间的输出差异。
 
-## 测试目标
+## Core Principles
 
-**测试范围**：覆盖 `Paddle\paddle\phi\api\include\compat` 目录下**所有**接口，包括但不限于：
+项目构建系统通过 `create_paddle_tests()` 将同一份源码编译出 `torch_*` 和 `paddle_*` 两套可执行文件。测试结果通过文本形式序列化到本地，通过 diff 进行验证。
 
-| 目录 | 接口类型 | 示例 |
-|------|---------|------|
-| `ATen/ops/` | ATen 算子 | `abs.h`, `sum.h`, `reshape.h`, `zeros.h` ... |
-| `ATen/core/` | ATen 核心类型 | `Tensor.h`, `TensorBody.h`, `TensorAccessor.h` ... |
-| `ATen/` | ATen 基础 | `Tensor.h`, `Device.h`, `DeviceGuard.h` ... |
-| `c10/core/` | C10 核心 | `ScalarType.h`, `TensorOptions.h`, `Storage.h` ... |
-| `c10/util/` | C10 工具 | `Optional.h`, `ArrayRef.h`, `Half.h` ... |
-| `c10/cuda/` | C10 CUDA | `CUDAStream.h`, `CUDAGuard.h`, `CUDAException.h` ... |
-| `torch/` | Torch 包装 | `all.h`, `cuda.h`, `extension.h` ... |
-| `utils/` | 工具函数 | `scalar_type_conversion.h`, `int_array_ref_conversion.h` ... |
+### 基础文件结构
+测试文件统一位于 `PaddleCppAPITest/test`，命名为 `<OpName>Test.cpp`（如 `AbsTest.cpp`）：
+1. **命名空间**：固定为 `at::test`。
+2. **全局参数**：使用 `extern paddle_api_test::ThreadSafeParam g_custom_param;` 获取当前运行的文件名标识。
+3. **测试夹具**：继承自 `::testing::Test`。
 
-> `AbsTest.cpp`（位于 `test/ops/` 仅为示例）仅作为**参考**，展示测试文件结构和输出格式。
-
-## 项目约定
-
-- 构建系统通过 `CMakeLists.txt` 中的 `create_paddle_tests()` 函数同时生成 `torch_*` 和 `paddle_*` 两套可执行文件
-- 测试二进制运行时自动以自身文件名命名输出文件（如 `torch_AbsTest.txt`），由 `main.cpp` 中的 `g_custom_param` 传递
-- 结果对比依赖文本 diff，因此输出格式的确定性至关重要
-
-## 测试文件结构
-
-### 文件头与命名空间
-
-测试文件统一位于 `PaddleCppAPITest\test`，与 compat 接口目录结构对应。参考以下结构（以 `AbsTest.cpp` 为示例）：
+### 结果输出格式 (序列化)
+为保证 diff 结果严谨，需实现专用的结果写入函数。
+- **强制要求**：输出需使用空格分隔的纯文本 `[ndim] [numel] [size_0] ... [val_0] ...`。
+- **IO规则**：当前测试文件内，**首个用例使用 `createFile()`** 创建文件，**后续所有用例使用 `openAppend()`** 追加。
 
 ```cpp
-#include <ATen/ATen.h>
-#include <ATen/core/Tensor.h>
-#include <ATen/ops/abs.h>          // 按需替换为目标算子头文件
-#include <ATen/ops/zeros.h>        // 辅助构造用
-#include <gtest/gtest.h>
-
-#include <string>
-#include <vector>
-
-#include "../../src/file_manager.h"
-
-extern paddle_api_test::ThreadSafeParam g_custom_param;
-
-namespace at {
-namespace test {
-
-using paddle_api_test::FileManerger;
-using paddle_api_test::ThreadSafeParam;
-
-class AbsTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    // 构造基准输入 tensor
-  }
-  at::Tensor test_tensor;
-};
-
-// 测试用例 ...
-
-}  // namespace test
-}  // namespace at
-```
-
-**关键约束**：
-- 命名空间固定为 `at::test`，保证与 ATen 类型系统的直接可见性
-- `g_custom_param` 是全局线程安全参数，存储当前运行的输出文件名，由 `main.cpp` 在 `RUN_ALL_TESTS()` 前注入
-- 测试类命名格式 `<OpName>Test`，文件名与之一致
-
-### 结果输出函数
-
-每个测试文件包含一个静态输出函数，负责将 tensor 结果序列化到文件。该函数是跨框架对比的唯一数据源，格式必须确定且可复现：
-
-```cpp
-static void write_abs_result_to_file(FileManerger* file, const at::Tensor& result) {
+static void write_op_result_to_file(FileManerger* file, const at::Tensor& result) {
   *file << std::to_string(result.dim()) << " ";
   *file << std::to_string(result.numel()) << " ";
-  float* data = result.data_ptr<float>();
+  float* data = result.data_ptr<float>(); // 需根据 result.scalar_type() 动态分发
   for (int64_t i = 0; i < result.numel(); ++i) {
     *file << std::to_string(data[i]) << " ";
   }
 }
 ```
 
-注意：
-- 第一个测试用例调用 `file.createFile()` 创建文件，后续用例调用 `file.openAppend()` 追加
-- 对于多 dtype 支持的算子，需按 `result.scalar_type()` 分发到对应的 `data_ptr<T>()` 类型
+### 覆盖率与鲁棒性要求
 
-## Shape 覆盖要求
+验证 API 时必须确保足够的边界测试。禁止为了满足覆盖率堆砌无效实例化，应调用真实的逻辑和方法。不允许使用 `#if USE_PADDLE_API` 做条件分支。
 
-测试 shape 的选择直接影响边界条件的暴露率。以下为四个必选维度区间，每个新算子测试须至少各取一例：
+### Shape 与边界维度覆盖
+每个算子测试 **必须** 覆盖以下场景：
+1. **标量**：`{}` (0-d tensor，非 `{1}`)。
+2. **常规小/大 Tensor**：如 `{4}`, `{2, 3}` / `{10000}`, `{10, 20, 30}`。
+3. **极端边界**：含零维度 (`{0}`, `{2, 0}`)、全一维度 (`{1, 1, 1}`)、非连续 Tensor (如 `transpose()`/`as_strided()` 产物)。
 
-### 标量 (0-d tensor)
-- `{}` — 零维标量，部分算子（如 `sum` 不指定 dim）的返回类型
-- 注意：`{1}` 是 1-d tensor，**不是**标量
+### Dtype 类型覆盖
+基础类型至少覆盖：`kFloat` (float32)、`kDouble` (float64 base-line)、`kInt` (int32)、`kLong` (int64)。
 
-### 小 shape（元素数 ≤ 64）
-- 典型值：`{4}`、`{2, 3}`、`{2, 3, 4}`
-- 便于手工验证数值正确性
-
-### 大 shape（元素数 ≥ 10000）
-- 典型值：`{10000}`、`{100, 100}`、`{10, 20, 30, 40}`
-- 主要暴露精度累积误差和内存布局差异
-
-### 边界 shape
-- 含零维度：`{0}`、`{2, 0}`、`{1, 0, 3}` — 验证空 tensor 语义
-- 全一维度：`{1, 1, 1}` — 常触发 squeeze/broadcast 的特殊路径
-- 经 `transpose()` / `as_strided()` 产生的非连续 tensor — 验证 stride 处理的正确性
-
-## Dtype 覆盖要求
-
-以下为 ATen 支持的标准标量类型，通过 `at::TensorOptions().dtype()` 或 shorthand 常量指定。新增测试至少需要覆盖 `kFloat`、`kDouble`、`kInt`、`kLong` 四种基础类型，其余按算子语义酌情补充：
-
-| 标量类型 | ATen 常量 | C++ 对应类型 | 适用注意 |
-|---------|-----------|-------------|---------|
-| float32 | `at::kFloat` | `float` | 多数算子的默认 dtype |
-| float64 | `at::kDouble` | `double` | 精度基准，常用于 reference 比较 |
-| int32 | `at::kInt` | `int32_t` | 整型算子、索引 |
-| int64 | `at::kLong` | `int64_t` | shape / dim 参数的底层类型 |
-| int16 | `at::kShort` | `int16_t` | 较少使用，部分量化场景 |
-| int8 | `at::kChar` | `int8_t` | 不要与 `kByte` (uint8) 混淆 |
-| uint8 | `at::kByte` | `uint8_t` | 常见于图像数据 |
-| bool | `at::kBool` | `bool` | 比较算子的返回类型 |
-
-> Paddle 兼容层的 dtype 映射与 PyTorch 存在细微差异（例如默认 dtype 可能不同），输出对比时需关注此类隐式转换。
-
-## 异常行为测试
-
-部分算子在非法输入下的异常行为可能在两个框架间存在差异（一个抛异常、另一个返回 NaN 或空 tensor）。此类差异需显式捕获并记录：
-
+### 异常与边界行为捕获
+非法输入引发的异常两端可能不同（报错信息跨度广或一端不抛出），捕获并输出异常行为以供 Diff：
 ```cpp
-TEST_F(SomeOpTest, InvalidInputHandling) {
-  try {
-    at::Tensor result = at::some_op(invalid_tensor);
-    // 未抛异常 — 正常记录结果
-    auto file_name = g_custom_param.get();
-    FileManerger file(file_name);
-    file.openAppend();
-    write_someop_result_to_file(&file, result);
-    file.saveFile();
-  } catch (const c10::Error& e) {
-    // ATen/c10 层异常
-    auto file_name = g_custom_param.get();
-    FileManerger file(file_name);
-    file.openAppend();
-    file << "c10::Error: " << e.what();
-    file.saveFile();
-  } catch (const std::exception& e) {
-    auto file_name = g_custom_param.get();
-    FileManerger file(file_name);
-    file.openAppend();
-    file << "exception: " << e.what();
-    file.saveFile();
-  }
+try {
+  at::Tensor res = at::some_op(invalid_tensor);
+  // ... 写入成功结果
+} catch (const c10::Error& e) {
+  file << "c10::Error: " << e.what(); // 优先捕获 c10::Error
+} catch (const std::exception& e) {
+  file << "exception: " << e.what();
 }
 ```
 
-> 捕获时优先匹配 `c10::Error`（ATen 的标准异常类型），再兜底 `std::exception`。异常信息写入输出文件后可直接 diff，两框架的异常消息不要求完全一致，但**是否抛异常**须一致。
+### 注意事项与约定
+- **CMakeLists 限制**：一般开发不要擅自修改 `CMakeLists.txt`。如有新增组件/目录或改进意见，请优先**向开发者（提问）询问确认**后再执行。
+- **增量编译策略**：节约生命，仅修改 `test` 时请直接进 `build` 敲击 `make -j$(nproc)`。
+- **约定输出**：所有流程均成功后请简述测试开发结果（如新增或修改了哪些文件、覆盖了哪些测试场景、是否发现 Diff 以及后续计划）输出一份 `md` 文档供开发者或其他大模型 review。
 
-## 输出格式
+## Compatibility Work Steps
 
-输出文件采用空格分隔的纯文本，按以下字段顺序逐 tensor 追加：
+### Step 1: 自动添加测试
+- 查看PaddleCppAPITest/api_coverage_report.txt中的： "## ❌ 未测试的API列表" 。
+- 取下方第一个 "###" 对应的接口，在test目录下确定没有相关测试后添加测试。
+- 添加完成后运行bash PaddleCppAPITest/coverage/analyze_api.sh。
+- 检查相关接口是否在 "## ❌ 未测试的API列表" 下消失，消失请直接进行Step 2。
+- 如果你添加了对应接口的测试用例，并且运行了analyze_api.sh，相关接口仍显示未测试，请修改coverage/analyze_api_coverage.py脚本中的接口列表，确保它能正确的识别你添加的测试用例，同时在工作结束后向开发者汇报。
+### Step 2: 验证测试表现
 
-```
-<ndim> <numel> [<size_0> <size_1> ...] <val_0> <val_1> ...
-```
+完成开发后，按以下严格的流程式验证测试表现。
 
-示例（一个 shape 为 `{2, 3}` 的 float tensor）：
-```
-2 6 2 3 1.000000 2.000000 3.000000 4.000000 5.000000 6.000000
-```
-
-注意事项：
-- 浮点值通过 `std::to_string()` 序列化，精度为 6 位有效数字
-- 不同测试用例的输出依次追加到同一文件中，以换行或空格分隔，顺序由 GTest 的用例注册顺序决定
-- Place的验证可以取HashValue()
-- Device的比较可以取str()
-- 如果./test/result_cmp.sh的对比结果有差异，请记录下来，在最后总结告诉我，不需要修改测试代码
-
-
-### 注意事项
-
-**覆盖率计算陷阱与规避：**
-- **不要堆砌无效对象实例化**：覆盖率统计基于方法调用正则，仅实例化对象而不调用方法无法增加有效覆盖率。测试应包含真实的方法调用逻辑。
-- **避免硬编码兼容宏忽略真实 API**：测试宏背后的类方法或内部函数时，需模拟真实数据调用其对外开放的公共接口（如 `.call()`、`.get()`、`.has_value()` 等），而非依赖编译期宏替换。
-- **禁止使用条件编译区分 API**：测试 Paddle 兼容层与 PyTorch 的行为一致性时，**禁止**使用 `#if USE_PADDLE_API` 或类似条件编译区分同一方法的写法。应直接调用目标框架的实际 API，确保测试运行时行为而非编译期分支。
-
-### 仅运行单个测试
+- 编译阶段
 
 ```bash
-./torch/torch_AbsTest --gtest_filter="AbsTest.EdgeValues"
+conda activate paddle
+cd PaddleCppAPITest/build
+# ⚠️ 注意：如果是初次编译或涉及 CMakeLists.txt 改动，需清理缓存：
+rm -rf *
+
+# ⚠️ 注意：如果 **仅仅修改了测试代码 (.cpp)**，请跳过上述 rm -rf 操作以节省时间直接 make！
+
+cmake .. \
+  -DCMAKE_C_COMPILER=/usr/bin/gcc-9 \
+  -DCMAKE_CXX_COMPILER=/usr/bin/g++-9
+make -j$(nproc)
 ```
+> **排错**：如果编译失败，请根据报错信息补充头文件或修正语法，所有修复同样需满足上述的开发规范要求。
 
-#### 运行对比脚本
+- 运行测试与分析对比
 
+借助对比脚本运行两套二进制文件，自动生成分析报告并进行 Diff 对比。
 ```bash
-cd .. && ./test/result_cmp.sh build
+cd ..
+./test/result_cmp.sh build
 ```
+执行完毕后，在 `/tmp/paddle_cpp_api_test/` 目录下将生成 **最新增量时间戳** 的测试分析报告。由于历史报告不会被覆盖，**请务必查看最新版本的文件**！
 
-## 新算子测试检查清单
+### Step 3: 结果排查与 Diff 登记
 
-新增测试前逐项确认，标注 `*` 的为强制项：
+请在最新的分析文件中搜索以下关键字：
 
-**Shape 维度**
-- [ ] `*` 标量 (0-d tensor)
-- [ ] `*` 小 shape (元素数 ≤ 64)
-- [ ] `*` 大 shape (元素数 ≥ 10000)
-- [ ] 含零维度 (`{0}`, `{2, 0}`)
-- [ ] 全一维度 (`{1, 1, 1}`)
-- [ ] 非连续 tensor (经 `transpose` / `narrow` / `as_strided`)
+1. **FAILED / SKIPPED**：存在测试直接崩溃或失败，需回到代码修复缺陷。
+2. **DIFF**：发现 Torch 与 Paddle 结果不一致（数值不匹配、报错异常等）。
 
-**Dtype**
-- [ ] `*` float32
-- [ ] `*` float64
-- [ ] `*` int32
-- [ ] `*` int64
-- [ ] bool
-- [ ] int8 / uint8 / int16（视算子支持情况）
+**遇到 Diff 时的标准处理动作**：
+1. 在 `.cpp` 测试文件中找到产生 Diff 的具体 Test Case。
+2. 在代码中标记 Diff（例如：`// [DIFF] Paddle returns NaN, Torch returns 0`），并注释掉输出diff的测试用例以保证后续测试通过。
+3. 分析 Diff 代表的底层差异逻辑。
+4. **整理差异并追加写入到** `PaddleCppAPITest/doc/mismatch_api_record.md`，务必严格对齐该文件现有的 Markdown 格式。测试代码**不需要**为了迎合 Torch 强行修改预期。
 
-**值域**
-- [ ] `*` 正数
-- [ ] `*` 负数
-- [ ] `*` 零
-- [ ] NaN / Inf / -Inf
-- [ ] 极值 (`1e38f`, `1e-38f`)
-- [ ] 正负零区分 (`+0.0` vs `-0.0`)
+## Success Metrics
 
-**API 变体**
-- [ ] 函数式调用 (`at::abs(t)`)
-- [ ] 原地操作 (`at::abs_(t)` 或 `t.abs_()`)
-- [ ] out= 重载 (`at::abs_out(out, t)`)
-- [ ] keepdim 参数（归约类算子）
-- [ ] dim / axis 参数（含负索引）
+在完成测试开发后，请务必逐项检查以下内容：
 
-**输出**
-- [ ] `*` 第一个用例使用 `createFile()`，后续使用 `openAppend()`
-- [ ] `*` 通过 `write_<op>_result_to_file()` 统一输出
-- [ ] 多 dtype 场景按 `scalar_type()` 分发 `data_ptr<T>()`
-
-## 输出文件路径
-
-默认输出目录：`/tmp/paddle_cpp_api_test/`（由 `FileManerger::basic_path_` 控制）。
-
-文件名自动取可执行文件名 + `.txt`：
-- `torch_AbsTest` → `/tmp/paddle_cpp_api_test/torch_AbsTest.txt`
-- `paddle_AbsTest` → `/tmp/paddle_cpp_api_test/paddle_AbsTest.txt`
-
-如需自定义路径，在构造 `FileManerger` 时传入完整文件名即可覆盖（但通常不建议，以保持批量对比脚本的兼容性）。
+- [ ] **构建**：是否按增量/全量正确完成编译。
+- [ ] **输出流**：首个用例确保调用 `createFile()`，其余均使用 `openAppend()`。
+- [ ] **基础覆盖**：形状涵盖（标量、空Tensor、大/小Tensor），Dtype 涵盖（float32/64、int32/64）。
+- [ ] **结果分析**：是否运行了 `result_cmp.sh` 并检查了最新日志；是否将产生的 diff 按规范录入 `mismatch_api_record.md`。

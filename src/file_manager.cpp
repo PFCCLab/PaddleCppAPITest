@@ -2,8 +2,16 @@
 
 #include <filesystem>
 #include <iostream>
+#include <unordered_set>
 
 namespace paddle_api_test {
+
+namespace {
+std::unordered_set<std::string>& created_files_in_process() {
+  static std::unordered_set<std::string> files;
+  return files;
+}
+}  // namespace
 
 void FileManerger::createFile() {
   std::unique_lock<std::shared_mutex> lock(mutex_);
@@ -15,12 +23,20 @@ void FileManerger::createFile() {
   }
 
   std::string full_path = basic_path_ + file_name_;
+  auto& created_files = created_files_in_process();
+  const bool first_create_in_this_process =
+      created_files.find(full_path) == created_files.end();
 
-  if (std::filesystem::exists(full_path)) {
-    std::filesystem::remove(full_path);
+  if (first_create_in_this_process) {
+    if (std::filesystem::exists(full_path)) {
+      std::filesystem::remove(full_path);
+    }
+    file_stream_.open(full_path, std::ios::out | std::ios::trunc);
+    created_files.insert(full_path);
+  } else {
+    file_stream_.open(full_path, std::ios::out | std::ios::app);
   }
 
-  file_stream_.open(full_path, std::ios::out | std::ios::trunc);
   if (!file_stream_.is_open()) {
     throw std::runtime_error("Failed to create file: " + full_path);
   }

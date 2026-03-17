@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include "../src/file_manager.h"
@@ -84,6 +85,9 @@ TEST_F(OptionalArrayRefTest, FromInitializerList) {
 }
 
 // 从 std::optional<ArrayRef> 构造
+// DIFF: 直接使用 std::optional<c10::ArrayRef<int64_t>>(std::vector{...})
+// 会让 ArrayRef 持有临时 vector 的悬空地址，front() 输出为随机值，
+// 导致 Paddle/Torch 结果不一致。按规范仅保留稳定字段（has_value/size）。
 TEST_F(OptionalArrayRefTest, FromOptionalArrayRef) {
   std::optional<c10::ArrayRef<int64_t>> opt_arr(std::vector<int64_t>{5, 6, 7});
   c10::OptionalArrayRef<int64_t> arr(opt_arr);
@@ -92,7 +96,8 @@ TEST_F(OptionalArrayRefTest, FromOptionalArrayRef) {
   file.openAppend();
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  file << std::to_string(arr->front()) << " ";
+  // DIFF: 注释掉不稳定的元素值输出
+  // file << std::to_string(arr->front()) << " ";
   file.saveFile();
 }
 
@@ -144,6 +149,45 @@ TEST_F(OptionalArrayRefTest, ValueMethod) {
   FileManerger file(file_name);
   file.openAppend();
   auto& ref = arr.value();
+  file << std::to_string(ref.size()) << " ";
+  file << std::to_string(ref.front()) << " ";
+  file << std::to_string(ref.back()) << " ";
+  file.saveFile();
+}
+
+// value() const& 重载
+TEST_F(OptionalArrayRefTest, ValueMethodConstLValue) {
+  const c10::OptionalArrayRef<int64_t> arr({11, 12, 13});
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  const auto& ref = arr.value();
+  file << std::to_string(ref.size()) << " ";
+  file << std::to_string(ref.front()) << " ";
+  file << std::to_string(ref.back()) << " ";
+  file.saveFile();
+}
+
+// value() && 重载
+TEST_F(OptionalArrayRefTest, ValueMethodRValue) {
+  c10::OptionalArrayRef<int64_t> arr({21, 22, 23});
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  auto&& ref = std::move(arr).value();
+  file << std::to_string(ref.size()) << " ";
+  file << std::to_string(ref.front()) << " ";
+  file << std::to_string(ref.back()) << " ";
+  file.saveFile();
+}
+
+// value() const&& 重载
+TEST_F(OptionalArrayRefTest, ValueMethodConstRValue) {
+  const c10::OptionalArrayRef<int64_t> arr({31, 32, 33});
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  auto&& ref = std::move(arr).value();
   file << std::to_string(ref.size()) << " ";
   file << std::to_string(ref.front()) << " ";
   file << std::to_string(ref.back()) << " ";
@@ -220,6 +264,18 @@ TEST_F(OptionalArrayRefTest, EmplaceMethod) {
   // for (const auto& v : *arr) {
   //   file << std::to_string(v) << " ";
   // }
+  file.saveFile();
+}
+
+// emplace() 无参重载
+TEST_F(OptionalArrayRefTest, EmplaceMethodNoArgs) {
+  c10::OptionalArrayRef<int64_t> arr;
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  auto& ref = arr.emplace();
+  file << std::to_string(arr.has_value() ? 1 : 0) << " ";
+  file << std::to_string(ref.size()) << " ";
   file.saveFile();
 }
 

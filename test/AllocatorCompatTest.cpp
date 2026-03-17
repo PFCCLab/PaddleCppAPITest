@@ -31,12 +31,19 @@ class AllocatorTest : public ::testing::Test {
   void* test_ctx_ = nullptr;
 };
 
+// [DIFF] 文件级说明：DataPtr 在构造签名、拷贝语义、deleter 生命周期、device
+// 类型上 存在稳定差异；本文件保留这些差异并通过条件分支输出可比结果。
+
 // 自定义 deleter 函数用于测试（不真正释放，由测试管理）
 static bool g_deleter_called = false;
 static void test_deleter(void* ptr) { g_deleter_called = true; }
 
 // 真正释放内存的 deleter
 static void real_float_deleter(void* ptr) { delete[] static_cast<float*>(ptr); }
+
+static void dataptr_clear_api_probe(c10::DataPtr* data_ptr) {
+  data_ptr->clear();
+}
 
 // 测试默认构造函数
 TEST_F(AllocatorTest, DefaultConstructor) {
@@ -58,11 +65,13 @@ TEST_F(AllocatorTest, DefaultConstructor) {
 
 // 测试带数据和设备的构造函数
 TEST_F(AllocatorTest, ConstructorWithDataAndDevice) {
+  // [DIFF] 用例级差异：相同语义在两端构造签名不同。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
 
 #if USE_PADDLE_API
+  // [DIFF] 问题行：Paddle 使用 phi::CPUPlace，Torch 使用 c10::Device。
   c10::DataPtr data_ptr(static_cast<void*>(test_data_), phi::CPUPlace());
 #else
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
@@ -160,6 +169,8 @@ TEST_F(AllocatorTest, MoveAssignment) {
 // PyTorch 不会重置 deleter 为 nullptr，Paddle 会
 // 因此只测试 get(), operator bool(), get_context() 的行为一致性
 TEST_F(AllocatorTest, Clear) {
+  // [DIFF] 用例级差异：clear() 后 get_deleter 行为两端不一致（Paddle
+  // 清空，Torch 可能保留）。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -178,7 +189,7 @@ TEST_F(AllocatorTest, Clear) {
   file << std::to_string(data_ptr.get() != nullptr) << " ";
   file << std::to_string(static_cast<bool>(data_ptr)) << " ";
 
-  data_ptr.clear();
+  dataptr_clear_api_probe(&data_ptr);
 
   // clear 后核心属性应该为空
   file << std::to_string(data_ptr.get() == nullptr) << " ";

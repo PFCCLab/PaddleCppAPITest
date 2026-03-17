@@ -24,8 +24,13 @@ class CUDATest2 : public ::testing::Test {
   void SetUp() override {}
 };
 
+// [DIFF] 文件级说明：该文件大部分用例依赖 c10::cuda::* 具体实现，
+// 当前主要在 Torch 路径可稳定编译/运行，Paddle 路径能力面不对齐。
+
 // device_synchronize
 TEST_F(CUDATest2, DeviceSynchronize) {
+  // [DIFF] 用例级差异：该用例仅写占位结果，未执行等价 API，
+  // 反映两端在同步语义上的可比性不足。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
@@ -42,12 +47,29 @@ TEST_F(CUDATest2, StreamSynchronize) {
   FileManerger file(file_name);
   file.openAppend();
 
-  // c10::cuda::stream_synchronize
-  file << "stream_synchronize_test ";
+#ifndef USE_PADDLE_API
+  if (!at::cuda::is_available()) {
+    GTEST_SKIP() << "CUDA not available";
+  }
+
+  try {
+    auto stream = c10::cuda::getCurrentCUDAStream();
+    c10::cuda::stream_synchronize(stream.stream());
+    file << "1 ";
+  } catch (const std::exception& e) {
+    file << "exception " << e.what() << " ";
+  }
+#else
+  // Paddle 兼容头当前 stream
+  // 类型定义与该测试编译单元存在依赖差异，先保留占位输出。
+  file << "stream_sync_placeholder ";
+#endif
   file.saveFile();
 }
 
 #ifndef USE_PADDLE_API
+// [DIFF] 问题行：以下测试块仅在 !USE_PADDLE_API 下编译，
+// 说明 CUDAGuard/CUDAStream/Philox 在 Paddle 侧接口不完整或行为不一致。
 // CUDAGuard tests
 TEST_F(CUDATest2, CUDAGuardDefault) {
   auto file_name = g_custom_param.get();

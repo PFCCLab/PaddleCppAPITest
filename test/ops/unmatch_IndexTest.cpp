@@ -1,5 +1,8 @@
 #include <ATen/ATen.h>
 #include <ATen/core/Tensor.h>
+// [DIFF][IndexTest::SliceConstruction / Index*] 该文件依赖 <ATen/indexing.h>。
+// 去掉 unmatch 前缀后会进入常规构建，但当前环境该头不可用，直接在 include
+// 行触发编译失败。
 #include <ATen/indexing.h>
 #include <ATen/ops/index.h>
 #include <ATen/ops/zeros.h>
@@ -43,6 +46,8 @@ static void write_index_result_to_file(FileManerger* file,
 
 // Slice 构造测试
 TEST_F(IndexTest, SliceConstruction) {
+  // [DIFF] 用例级差异：Slice/Indexing API 在两端头文件与可见符号集不一致，
+  // 本用例在常规集合中会被 include 阶段阻塞，因此保留在 unmatch 集合。
   at::indexing::Slice s1(0, 3);
   at::indexing::Slice s2(1, 5, 2);
   at::indexing::Slice s3;  // 默认构造
@@ -61,6 +66,8 @@ TEST_F(IndexTest, SliceConstruction) {
 
 // 单维度 Slice 索引：tensor[1:3, :, :]
 TEST_F(IndexTest, IndexSingleSlice) {
+  // [DIFF] 问题行：at::index + Slice 组合在兼容层中可用性不稳定，
+  // 与头文件暴露策略绑定，属于已知兼容差异场景。
   std::vector<at::indexing::Slice> indices = {at::indexing::Slice(1, 3),
                                               at::indexing::Slice(0, 5),
                                               at::indexing::Slice(0, 6)};

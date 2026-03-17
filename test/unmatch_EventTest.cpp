@@ -82,9 +82,14 @@ class EventTest : public ::testing::Test {
   void SetUp() override {}
 };
 
+// [DIFF] 文件级说明：Event/EventPool 在两端 API 集合与可用条件（CUDA
+// 依赖）不对齐。
+
 #ifndef USE_PADDLE_API
+// [DIFF] 问题行：整个测试块仅 Torch 路径编译，表示 Paddle 侧缺少可对齐实现。
 // EventPool default constructor
 TEST_F(EventTest, EventPoolDefault) {
+  // [DIFF] 用例级差异：EventPool 为 Paddle 私有扩展，Torch 无等价公开类型。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
@@ -153,7 +158,9 @@ TEST_F(EventTest, EventPoolCreateCudaEventFromPool) {
   file.openAppend();
 
 #ifdef PADDLE_WITH_CUDA
-  // This requires CUDA
+  auto& pool = c10::EventPool::Instance();
+  auto event = pool.CreateCudaEventFromPool();
+  (void)event;
   file << "CreateCudaEventFromPool ";
 #else
   file << "CreateCudaEventFromPool_skipped_no_cuda ";
@@ -195,14 +202,16 @@ TEST_F(EventTest, EventWithDeviceType) {
 
 // Event::record
 TEST_F(EventTest, EventRecord) {
+  // [DIFF] 用例级差异：record/cuda_event 依赖 CUDA 运行时，两端在无 CUDA
+  // 时行为不同。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
 
 #ifdef PADDLE_WITH_CUDA
   c10::Event event(c10::DeviceType::CPU);
-  // record requires a stream - skip actual call for non-CUDA build
-  (void)event;
+  cudaStream_t stream = 0;
+  event.record(stream);
   file << "Event_record ";
 #else
   file << "Event_record_skipped_no_cuda ";
@@ -218,8 +227,8 @@ TEST_F(EventTest, EventCudaEvent) {
 
 #ifdef PADDLE_WITH_CUDA
   c10::Event event(c10::DeviceType::CUDA);
-  // cuda_event returns cudaEvent_t - skip for non-CUDA build
-  (void)event;
+  auto cuda_event = event.cuda_event();
+  (void)cuda_event;
   file << "Event_cuda_event ";
 #else
   file << "Event_cuda_event_skipped_no_cuda ";
