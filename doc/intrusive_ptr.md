@@ -55,7 +55,7 @@
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------|------------------|--------------|--------|------|
-| `release()` | 🔧 | - [ ] | P0 | Paddle 实现基于 `shared_ptr::reset`，语义与 PyTorch“保留 owning raw ptr”不一致 |
+| `release()` | 🔧 | - [ ] | P0 | 已标记为 deprecated；返回裸指针但保留 shared_ptr 所有权，语义与 PyTorch 不完全一致 |
 | `reclaim(T*)` | ❌ | - [ ] | P0 | 未支持 |
 | `reclaim_copy(T*)` | ❌ | - [ ] | P1 | 未支持 |
 | `unsafe_steal_from_new(T*)` | ❌ | - [ ] | P2 | 未支持 |
@@ -130,3 +130,6 @@
 
 3. **测试现状**：
    - 在当前仓库中未检索到 `intrusive_ptr`/`weak_intrusive_ptr` 相关测试文件或直接调用用例，测试状态暂标记为 `- [ ]`。
+
+4. **更新记录**：
+   - 2025-03-18: `release()` 方法已标记为 `[[deprecated]]`；添加了缺失的头文件 `<cstdint>` 和 `<type_traits>`

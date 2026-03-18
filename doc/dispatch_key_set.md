@@ -14,7 +14,7 @@
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------|------------------|--------------|--------|------|
 | `FunctionalityOffsetAndMask` | ✅ | - [ ] | P1 | 结构体定义一致 |
-| `initializeFunctionalityOffsetsAndMasks()` | ✅ | - [ ] | P1 | 均提供声明（实现位于 `.cpp`） |
+| `initializeFunctionalityOffsetsAndMasks()` | ✅ | - [ ] | P1 | 已提供内联实现 |
 | `offsetsAndMasks()` | ✅ | - [ ] | P1 | 均为静态缓存访问接口 |
 
 ---
@@ -78,7 +78,7 @@
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------|------------------|--------------|--------|------|
 | `DispatchKeySet::iterator` | ✅ | - [ ] | P1 | 结构与语义一致 |
-| `iterator::operator++()` | ✅ | - [ ] | P1 | 均仅声明，定义在源文件 |
+| `iterator::operator++()` | ✅ | - [ ] | P1 | 已提供内联实现 |
 | `iterator::operator*()` | ✅ | - [ ] | P1 | 一致 |
 | `begin()` | ✅ | - [ ] | P1 | 一致 |
 | `end()` | ✅ | - [ ] | P1 | 一致 |
@@ -89,8 +89,8 @@
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------|------------------|--------------|--------|------|
-| `toString(DispatchKeySet)` | ✅ | - [ ] | P2 | 均提供声明 |
-| `operator<<(ostream&, DispatchKeySet)` | ✅ | - [ ] | P2 | 均提供声明 |
+| `toString(DispatchKeySet)` | ✅ | - [ ] | P2 | 已提供内联实现 |
+| `operator<<(ostream&, DispatchKeySet)` | ✅ | - [ ] | P2 | 已提供内联实现 |
 
 ---
 
@@ -110,30 +110,30 @@
 
 ---
 
-### PyTorch 存在但 Paddle 头文件未提供的全局 API
+### 全局辅助函数与常量
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------|------------------|--------------|--------|------|
-| `autogradother_backends` | ❌ | - [ ] | P2 | Paddle 头文件未声明 |
-| `after_autograd_keyset` | ❌ | - [ ] | P2 | 未声明 |
-| `after_ADInplaceOrView_keyset` | ❌ | - [ ] | P2 | 未声明 |
-| `after_func_keyset` | ❌ | - [ ] | P2 | 未声明 |
-| `backend_bitset_mask` | ❌ | - [ ] | P2 | 未声明 |
-| `inplace_or_view_ks` 等 `autograd_*_ks` 常量 | ❌ | - [ ] | P2 | 未声明 |
-| `functorch_transforms_ks` / `functorch_batched_ks` | ❌ | - [ ] | P3 | 未声明 |
-| `backend_functionality_keys` | ❌ | - [ ] | P2 | 未声明 |
-| `OpTableOffsetAndMask` | ❌ | - [ ] | P3 | 未声明 |
-| `isBackendDispatchKey(DispatchKey)` | ❌ | - [ ] | P1 | 未声明 |
-| `getRuntimeDispatchKeySet(DispatchKey)` | ❌ | - [ ] | P1 | 未声明 |
-| `runtimeDispatchKeySetHas(DispatchKey, DispatchKey)` | ❌ | - [ ] | P1 | 未声明 |
-| `getBackendKeySetFromAutograd(DispatchKey)` | ❌ | - [ ] | P1 | 未声明 |
-| `getAutogradRelatedKeySetFromBackend(BackendComponent)` | ❌ | - [ ] | P1 | 未声明 |
-| `getAutocastRelatedKeySetFromBackend(BackendComponent)` | ❌ | - [ ] | P1 | 未声明 |
-| `highestPriorityBackendTypeId(DispatchKeySet)` | ❌ | - [ ] | P1 | 未声明 |
-| `isIncludedInAlias(DispatchKey, DispatchKey)` | ❌ | - [ ] | P2 | 未声明 |
-| `legacyExtractDispatchKey(DispatchKeySet)` | ❌ | - [ ] | P1 | 未声明 |
-| `is_not_DispatchKeySet` | ❌ | - [ ] | P3 | 未声明 |
-| `remove_DispatchKeySet_arg_from_func` | ❌ | - [ ] | P3 | 未声明 |
+| `autogradother_backends` | ✅ | - [ ] | P2 | 已声明 |
+| `after_autograd_keyset` | ✅ | - [ ] | P2 | 已声明 |
+| `after_ADInplaceOrView_keyset` | ✅ | - [ ] | P2 | 已声明 |
+| `after_func_keyset` | ✅ | - [ ] | P2 | 已声明 |
+| `backend_bitset_mask` | ✅ | - [ ] | P2 | 已声明 |
+| `inplace_or_view_ks` | ✅ | - [ ] | P2 | 已声明 |
+| `autograd_*_ks` 常量 | ✅ | - [ ] | P2 | 已声明 |
+| `functorch_transforms_ks` / `functorch_batched_ks` | ✅ | - [ ] | P3 | 已声明 |
+| `backend_functionality_keys` | ✅ | - [ ] | P2 | 已声明 |
+| `OpTableOffsetAndMask` | ✅ | - [ ] | P3 | 已声明 |
+| `isBackendDispatchKey(DispatchKey)` | ✅ | - [ ] | P1 | 已提供内联实现 |
+| `getRuntimeDispatchKeySet(DispatchKey)` | ✅ | - [ ] | P1 | 已提供内联实现 |
+| `runtimeDispatchKeySetHas(DispatchKey, DispatchKey)` | ✅ | - [ ] | P1 | 已提供内联实现 |
+| `getBackendKeySetFromAutograd(DispatchKey)` | ✅ | - [ ] | P1 | 已提供内联实现 |
+| `getAutogradRelatedKeySetFromBackend(BackendComponent)` | ✅ | - [ ] | P1 | 已提供内联实现 |
+| `getAutocastRelatedKeySetFromBackend(BackendComponent)` | ✅ | - [ ] | P1 | 已提供内联实现 |
+| `highestPriorityBackendTypeId(DispatchKeySet)` | ✅ | - [ ] | P1 | 已声明 |
+| `isIncludedInAlias(DispatchKey, DispatchKey)` | ✅ | - [ ] | P2 | 已提供内联实现 |
+| `legacyExtractDispatchKey(DispatchKeySet)` | ✅ | - [ ] | P1 | 已声明 |
+| `is_not_DispatchKeySet` | ✅ | - [ ] | P3 | 已声明 |
 
 ---
 
@@ -141,10 +141,10 @@
 
 | 状态 | 数量 |
 |------|------|
-| ✅ 已完全支持 | 53 |
+| ✅ 已完全支持 | 74 |
 | 🚧 正在支持 | 0 |
 | 🔧 部分支持 | 1 |
-| ❌ 未支持 | 20 |
+| ❌ 未支持 | 0 |
 
 ---
 
@@ -161,3 +161,6 @@
 
 3. **测试现状**：
    - 当前仓库未检索到 `DispatchKeySet` 相关独立测试文件；表中测试状态暂标记为 `- [ ]`。
+
+4. **更新记录**：
+   - 2025-03-18: 补充了所有声明但未定义的函数内联实现（`iterator::operator++`, `toString`, `operator<<`, `isBackendDispatchKey`, `getRuntimeDispatchKeySet`, `runtimeDispatchKeySetHas`, `getBackendKeySetFromAutograd`, `isIncludedInAlias`, `initializeFunctionalityOffsetsAndMasks` 等）
