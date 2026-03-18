@@ -46,8 +46,6 @@ TEST_F(CUDAContextTest, GetDeviceProperties) {
     } else {
       file << "null ";
     }
-  } catch (const c10::Error& e) {
-    file << "c10::Error: " << e.what();
   } catch (const std::exception& e) {
     file << "exception: " << e.what();
   }
@@ -68,8 +66,6 @@ TEST_F(CUDAContextTest, GetDeviceProperties) {
     } else {
       file << "null ";
     }
-  } catch (const c10::Error& e) {
-    file << "c10::Error: " << e.what();
   } catch (const std::exception& e) {
     file << "exception: " << e.what();
   }
@@ -100,8 +96,6 @@ TEST_F(CUDAContextTest, GetCurrentDeviceProperties) {
     } else {
       file << "null ";
     }
-  } catch (const c10::Error& e) {
-    file << "c10::Error: " << e.what();
   } catch (const std::exception& e) {
     file << "exception: " << e.what();
   }
@@ -118,8 +112,6 @@ TEST_F(CUDAContextTest, GetCurrentDeviceProperties) {
     } else {
       file << "null ";
     }
-  } catch (const c10::Error& e) {
-    file << "c10::Error: " << e.what();
   } catch (const std::exception& e) {
     file << "exception: " << e.what();
   }
@@ -141,14 +133,19 @@ TEST_F(CUDAContextTest, GetCurrentCUDAStream) {
   // at::cuda::getCurrentCUDAStream
   try {
     auto stream = at::cuda::getCurrentCUDAStream();
+    (void)stream;
     file << "stream_available ";
   } catch (...) {
     file << "stream_not_available ";
   }
 #else
-  // [DIFF] 问题行：该行固定输出 stream_skipped_paddle，
-  // 反映两端 API 能力面并不对齐。
-  file << "stream_skipped_paddle ";
+  try {
+    auto stream = at::cuda::getCurrentCUDAStream();
+    (void)stream;
+    file << "stream_available ";
+  } catch (...) {
+    file << "stream_not_available ";
+  }
 #endif
   file.saveFile();
 }

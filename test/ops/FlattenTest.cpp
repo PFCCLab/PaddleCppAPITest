@@ -53,7 +53,7 @@ TEST_F(FlattenTest, FlattenDefault) {
 TEST_F(FlattenTest, FlattenWithDims) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // flatten dim 1 and 2: shape {2, 3, 4} -> {2, 12}
   at::Tensor result = tensor.flatten(1, 2);
@@ -67,7 +67,7 @@ TEST_F(FlattenTest, FlattenWithDims) {
 TEST_F(FlattenTest, FlattenNegativeDims) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // flatten from dim -2 to -1: shape {2, 3, 4} -> {2, 12}
   at::Tensor result = tensor.flatten(-2, -1);
@@ -81,7 +81,7 @@ TEST_F(FlattenTest, FlattenNegativeDims) {
 TEST_F(FlattenTest, FlattenFromStart) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // flatten dim 0 and 1: shape {2, 3, 4} -> {6, 4}
   at::Tensor result = tensor.flatten(0, 1);
@@ -95,7 +95,7 @@ TEST_F(FlattenTest, FlattenFromStart) {
 TEST_F(FlattenTest, Unflatten) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 先 flatten 成 {2, 12}，然后 unflatten 回 {2, 3, 4}
   at::Tensor flattened = tensor.flatten(1, 2);
@@ -113,7 +113,7 @@ TEST_F(FlattenTest, Unflatten) {
 TEST_F(FlattenTest, UnflattenNegativeDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 创建一个 {6, 4} 的 tensor
   at::Tensor flat_tensor = at::ones({6, 4}, at::kFloat);
@@ -131,7 +131,7 @@ TEST_F(FlattenTest, UnflattenNegativeDim) {
 TEST_F(FlattenTest, UnflattenSymint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   at::Tensor flattened = tensor.flatten(1, 2);
   c10::SymIntArrayRef sizes({3, 4});
@@ -148,7 +148,7 @@ TEST_F(FlattenTest, UnflattenSymint) {
 TEST_F(FlattenTest, FlattenDataIntegrity) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   at::Tensor result = tensor.flatten(0, -1);
   float* src_data = tensor.data_ptr<float>();

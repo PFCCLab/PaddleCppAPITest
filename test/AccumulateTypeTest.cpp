@@ -214,10 +214,10 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeCPUDevice) {
        << std::to_string(static_cast<int>(at::toAccumulateType(
               c10::ScalarType::Long, c10::DeviceType::CPU)))
        << " ";
-  // file << "Bool->" <<
-  // std::to_string(static_cast<int>(at::toAccumulateType(c10::ScalarType::Bool,
-  // c10::DeviceType::CPU))) << " "; Diff 2026-03-07: Paddle 已修复，现返回 11
-  // (与 PyTorch 一致)，注释掉等待后续处理
+  file << "Bool->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Bool, c10::DeviceType::CPU)))
+       << " ";
   file.saveFile();
 }
 
@@ -260,10 +260,10 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeCUDADevice) {
        << std::to_string(static_cast<int>(at::toAccumulateType(
               c10::ScalarType::Long, c10::DeviceType::CUDA)))
        << " ";
-  // file << "Bool->" <<
-  // std::to_string(static_cast<int>(at::toAccumulateType(c10::ScalarType::Bool,
-  // c10::DeviceType::CUDA))) << " "; Diff 2026-03-07: Paddle 已修复，现返回 11
-  // (与 PyTorch 一致)，注释掉等待后续处理
+  file << "Bool->"
+       << std::to_string(static_cast<int>(at::toAccumulateType(
+              c10::ScalarType::Bool, c10::DeviceType::CUDA)))
+       << " ";
   file.saveFile();
 }
 

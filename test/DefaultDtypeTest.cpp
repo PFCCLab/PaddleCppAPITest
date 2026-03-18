@@ -99,7 +99,7 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeBFloat16) {
       at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::BFloat16));
   c10::set_default_dtype(t.dtype());
   auto dtype = c10::get_default_dtype_as_scalartype();
-  // file << std::to_string(static_cast<int>(dtype)) << " "; // [DIFF]
+  file << std::to_string(static_cast<int>(dtype)) << " ";
   file.saveFile();
 }
 
@@ -130,9 +130,7 @@ TEST_F(DefaultDtypeTest, GetDefaultComplexDtype) {
   FileManerger file(file_name);
   file.openAppend();
   auto dtype = c10::get_default_complex_dtype();
-  // [DIFF] PyTorch输出: 9, PaddlePaddle输出: 8
-  // file << std::to_string(dtype_to_int(dtype)) << " ";
-  (void)dtype;
+  file << std::to_string(dtype_to_int(dtype)) << " ";
   file.saveFile();
 }
 

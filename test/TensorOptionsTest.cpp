@@ -141,8 +141,7 @@ TEST_F(TensorOptionsTest, DeviceIndex) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  // DIFF: Paddle=0, Torch=-1，两框架行为不一致，故注释掉。
-  // file << std::to_string(opts.device_index()) << " ";
+  file << std::to_string(opts.device_index()) << " ";
   file.saveFile();
 }
 

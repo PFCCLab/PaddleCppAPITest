@@ -137,7 +137,7 @@ TEST_F(HalfBFloat16Test, ScalarTypeMapping) {
   FileManerger file(file_name);
   file.openAppend();
   file << std::to_string(static_cast<int>(at::kHalf)) << " ";
-  // file << std::to_string(static_cast<int>(at::kBFloat16)) << " "; // [DIFF]
+  file << std::to_string(static_cast<int>(at::kBFloat16)) << " ";
   file.saveFile();
 }
 

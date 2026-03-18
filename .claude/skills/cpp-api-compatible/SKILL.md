@@ -2,7 +2,7 @@
 |------|-------------|
 | cpp-api-compatible | 在进行Paddle兼容层的bug修复、接口添加、性能优化或对齐精度时使用 |
 
-# Add or fix compatible Cpp APIs
+# 添加或修复Paddle兼容层 C++ API
 
 按照TDD工作流完成Paddle针对PyTorch C++ API的兼容接口对齐工作。
 

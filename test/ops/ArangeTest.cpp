@@ -39,7 +39,7 @@ TEST_F(ArangeTest, ArangeWithStartEnd) {
   at::Tensor result = at::arange(2, 7, at::TensorOptions().dtype(at::kLong));
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   int64_t* data = result.data_ptr<int64_t>();
@@ -54,7 +54,7 @@ TEST_F(ArangeTest, ArangeWithStartEndStep) {
       at::arange(1, 10, 2, at::TensorOptions().dtype(at::kLong));
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   int64_t* data = result.data_ptr<int64_t>();
@@ -68,7 +68,7 @@ TEST_F(ArangeTest, ArangeWithOptions) {
   at::Tensor result = at::arange(4, at::TensorOptions().dtype(at::kFloat));
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -83,7 +83,7 @@ TEST_F(ArangeTest, NegativeValues) {
   at::Tensor result = at::arange(-3, 3, at::TensorOptions().dtype(at::kLong));
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   int64_t* data = result.data_ptr<int64_t>();

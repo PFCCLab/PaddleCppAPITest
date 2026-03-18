@@ -128,7 +128,7 @@ TEST_F(IndexingTest, SliceIndexing) {
 TEST_F(IndexingTest, TensorIndexNone) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   at::indexing::TensorIndex idx(at::indexing::None);
   file << std::to_string(idx.is_none()) << " ";

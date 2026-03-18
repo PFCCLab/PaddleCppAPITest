@@ -45,7 +45,7 @@ TEST_F(TensorUtilTest, ToString) {
 TEST_F(TensorUtilTest, IsContiguousOrFalse) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(tensor.is_contiguous_or_false()) << " ";
 
   // 测试非连续的tensor
@@ -58,7 +58,7 @@ TEST_F(TensorUtilTest, IsContiguousOrFalse) {
 TEST_F(TensorUtilTest, IsSame) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // Test that tensor is same as itself
   file << std::to_string(tensor.is_same(tensor)) << " ";
@@ -82,7 +82,7 @@ TEST_F(TensorUtilTest, UseCount) {
   // [DIFF] 用例级差异：引用计数策略与时机在两端实现不同，结果不可强对齐。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // Get initial use count
   size_t initial_count = tensor.use_count();
@@ -108,7 +108,7 @@ TEST_F(TensorUtilTest, WeakUseCount) {
   // 的内部持有策略在两端不一致，先不输出差异字段。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // Get initial weak use count
   size_t initial_weak_count = tensor.weak_use_count();
@@ -122,7 +122,7 @@ TEST_F(TensorUtilTest, Print) {
   // 的标准输出文本格式依赖后端实现，通常只校验“可执行不崩溃”。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 创建一个小的tensor用于print测试
   at::Tensor small_tensor = at::ones({2, 2}, at::kFloat);

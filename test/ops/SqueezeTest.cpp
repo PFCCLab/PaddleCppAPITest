@@ -43,7 +43,7 @@ TEST_F(SqueezeTest, SqueezeAll) {
 TEST_F(SqueezeTest, SqueezeDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   // 移除维度1（大小为1）
   at::Tensor squeezed_dim1 = tensor_with_ones.squeeze(1);
   file << std::to_string(squeezed_dim1.dim()) << " ";
@@ -58,7 +58,7 @@ TEST_F(SqueezeTest, SqueezeDim) {
 TEST_F(SqueezeTest, SqueezeInplaceAll) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   // 记录原始数据指针
   void* original_ptr = tensor_with_ones.data_ptr();
   // 原位移除所有大小为1的维度
@@ -77,7 +77,7 @@ TEST_F(SqueezeTest, SqueezeInplaceAll) {
 TEST_F(SqueezeTest, SqueezeInplaceDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   // 记录原始数据指针
   void* original_ptr = tensor_with_ones.data_ptr();
   // 原位移除维度1

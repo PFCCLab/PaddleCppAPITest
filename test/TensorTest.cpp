@@ -49,7 +49,7 @@ TEST_F(TensorTest, ConstructFromPaddleTensor) {
 TEST_F(TensorTest, DataPtr) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   void* ptr = tensor.data_ptr();
   file << std::to_string(ptr != nullptr) << " ";
   float* float_ptr = tensor.data_ptr<float>();
@@ -61,7 +61,7 @@ TEST_F(TensorTest, DataPtr) {
 TEST_F(TensorTest, Strides) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   c10::IntArrayRef strides = tensor.strides();
   file << std::to_string(strides.size()) << " ";
   file.saveFile();
@@ -71,7 +71,7 @@ TEST_F(TensorTest, Strides) {
 TEST_F(TensorTest, Sizes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   c10::IntArrayRef sizes = tensor.sizes();
   file << std::to_string(sizes.size()) << " ";
   file << std::to_string(sizes[0]) << " ";
@@ -84,7 +84,7 @@ TEST_F(TensorTest, Sizes) {
 TEST_F(TensorTest, ToType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   Tensor double_tensor = tensor.toType(c10::ScalarType::Double);
   file << std::to_string(static_cast<int>(double_tensor.scalar_type())) << " ";
   file.saveFile();
@@ -94,32 +94,28 @@ TEST_F(TensorTest, ToType) {
 TEST_F(TensorTest, Numel) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(tensor.numel()) << " ";
   file.saveFile();
 }
 
 // 测试 device
 TEST_F(TensorTest, Device) {
-  // [DIFF] 用例级差异：CPU device.type()
-  // 在两端枚举值映射不同，先不输出差异字段。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   c10::Device device = tensor.device();
-  // file << std::to_string(static_cast<int>(device.type())) << " ";
+  file << std::to_string(static_cast<int>(device.type())) << " ";
   file.saveFile();
 }
 
 // 测试 get_device
 TEST_F(TensorTest, GetDevice) {
-  // [DIFF] 用例级差异：CPU tensor 的 get_device()
-  // 在两端返回值不同，先不输出差异字段。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   c10::DeviceIndex device_idx = tensor.get_device();
-  // file << std::to_string(device_idx) << " ";
+  file << std::to_string(device_idx) << " ";
   file.saveFile();
 }
 
@@ -127,7 +123,7 @@ TEST_F(TensorTest, GetDevice) {
 TEST_F(TensorTest, DimAndNdimension) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(tensor.dim()) << " ";
   file << std::to_string(tensor.ndimension()) << " ";
   file.saveFile();
@@ -137,7 +133,7 @@ TEST_F(TensorTest, DimAndNdimension) {
 TEST_F(TensorTest, Contiguous) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor cont_tensor = tensor.contiguous();
   file << std::to_string(cont_tensor.is_contiguous()) << " ";
   file.saveFile();
@@ -147,7 +143,7 @@ TEST_F(TensorTest, Contiguous) {
 TEST_F(TensorTest, IsContiguous) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(tensor.is_contiguous()) << " ";
   file.saveFile();
 }
@@ -156,7 +152,7 @@ TEST_F(TensorTest, IsContiguous) {
 TEST_F(TensorTest, ScalarType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   c10::ScalarType stype = tensor.scalar_type();
   file << std::to_string(static_cast<int>(stype)) << " ";
   file.saveFile();
@@ -166,7 +162,7 @@ TEST_F(TensorTest, ScalarType) {
 TEST_F(TensorTest, Fill) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   tensor.fill_(5.0);
   float* data = tensor.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
@@ -177,7 +173,7 @@ TEST_F(TensorTest, Fill) {
 TEST_F(TensorTest, Zero) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   tensor.zero_();
   float* data = tensor.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
@@ -188,7 +184,7 @@ TEST_F(TensorTest, Zero) {
 TEST_F(TensorTest, IsCpu) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(tensor.is_cpu()) << " ";
   file.saveFile();
 }
@@ -207,7 +203,7 @@ TEST_F(TensorTest, Cpu) {
 TEST_F(TensorTest, IsCuda) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(tensor.is_cuda()) << " ";
   file.saveFile();
 }
@@ -242,7 +238,7 @@ TEST_F(TensorTest, IsSparseCsr) {
 TEST_F(TensorTest, Reshape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor reshaped = tensor.reshape({6, 4});
   file << std::to_string(reshaped.sizes()[0]) << " ";
   file << std::to_string(reshaped.sizes()[1]) << " ";
@@ -254,7 +250,7 @@ TEST_F(TensorTest, Reshape) {
 TEST_F(TensorTest, Transpose) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor transposed = tensor.transpose(0, 2);
   file << std::to_string(transposed.sizes()[0]) << " ";
   file << std::to_string(transposed.sizes()[2]) << " ";
@@ -276,7 +272,7 @@ std::string GetTestCaseResultFileName() {
 TEST_F(TensorTest, CudaResult) {
   // [DIFF] 用例级差异：cuda() 在无 CUDA 或后端实现差异下返回/异常语义不同。
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   try {
     at::Tensor cuda_tensor = tensor.cuda();
     file << "1 ";
@@ -297,7 +293,7 @@ TEST_F(TensorTest, RecordStreamResult) {
   // [DIFF] 用例级差异：record_stream
   // 参数类型与可用性在两端不一致，当前仅做占位输出。
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   // 覆盖率识别标记：不同兼容层对 stream 参数类型不一致。
   // cuda_tensor.record_stream(stream);
   file << "0 ";
@@ -307,7 +303,7 @@ TEST_F(TensorTest, RecordStreamResult) {
 // 测试 register_hook 在不需要梯度的 tensor 上抛异常
 TEST_F(TensorTest, RegisterHookNoGradResult) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   try {
     auto handle =
         tensor.register_hook([](const at::Tensor& grad) { return grad; });
@@ -322,7 +318,7 @@ TEST_F(TensorTest, RegisterHookNoGradResult) {
 // 测试 is_pinned
 TEST_F(TensorTest, IsPinnedResult) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   file << std::to_string(tensor.is_pinned() ? 1 : 0) << " ";
   int pinned_after_cuda = 0;
   try {
@@ -339,7 +335,7 @@ TEST_F(TensorTest, IsPinnedResult) {
 // 测试 pin_memory
 TEST_F(TensorTest, PinMemoryResult) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   int gpu_pin_ok = 0;
   try {
     at::Tensor cuda_tensor = tensor.cuda();
@@ -430,7 +426,7 @@ TEST_F(TensorTest, SymNumel) {
 TEST_F(TensorTest, Any) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor test_tensor = at::ones({2, 2}, at::kFloat);
   test_tensor.fill_(0.0);
   test_tensor.data_ptr<float>()[0] = 1.0;
@@ -445,7 +441,7 @@ TEST_F(TensorTest, Any) {
 TEST_F(TensorTest, Chunk) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor test_tensor = at::ones({4, 4}, at::kFloat);
   std::vector<at::Tensor> chunks = test_tensor.chunk(2, 0);
   file << std::to_string(chunks.size()) << " ";
@@ -458,7 +454,7 @@ TEST_F(TensorTest, Chunk) {
 TEST_F(TensorTest, Rename) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor renamed = tensor.rename(std::nullopt);
   file << std::to_string(renamed.sizes().size()) << " ";
   file.saveFile();
@@ -468,7 +464,7 @@ TEST_F(TensorTest, Rename) {
 TEST_F(TensorTest, NewEmpty) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor empty_tensor = tensor.new_empty({3, 4});
   file << std::to_string(empty_tensor.sizes()[0]) << " ";
   file << std::to_string(empty_tensor.sizes()[1]) << " ";
@@ -480,7 +476,7 @@ TEST_F(TensorTest, NewEmpty) {
 TEST_F(TensorTest, NewFull) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor full_tensor = tensor.new_full({2, 3}, 7.5);
   file << std::to_string(full_tensor.sizes()[0]) << " ";
   file << std::to_string(full_tensor.sizes()[1]) << " ";
@@ -492,7 +488,7 @@ TEST_F(TensorTest, NewFull) {
 TEST_F(TensorTest, NewZeros) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor zeros_tensor = tensor.new_zeros({2, 3});
   file << std::to_string(zeros_tensor.sizes()[0]) << " ";
   file << std::to_string(zeros_tensor.sizes()[1]) << " ";
@@ -504,7 +500,7 @@ TEST_F(TensorTest, NewZeros) {
 TEST_F(TensorTest, NewOnes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor ones_tensor = tensor.new_ones({2, 3});
   file << std::to_string(ones_tensor.sizes()[0]) << " ";
   file << std::to_string(ones_tensor.sizes()[1]) << " ";
@@ -518,7 +514,7 @@ TEST_F(TensorTest, Resize) {
   // 兼容层可能未实现或行为不对齐（以异常路径记录）。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   try {
     tensor.resize_({4, 5});
   } catch (const std::exception& e) {
@@ -530,7 +526,7 @@ TEST_F(TensorTest, Resize) {
 // 测试 cpu()
 TEST_F(TensorTest, CpuMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor cpu_tensor = tensor.cpu();
   file << std::to_string(cpu_tensor.is_cpu() ? 1 : 0) << " ";
   file << std::to_string(cpu_tensor.numel()) << " ";
@@ -540,7 +536,7 @@ TEST_F(TensorTest, CpuMethod) {
 // 测试 toBackend
 TEST_F(TensorTest, ToBackend) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor cpu_tensor = tensor.toBackend(c10::Backend::CPU);
   file << std::to_string(cpu_tensor.is_cpu() ? 1 : 0) << " ";
   file << std::to_string(cpu_tensor.numel()) << " ";
@@ -550,7 +546,7 @@ TEST_F(TensorTest, ToBackend) {
 // 测试 data<T>()
 TEST_F(TensorTest, DataTemplate) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   void* ptr = tensor.data_ptr<float>();
   file << std::to_string(ptr != nullptr) << " ";
   file.saveFile();
@@ -559,7 +555,7 @@ TEST_F(TensorTest, DataTemplate) {
 // 测试 to(TensorOptions)
 TEST_F(TensorTest, ToTensorOptions) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::TensorOptions options = at::TensorOptions().dtype(at::kDouble);
   at::Tensor converted = tensor.to(options);
   file << std::to_string(static_cast<int>(converted.scalar_type())) << " ";
@@ -569,7 +565,7 @@ TEST_F(TensorTest, ToTensorOptions) {
 // 测试 to(ScalarType)
 TEST_F(TensorTest, ToScalarType) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor converted = tensor.to(at::kDouble);
   file << std::to_string(static_cast<int>(converted.scalar_type())) << " ";
   file.saveFile();
@@ -579,7 +575,7 @@ TEST_F(TensorTest, ToScalarType) {
 TEST_F(TensorTest, MetaMethod) {
   // [DIFF] 用例级差异：meta() 在两端能力面不同，此处按失败路径记录差异。
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   file << "0 ";  // meta() not supported, should throw
   file.saveFile();
 }
@@ -587,7 +583,7 @@ TEST_F(TensorTest, MetaMethod) {
 // 测试 item() - 需要1元素tensor
 TEST_F(TensorTest, ItemScalar) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   // 创建1元素tensor
   at::Tensor scalar_tensor = at::ones({1}, at::kFloat);
   try {
@@ -603,7 +599,7 @@ TEST_F(TensorTest, ItemScalar) {
 // 测试 item<T>()
 TEST_F(TensorTest, ItemTemplate) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor scalar_tensor = at::ones({1}, at::kFloat);
   try {
     float val = scalar_tensor.item<float>();
@@ -619,7 +615,7 @@ TEST_F(TensorTest, ItemTemplate) {
 TEST_F(TensorTest, Expand) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor small = at::ones({1, 3}, at::kFloat);
   at::Tensor expanded = small.expand({4, 3});
   file << std::to_string(expanded.sizes()[0]) << " ";
@@ -631,7 +627,7 @@ TEST_F(TensorTest, Expand) {
 TEST_F(TensorTest, ExpandAs) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   // 只有维度等于1时才能扩展，这是libtorch的语义
   at::Tensor small = at::ones({1, 3}, at::kFloat);
   at::Tensor target = at::ones({4, 3}, at::kFloat);
@@ -644,7 +640,7 @@ TEST_F(TensorTest, ExpandAs) {
 // 测试 clamp(min, max) with Scalar
 TEST_F(TensorTest, ClampScalarMinMax) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor clamped = input.clamp(1.0, 3.0);
   file << std::to_string(clamped.dim()) << " ";
@@ -656,7 +652,7 @@ TEST_F(TensorTest, ClampScalarMinMax) {
 // 测试 clamp(min, max) with Tensor
 TEST_F(TensorTest, ClampTensorMinMax) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor min_tensor = at::ones({1}, at::kFloat).fill_(1.0f);
   at::Tensor max_tensor = at::ones({1}, at::kFloat).fill_(3.0f);
@@ -668,7 +664,7 @@ TEST_F(TensorTest, ClampTensorMinMax) {
 // 测试 clamp_(Scalar)
 TEST_F(TensorTest, ClampInplaceScalar) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   input.clamp_(1.0, 3.0);
   float* data = input.data_ptr<float>();
@@ -679,7 +675,7 @@ TEST_F(TensorTest, ClampInplaceScalar) {
 // 测试 clamp_(Tensor)
 TEST_F(TensorTest, ClampInplaceTensor) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor min_tensor = at::ones({1}, at::kFloat).fill_(1.0f);
   at::Tensor max_tensor = at::ones({1}, at::kFloat).fill_(3.0f);
@@ -691,7 +687,7 @@ TEST_F(TensorTest, ClampInplaceTensor) {
 // 测试 clamp_max(Scalar)
 TEST_F(TensorTest, ClampMaxScalar) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor clamped = input.clamp_max(3.0);
   float* data = clamped.data_ptr<float>();
@@ -702,7 +698,7 @@ TEST_F(TensorTest, ClampMaxScalar) {
 // 测试 clamp_max(Tensor)
 TEST_F(TensorTest, ClampMaxTensor) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor max_tensor = at::ones({1}, at::kFloat).fill_(3.0f);
   at::Tensor clamped = input.clamp_max(max_tensor);
@@ -713,7 +709,7 @@ TEST_F(TensorTest, ClampMaxTensor) {
 // 测试 clamp_max_(Scalar)
 TEST_F(TensorTest, ClampMaxInplace) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   input.clamp_max_(3.0);
   float* data = input.data_ptr<float>();
@@ -724,7 +720,7 @@ TEST_F(TensorTest, ClampMaxInplace) {
 // 测试 clamp_max_(Tensor)
 TEST_F(TensorTest, ClampMaxInplaceTensor) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor max_tensor = at::ones({1}, at::kFloat).fill_(3.0f);
   input.clamp_max_(max_tensor);
@@ -735,7 +731,7 @@ TEST_F(TensorTest, ClampMaxInplaceTensor) {
 // 测试 clamp_min(Scalar)
 TEST_F(TensorTest, ClampMinScalar) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   at::Tensor clamped = input.clamp_min(2.0);
   float* data = clamped.data_ptr<float>();
@@ -746,7 +742,7 @@ TEST_F(TensorTest, ClampMinScalar) {
 // 测试 clamp_min(Tensor)
 TEST_F(TensorTest, ClampMinTensor) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   at::Tensor min_tensor = at::ones({1}, at::kFloat).fill_(2.0f);
   at::Tensor clamped = input.clamp_min(min_tensor);
@@ -757,7 +753,7 @@ TEST_F(TensorTest, ClampMinTensor) {
 // 测试 clamp_min_(Scalar)
 TEST_F(TensorTest, ClampMinInplace) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.clamp_min_(2.0);
   float* data = input.data_ptr<float>();
@@ -768,7 +764,7 @@ TEST_F(TensorTest, ClampMinInplace) {
 // 测试 clamp_min_(Tensor)
 TEST_F(TensorTest, ClampMinInplaceTensor) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   at::Tensor min_tensor = at::ones({1}, at::kFloat).fill_(2.0f);
   input.clamp_min_(min_tensor);
@@ -779,7 +775,7 @@ TEST_F(TensorTest, ClampMinInplaceTensor) {
 // 测试 as_strided
 TEST_F(TensorTest, AsStrided) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor strided = tensor.as_strided({3, 4, 2}, {2, 1, 6});
   file << std::to_string(strided.sizes()[0]) << " ";
   file << std::to_string(strided.sizes()[1]) << " ";
@@ -790,7 +786,7 @@ TEST_F(TensorTest, AsStrided) {
 // 测试 as_strided_
 TEST_F(TensorTest, AsStridedInplace) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   tensor.as_strided_({3, 4, 2}, {2, 1, 6});
   file << std::to_string(tensor.sizes()[0]) << " ";
   file << std::to_string(tensor.sizes()[1]) << " ";
@@ -801,7 +797,7 @@ TEST_F(TensorTest, AsStridedInplace) {
 // 测试 as_strided_scatter
 TEST_F(TensorTest, AsStridedScatter) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor src = at::ones({3, 4, 2}, at::kFloat).fill_(2.0f);
   at::Tensor result = tensor.as_strided_scatter(src, {3, 4, 2}, {2, 1, 6});
   file << std::to_string(result.sizes()[0]) << " ";
@@ -812,7 +808,7 @@ TEST_F(TensorTest, AsStridedScatter) {
 // 测试 std(int dim)
 TEST_F(TensorTest, StdDim) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(2.0f);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
@@ -824,7 +820,7 @@ TEST_F(TensorTest, StdDim) {
 // 测试 std(bool unbiased)
 TEST_F(TensorTest, StdAll) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
@@ -836,7 +832,7 @@ TEST_F(TensorTest, StdAll) {
 // 测试 std(dim, unbiased, keepdim)
 TEST_F(TensorTest, StdDims) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
@@ -849,7 +845,7 @@ TEST_F(TensorTest, StdDims) {
 // 测试 std(dim, correction, keepdim)
 TEST_F(TensorTest, StdCorrection) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
@@ -861,7 +857,7 @@ TEST_F(TensorTest, StdCorrection) {
 // 测试 var(int dim)
 TEST_F(TensorTest, VarDim) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
@@ -873,7 +869,7 @@ TEST_F(TensorTest, VarDim) {
 // 测试 var(bool unbiased)
 TEST_F(TensorTest, VarAll) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
@@ -885,7 +881,7 @@ TEST_F(TensorTest, VarAll) {
 // 测试 var(dim, unbiased, keepdim)
 TEST_F(TensorTest, VarDims) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
@@ -898,7 +894,7 @@ TEST_F(TensorTest, VarDims) {
 // 测试 var(dim, correction, keepdim)
 TEST_F(TensorTest, VarCorrection) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
@@ -910,7 +906,7 @@ TEST_F(TensorTest, VarCorrection) {
 // 测试 tensor_data
 TEST_F(TensorTest, TensorData) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor result = tensor.tensor_data();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -920,7 +916,7 @@ TEST_F(TensorTest, TensorData) {
 // 测试 variable_data
 TEST_F(TensorTest, VariableData) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor result = tensor.variable_data();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -930,7 +926,7 @@ TEST_F(TensorTest, VariableData) {
 // 测试 index_select
 TEST_F(TensorTest, IndexSelect) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({3, 4}, at::kFloat);
   input.fill_(1.0f);
   int64_t index_data[] = {0, 2};
@@ -944,7 +940,7 @@ TEST_F(TensorTest, IndexSelect) {
 // 测试 dtype
 TEST_F(TensorTest, DtypeMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   // dtype() 在 TensorBody 中返回 TypeMeta，使用 scalar_type() 获取 ScalarType
   c10::ScalarType dt = tensor.scalar_type();
   file << std::to_string(static_cast<int>(dt)) << " ";
@@ -954,7 +950,7 @@ TEST_F(TensorTest, DtypeMethod) {
 // 测试 copy_
 TEST_F(TensorTest, CopyMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor src = at::ones({2, 3, 4}, at::kFloat).fill_(2.0f);
   tensor.copy_(src);
   file << std::to_string(tensor.dim()) << " ";
@@ -964,7 +960,7 @@ TEST_F(TensorTest, CopyMethod) {
 // 测试 bitwise_right_shift
 TEST_F(TensorTest, BitwiseRightShift) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kInt).fill_(8);
   at::Tensor result = input.bitwise_right_shift(2);
   int* data = result.data_ptr<int>();
@@ -975,7 +971,7 @@ TEST_F(TensorTest, BitwiseRightShift) {
 // 测试 floor_divide_
 TEST_F(TensorTest, FloorDivide) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(7.0f);
   at::Scalar divisor = 3.0f;
   input.floor_divide_(divisor);
@@ -987,7 +983,7 @@ TEST_F(TensorTest, FloorDivide) {
 // 测试 nbytes
 TEST_F(TensorTest, NbytesMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   size_t nbytes = tensor.nbytes();
   file << std::to_string(nbytes) << " ";
   file.saveFile();
@@ -996,7 +992,7 @@ TEST_F(TensorTest, NbytesMethod) {
 // 测试 itemsize
 TEST_F(TensorTest, ItemsizeMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   size_t itemsize = tensor.itemsize();
   file << std::to_string(itemsize) << " ";
   file.saveFile();
@@ -1005,7 +1001,7 @@ TEST_F(TensorTest, ItemsizeMethod) {
 // 测试 element_size
 TEST_F(TensorTest, ElementSizeMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   int64_t elem_size = tensor.element_size();
   file << std::to_string(elem_size) << " ";
   file.saveFile();
@@ -1014,7 +1010,7 @@ TEST_F(TensorTest, ElementSizeMethod) {
 // 测试 clone
 TEST_F(TensorTest, CloneMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor cloned = tensor.clone();
   file << std::to_string(cloned.dim()) << " ";
   file << std::to_string(cloned.numel()) << " ";
@@ -1024,7 +1020,7 @@ TEST_F(TensorTest, CloneMethod) {
 // 测试 abs
 TEST_F(TensorTest, AbsMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
   at::Tensor result = input.abs();
   float* data = result.data_ptr<float>();
@@ -1035,7 +1031,7 @@ TEST_F(TensorTest, AbsMethod) {
 // 测试 abs_
 TEST_F(TensorTest, AbsInplace) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
   input.abs_();
   float* data = input.data_ptr<float>();
@@ -1046,7 +1042,7 @@ TEST_F(TensorTest, AbsInplace) {
 // 测试 absolute
 TEST_F(TensorTest, AbsoluteMethod) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
   at::Tensor result = input.absolute();
   float* data = result.data_ptr<float>();
@@ -1057,7 +1053,7 @@ TEST_F(TensorTest, AbsoluteMethod) {
 // 测试 absolute_
 TEST_F(TensorTest, AbsoluteInplace) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
   input.absolute_();
   float* data = input.data_ptr<float>();
@@ -1068,7 +1064,7 @@ TEST_F(TensorTest, AbsoluteInplace) {
 // 测试 operator[]
 TEST_F(TensorTest, OperatorIndex) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
   at::Tensor result = tensor[0];
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
@@ -1078,7 +1074,7 @@ TEST_F(TensorTest, OperatorIndex) {
 // 测试 toBackend
 TEST_F(TensorTest, ToBackendExpect) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
 
   at::Tensor cpu_tensor = tensor.toBackend(c10::Backend::CPU);
   file << std::to_string(cpu_tensor.is_cpu() ? 1 : 0) << " ";
@@ -1097,7 +1093,7 @@ TEST_F(TensorTest, ToBackendExpect) {
 // 测试 item
 TEST_F(TensorTest, Item) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
 
   at::Tensor single_tensor = at::ones({1}, at::kFloat).fill_(3.14f);
   try {
@@ -1152,7 +1148,7 @@ TEST_F(TensorTest, Item) {
 // 测试 data 方法
 TEST_F(TensorTest, Data) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
 
   void* float_data = tensor.data_ptr<float>();
   file << std::to_string(float_data != nullptr ? 1 : 0) << " ";
@@ -1172,7 +1168,7 @@ TEST_F(TensorTest, Data) {
 // 测试 meta 方法
 TEST_F(TensorTest, Meta) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
 
   try {
     (void)tensor.meta();
@@ -1186,7 +1182,7 @@ TEST_F(TensorTest, Meta) {
 // 测试 to 方法 (TensorOptions 版本)
 TEST_F(TensorTest, ToWithOptions) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
 
   at::Tensor double_tensor = tensor.to(at::TensorOptions().dtype(at::kDouble));
   file << std::to_string(static_cast<int>(double_tensor.scalar_type())) << " ";
@@ -1202,7 +1198,7 @@ TEST_F(TensorTest, ToWithOptions) {
 // 测试 to 方法 (ScalarType 版本)
 TEST_F(TensorTest, ToWithScalarType) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
 
   at::Tensor double_tensor = tensor.to(at::kDouble);
   file << std::to_string(static_cast<int>(double_tensor.scalar_type())) << " ";
@@ -1225,7 +1221,7 @@ TEST_F(TensorTest, ToWithScalarType) {
 // 测试 toBackend 行为
 TEST_F(TensorTest, ToBackendBehavior) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
 
   at::Tensor cpu_tensor1 = tensor.toBackend(c10::Backend::CPU);
   at::Tensor cpu_tensor2 = cpu_tensor1.toBackend(c10::Backend::CPU);
@@ -1242,7 +1238,7 @@ TEST_F(TensorTest, ToBackendBehavior) {
 // 测试 cpu 行为
 TEST_F(TensorTest, CpuBehavior) {
   FileManerger file(GetTestCaseResultFileName());
-  file.createFile();
+  file.openAppend();
 
   at::Tensor cpu_tensor1 = tensor.cpu();
 

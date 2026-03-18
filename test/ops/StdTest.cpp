@@ -127,7 +127,7 @@ TEST_F(StdTest, StdException) {
         t1.std(at::IntArrayRef({1}), true, true);  // dim out of bounds
     write_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
   file.saveFile();
 }

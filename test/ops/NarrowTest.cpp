@@ -55,7 +55,7 @@ TEST_F(NarrowTest, NarrowDim0) {
 TEST_F(NarrowTest, NarrowDim1) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // narrow(dim=1, start=2, length=3): shape {4, 5, 6} -> {4, 3, 6}
   at::Tensor result = tensor.narrow(1, 2, 3);
@@ -71,7 +71,7 @@ TEST_F(NarrowTest, NarrowDim1) {
 TEST_F(NarrowTest, NarrowDim2) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // narrow(dim=2, start=0, length=4): shape {4, 5, 6} -> {4, 5, 4}
   at::Tensor result = tensor.narrow(2, 0, 4);
@@ -87,7 +87,7 @@ TEST_F(NarrowTest, NarrowDim2) {
 TEST_F(NarrowTest, NarrowSymint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   c10::SymInt start(1);
   c10::SymInt length(2);
@@ -104,7 +104,7 @@ TEST_F(NarrowTest, NarrowSymint) {
 TEST_F(NarrowTest, NarrowCopy) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   at::Tensor result = tensor.narrow_copy(0, 1, 2);
   file << std::to_string(result.dim()) << " ";
@@ -126,7 +126,7 @@ TEST_F(NarrowTest, NarrowCopy) {
 TEST_F(NarrowTest, NarrowCopySymint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   c10::SymInt start(0);
   c10::SymInt length(3);
@@ -143,7 +143,7 @@ TEST_F(NarrowTest, NarrowCopySymint) {
 TEST_F(NarrowTest, NarrowWithTensorStart) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 创建一个标量 tensor 作为 start (0-dim tensor)
   at::Tensor start_tensor = at::zeros({}, at::kLong);
@@ -166,7 +166,7 @@ TEST_F(NarrowTest, NarrowWithTensorStart) {
 TEST_F(NarrowTest, NarrowSymintWithTensorStart) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   at::Tensor start_tensor = at::zeros({}, at::kLong);
   int64_t* start_data = start_tensor.data_ptr<int64_t>();
@@ -186,7 +186,7 @@ TEST_F(NarrowTest, NarrowSymintWithTensorStart) {
 TEST_F(NarrowTest, MultipleNarrow) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 连续 narrow: {4, 5, 6} -> {2, 5, 6} -> {2, 3, 6} -> {2, 3, 4}
   at::Tensor result = tensor.narrow(0, 1, 2).narrow(1, 1, 3).narrow(2, 1, 4);

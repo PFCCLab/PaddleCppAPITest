@@ -63,8 +63,8 @@ TEST_F(TorchCudaTest, DeviceCount) {
     GTEST_SKIP() << getCudaUnavailableReason();
   }
 
-  // file << std::to_string(count) << " ";
-  // file << std::to_string(count >= 0 ? 1 : 0) << " ";
+  file << std::to_string(count) << " ";
+  file << std::to_string(count >= 0 ? 1 : 0) << " ";
   file.saveFile();
 }
 

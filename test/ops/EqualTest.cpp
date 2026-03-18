@@ -69,18 +69,19 @@ TEST_F(EqualTest, NotEqualShape) {
 // throws: "The type of data we are trying to retrieve (int32) does not match
 // the type of data (float32)..."
 TEST_F(EqualTest, NotEqualDtype) {
-  /*
   at::Tensor t1 = at::zeros({4}, at::kFloat);
   at::Tensor t2 = at::zeros({4}, at::kInt);
-
-  bool result = t1.equal(t2);
 
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  write_bool_result_to_file(&file, result);
+  try {
+    bool result = t1.equal(t2);
+    write_bool_result_to_file(&file, result);
+  } catch (const std::exception& e) {
+    file << "exception: " << e.what();
+  }
   file.saveFile();
-  */
 }
 
 TEST_F(EqualTest, EqualScalar) {
@@ -107,7 +108,7 @@ TEST_F(EqualTest, ExceptionTest) {
     bool result = t1.equal(t2);
     write_bool_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
   file.saveFile();
 }

@@ -121,11 +121,10 @@ TEST_F(CUDADataTypeTest, EmptyCUDA) {
                                           c10::ScalarType::Float,
                                           at::Device(at::kCUDA, 0),
                                           std::nullopt);
-    // DIFF: Torch 侧会输出 "cuda_empty"，Paddle 侧可能因未编译
-    // CUDA/运行时不可用而不一致，故注释掉。 file << "cuda_empty ";
+    (void)t;
+    file << "cuda_empty ";
   } catch (...) {
-    // DIFF: Paddle 侧常落入该分支输出 "cuda_not_available"，与 Torch
-    // 侧环境相关差异，故注释掉。 file << "cuda_not_available ";
+    file << "cuda_not_available ";
   }
   file.saveFile();
 #endif
@@ -147,11 +146,10 @@ TEST_F(CUDADataTypeTest, EmptyCudaDifferentDtype) {
   try {
     at::Tensor t = at::detail::empty_cuda(
         {2, 3}, c10::ScalarType::Int, at::Device(at::kCUDA, 0), std::nullopt);
-    // DIFF: Torch 侧会输出 "cuda_empty_int"，Paddle
-    // 侧可能因环境差异不一致，故注释掉。 file << "cuda_empty_int ";
+    (void)t;
+    file << "cuda_empty_int ";
   } catch (...) {
-    // DIFF: Paddle 侧常输出 "cuda_not_available"，与 Torch
-    // 侧环境相关差异，故注释掉。 file << "cuda_not_available ";
+    file << "cuda_not_available ";
   }
   file.saveFile();
 #endif

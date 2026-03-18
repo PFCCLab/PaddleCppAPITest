@@ -114,7 +114,7 @@ TEST_F(SparseTensorTest, SparseCOOInferSize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  // write_sparse_info_to_file(&file, sparse); // [DIFF]
+  write_sparse_info_to_file(&file, sparse);
   file.saveFile();
 }
 

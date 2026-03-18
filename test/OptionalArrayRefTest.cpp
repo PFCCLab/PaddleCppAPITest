@@ -96,8 +96,7 @@ TEST_F(OptionalArrayRefTest, FromOptionalArrayRef) {
   file.openAppend();
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  // DIFF: 注释掉不稳定的元素值输出
-  // file << std::to_string(arr->front()) << " ";
+  file << std::to_string(arr->front()) << " ";
   file.saveFile();
 }
 
@@ -259,11 +258,9 @@ TEST_F(OptionalArrayRefTest, EmplaceMethod) {
   arr.emplace(std::initializer_list<int64_t>{1, 2, 3, 4});
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  // DIFF: 以下元素遍历输出悬空引用（initializer_list 临时对象已销毁），
-  // 结果为随机内存值，Paddle 与 Torch 间不可复现，故注释掉。
-  // for (const auto& v : *arr) {
-  //   file << std::to_string(v) << " ";
-  // }
+  for (const auto& v : *arr) {
+    file << std::to_string(v) << " ";
+  }
   file.saveFile();
 }
 
@@ -359,8 +356,7 @@ TEST_F(OptionalArrayRefTest, CopyConstruction) {
   file.openAppend();
   file << std::to_string(arr2.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr2->size()) << " ";
-  // 注释掉以下行：arr2->front() 返回的内部对象指针/标识符在两个框架间存在差异
-  // file << std::to_string(arr2->front()) << " ";
+  file << std::to_string(arr2->front()) << " ";
   file.saveFile();
 }
 
@@ -375,8 +371,7 @@ TEST_F(OptionalArrayRefTest, MoveConstruction) {
   file.openAppend();
   file << std::to_string(arr2.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr2->size()) << " ";
-  // 注释掉以下行：arr2->front() 返回的内部对象指针/标识符在两个框架间存在差异
-  // file << std::to_string(arr2->front()) << " ";
+  file << std::to_string(arr2->front()) << " ";
   file.saveFile();
 }
 
@@ -405,11 +400,9 @@ TEST_F(OptionalArrayRefTest, InPlaceConstruction) {
   file.openAppend();
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  // DIFF: 以下元素遍历输出悬空引用（临时 vector 已销毁），
-  // 结果为随机内存值，Paddle 与 Torch 间不可复现，故注释掉。
-  // for (const auto& v : *arr) {
-  //   file << std::to_string(v) << " ";
-  // }
+  for (const auto& v : *arr) {
+    file << std::to_string(v) << " ";
+  }
   file.saveFile();
 }
 

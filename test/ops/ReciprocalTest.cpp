@@ -116,7 +116,7 @@ TEST_F(ReciprocalTest, ExceptionZeroReciprocal) {
     at::Tensor result = t1.reciprocal();
     write_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
   file.saveFile();
 }

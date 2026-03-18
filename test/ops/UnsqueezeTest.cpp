@@ -43,7 +43,7 @@ TEST_F(UnsqueezeTest, UnsqueezeDim0) {
 TEST_F(UnsqueezeTest, UnsqueezeDim2) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor unsqueezed2 = tensor.unsqueeze(2);
   file << std::to_string(unsqueezed2.dim()) << " ";
   file << std::to_string(unsqueezed2.numel()) << " ";
@@ -57,7 +57,7 @@ TEST_F(UnsqueezeTest, UnsqueezeDim2) {
 TEST_F(UnsqueezeTest, UnsqueezeNegativeDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor unsqueezed_last = tensor.unsqueeze(-1);
   file << std::to_string(unsqueezed_last.dim()) << " ";
   file << std::to_string(unsqueezed_last.numel()) << " ";
@@ -71,7 +71,7 @@ TEST_F(UnsqueezeTest, UnsqueezeNegativeDim) {
 TEST_F(UnsqueezeTest, UnsqueezeInplaceDim0) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   // 记录原始数据指针
   void* original_ptr = tensor.data_ptr();
   // 原位在维度0之前添加维度
@@ -90,7 +90,7 @@ TEST_F(UnsqueezeTest, UnsqueezeInplaceDim0) {
 TEST_F(UnsqueezeTest, UnsqueezeInplaceNegativeDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   // 记录原始数据指针
   void* original_ptr = tensor.data_ptr();
   // 原位在最后添加维度

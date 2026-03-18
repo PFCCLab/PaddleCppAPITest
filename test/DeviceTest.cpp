@@ -38,14 +38,10 @@ TEST_F(DeviceCompatTest, DeviceStr) {
 
   // [DIFF] PyTorch输出: cpu cpu:0 cuda:0 cuda:1
   // [DIFF] PaddlePaddle输出: cpu:0 cpu:0 gpu:0 gpu:1
-  // file << cpu_str << " ";
-  // file << cpu_0_str << " ";
-  // file << cuda_0_str << " ";
-  // file << cuda_1_str << " ";
-  (void)cpu_str;
-  (void)cpu_0_str;
-  (void)cuda_0_str;
-  (void)cuda_1_str;
+  file << cpu_str << " ";
+  file << cpu_0_str << " ";
+  file << cuda_0_str << " ";
+  file << cuda_1_str << " ";
 
   file.saveFile();
 }
@@ -65,14 +61,10 @@ TEST_F(DeviceCompatTest, HasIndex) {
   bool cuda_default_has = cuda_default.has_index();
   bool cuda_1_has = cuda_1.has_index();
 
-  // [DIFF] DeviceType::CPU 的默认 index 语义不同：Torch(-1, has_index=false) vs
-  // Paddle(0, has_index=true) [DIFF] DeviceType::CUDA 的默认 index
-  // 语义不同：Torch(-1, has_index=false) vs Paddle(0, has_index=true)
-  // 仅保留“已调用该 API 且返回布尔值”的稳定序列化，避免把已知差异写入 diff。
-  file << std::to_string(cpu_default_has || !cpu_default_has) << " ";
-  file << std::to_string(cpu_0_has || !cpu_0_has) << " ";
-  file << std::to_string(cuda_default_has || !cuda_default_has) << " ";
-  file << std::to_string(cuda_1_has || !cuda_1_has) << " ";
+  file << std::to_string(cpu_default_has ? 1 : 0) << " ";
+  file << std::to_string(cpu_0_has ? 1 : 0) << " ";
+  file << std::to_string(cuda_default_has ? 1 : 0) << " ";
+  file << std::to_string(cuda_1_has ? 1 : 0) << " ";
 
   file.saveFile();
 }

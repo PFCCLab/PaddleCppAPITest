@@ -49,7 +49,7 @@ TEST_F(ReshapeTest, Reshape2DTo1D) {
 TEST_F(ReshapeTest, Reshape2DTo3D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::reshape(original_tensor, {1, 2, 3});
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -66,7 +66,7 @@ TEST_F(ReshapeTest, Reshape2DTo3D) {
 TEST_F(ReshapeTest, ReshapeAutoInferDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::reshape(original_tensor, {-1});
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -77,7 +77,7 @@ TEST_F(ReshapeTest, ReshapeAutoInferDim) {
 TEST_F(ReshapeTest, ReshapeInferOneDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::reshape(original_tensor, {3, -1});
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
@@ -88,7 +88,7 @@ TEST_F(ReshapeTest, ReshapeInferOneDim) {
 TEST_F(ReshapeTest, EmptyLike) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::empty_like(original_tensor);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
@@ -101,7 +101,7 @@ TEST_F(ReshapeTest, EmptyLike) {
 TEST_F(ReshapeTest, ZerosLike) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::zeros_like(original_tensor);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
@@ -117,7 +117,7 @@ TEST_F(ReshapeTest, ZerosLike) {
 TEST_F(ReshapeTest, EmptyLikeWithOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result =
       at::empty_like(original_tensor, at::TensorOptions().dtype(at::kDouble));
   file << std::to_string(result.dim()) << " ";
@@ -130,7 +130,7 @@ TEST_F(ReshapeTest, EmptyLikeWithOptions) {
 TEST_F(ReshapeTest, ZerosLikeWithOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result =
       at::zeros_like(original_tensor, at::TensorOptions().dtype(at::kInt));
   file << std::to_string(result.dim()) << " ";

@@ -121,8 +121,7 @@ TEST_F(TensorFactoryTest, TensorFromBoolArrayRef) {
   for (int64_t i = 0; i < t.dim(); ++i) {
     file << std::to_string(t.sizes()[i]) << " ";
   }
-  // DIFF: scalar_type 枚举值 Paddle=10 vs Torch=11，两框架不一致，故注释掉。
-  // file << std::to_string(static_cast<int>(t.scalar_type())) << " ";
+  file << std::to_string(static_cast<int>(t.scalar_type())) << " ";
   bool* ptr = t.data_ptr<bool>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(static_cast<int>(ptr[i])) << " ";

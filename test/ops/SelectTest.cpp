@@ -84,21 +84,22 @@ TEST_F(SelectTest, SelectSymint) {
 // [DIFF] Paddle select with negative dim causes double free or corruption
 // SIGABRT
 TEST_F(SelectTest, SelectNegativeDim) {
-  /*
   at::Tensor t1 = at::zeros({3, 3}, at::kFloat);
   float* data = t1.data_ptr<float>();
   for (int i = 0; i < 9; ++i) {
     data[i] = static_cast<float>(i);
   }
 
-  at::Tensor result = t1.select(-1, 0);
-
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+#if USE_PADDLE_API
+  file << "known_crash_on_negative_dim ";
+#else
+  at::Tensor result = t1.select(-1, 0);
   write_result_to_file(&file, result);
+#endif
   file.saveFile();
-  */
 }
 
 TEST_F(SelectTest, SelectException) {
@@ -111,7 +112,7 @@ TEST_F(SelectTest, SelectException) {
     at::Tensor result = t1.select(0, 5);  // out of bounds
     write_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
   file.saveFile();
 }

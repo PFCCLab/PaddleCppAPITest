@@ -59,7 +59,7 @@ TEST_F(PythonTest, GetTHPDtype) {
       torch::getTHPDtype(dtype);
       file << "1 ";
     } catch (...) {
-      file << "exception ";
+      file << "exception: " << e.what();
     }
   }
 
@@ -77,7 +77,7 @@ TEST_F(PythonTest, PyObjectToDtype) {
     torch::getTHPDtype(c10::ScalarType::Float);
     file << "1 ";
   } catch (...) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
 
   file.saveFile();
@@ -125,7 +125,7 @@ TEST_F(PythonTest, GetTHPDtypeAllTypes) {
       torch::getTHPDtype(st);
       file << "1 ";
     } catch (...) {
-      file << "exception ";
+      file << "exception: " << e.what();
     }
   }
 
@@ -146,7 +146,7 @@ TEST_F(PythonTest, TorchNamespaceGetTHPDtype) {
     torch::getTHPDtype(dtype);
     file << "1 ";
   } catch (...) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
 }
 

@@ -17,9 +17,7 @@ using paddle_api_test::ThreadSafeParam;
 static void write_device_result_to_file(FileManerger* file,
                                         const std::optional<at::Device>& dev) {
   if (dev.has_value()) {
-    // [DIFF] Paddle returns 0 for CPU default index, Torch returns -1
-    // *file << dev->type() << " " << static_cast<int>(dev->index()) << " ";
-    *file << dev->type() << " ";
+    *file << dev->type() << " " << static_cast<int>(dev->index()) << " ";
   } else {
     *file << "nullopt ";
   }

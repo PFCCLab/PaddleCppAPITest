@@ -76,7 +76,8 @@ TEST_F(EmptyOpsTest, EmptyCUDA) {
   // Try to create empty CUDA tensor
   try {
     at::Tensor t = at::empty({2, 3}, at::TensorOptions().device(at::kCUDA));
-    file << "cuda_tensor ";
+    (void)t;
+    file << "cuda_empty ";
   } catch (...) {
     file << "cuda_not_available ";
   }

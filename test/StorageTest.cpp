@@ -179,7 +179,7 @@ TEST_F(StorageTest, Storage) {
 TEST_F(StorageTest, StorageOffset) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   int64_t offset = tensor.storage_offset();
   file << std::to_string(offset) << " ";
@@ -190,7 +190,7 @@ TEST_F(StorageTest, StorageOffset) {
 TEST_F(StorageTest, HasStorage) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   file << std::to_string(tensor.has_storage()) << " ";
   file.saveFile();
@@ -200,7 +200,7 @@ TEST_F(StorageTest, HasStorage) {
 TEST_F(StorageTest, StorageNbytes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   c10::Storage storage = tensor.storage();
   // 2*3*4 = 24 个 float 元素，每个 4 字节
@@ -215,7 +215,7 @@ TEST_F(StorageTest, StorageNbytes) {
 TEST_F(StorageTest, SlicedTensorStorageOffset) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 对 tensor 进行切片操作
   at::Tensor sliced = tensor.slice(0, 1, 2);  // 在第0维取索引1到2
@@ -233,7 +233,7 @@ TEST_F(StorageTest, SlicedTensorStorageOffset) {
 TEST_F(StorageTest, StorageDataPtr) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   c10::Storage storage = tensor.storage();
   void* storage_ptr = storage.data_ptr().get();
@@ -246,7 +246,7 @@ TEST_F(StorageTest, StorageDataPtr) {
 TEST_F(StorageTest, StorageSetNbytesResizableMutableDataAllocator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   c10::Storage storage = tensor.storage();
   size_t before_nbytes = storage.nbytes();
@@ -368,8 +368,8 @@ TEST_F(StorageTest, StorageSetDataPtrNoswapAndTraitsProbe) {
   bool shared_clone = c10::isSharedStorageAlias(base_storage, clone_storage);
   // [DIFF] Paddle: isSharedStorageAlias(base_storage, alias_storage)=true,
   // [DIFF] Torch:  isSharedStorageAlias(base_storage, alias_storage)=false.
-  file << std::to_string(shared_alias || !shared_alias) << " ";
-  file << std::to_string(shared_clone || !shared_clone) << " ";
+  file << std::to_string(shared_alias ? 1 : 0) << " ";
+  file << std::to_string(shared_clone ? 1 : 0) << " ";
 
   file.saveFile();
 }

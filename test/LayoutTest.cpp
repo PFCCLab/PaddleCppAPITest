@@ -43,7 +43,7 @@ TEST_F(LayoutTest, Layout) {
 TEST_F(LayoutTest, LayoutConstants) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 测试 c10 命名空间下的常量别名
   file << std::to_string(c10::kStrided == c10::Layout::Strided) << " ";
@@ -61,7 +61,7 @@ TEST_F(LayoutTest, LayoutConstants) {
 TEST_F(LayoutTest, LayoutConstantsInAtNamespace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   file << std::to_string(at::kStrided == c10::Layout::Strided) << " ";
   file << std::to_string(at::kSparse == c10::Layout::Sparse) << " ";
@@ -78,7 +78,7 @@ TEST_F(LayoutTest, LayoutConstantsInAtNamespace) {
 TEST_F(LayoutTest, LayoutConstantsInTorchNamespace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   file << std::to_string(torch::kStrided == c10::Layout::Strided) << " ";
   file << std::to_string(torch::kSparse == c10::Layout::Sparse) << " ";
@@ -95,7 +95,7 @@ TEST_F(LayoutTest, LayoutConstantsInTorchNamespace) {
 TEST_F(LayoutTest, LayoutEnumValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 测试 Layout 枚举的底层值
   file << std::to_string(static_cast<int8_t>(c10::Layout::Strided)) << " ";
@@ -114,7 +114,7 @@ TEST_F(LayoutTest, LayoutEnumValues) {
 TEST_F(LayoutTest, LayoutOutputStream) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   std::ostringstream oss;
 
@@ -157,7 +157,7 @@ TEST_F(LayoutTest, LayoutOutputStream) {
 TEST_F(LayoutTest, LayoutWithConstant) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
 
   // 使用常量别名进行比较
   file << std::to_string(tensor.layout() == at::kStrided) << " ";

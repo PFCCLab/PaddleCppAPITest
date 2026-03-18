@@ -45,7 +45,7 @@ TEST_F(SumTest, SumAllElements) {
 TEST_F(SumTest, SumWithDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::sum(test_tensor, at::kDouble);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -57,7 +57,7 @@ TEST_F(SumTest, SumWithDtype) {
 TEST_F(SumTest, SumAlongDim0) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::sum(test_tensor, {0}, false);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -71,7 +71,7 @@ TEST_F(SumTest, SumAlongDim0) {
 TEST_F(SumTest, SumAlongDim1) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::sum(test_tensor, {1}, false);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -84,7 +84,7 @@ TEST_F(SumTest, SumAlongDim1) {
 TEST_F(SumTest, SumWithKeepdim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor result = at::sum(test_tensor, {0}, true);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -100,7 +100,7 @@ TEST_F(SumTest, SumWithKeepdim) {
 TEST_F(SumTest, SumOutFunction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   at::Tensor output = at::zeros({}, at::kFloat);
   at::Tensor& result = at::sum_out(output, test_tensor);
   file << std::to_string(&result == &output) << " ";

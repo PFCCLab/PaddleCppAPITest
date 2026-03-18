@@ -50,7 +50,7 @@ TEST_F(FromBlobTest, FromBlobBasic) {
 TEST_F(FromBlobTest, FromBlobWithOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   std::vector<int64_t> sizes = {3, 2};
   at::Tensor result =
       at::from_blob(data_buffer, sizes, at::TensorOptions().dtype(at::kDouble));
@@ -64,7 +64,7 @@ TEST_F(FromBlobTest, FromBlobWithOptions) {
 TEST_F(FromBlobTest, FromBlobWithStrides) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   std::vector<int64_t> sizes = {2, 3};
   std::vector<int64_t> strides = {3, 1};  // Row-major
   at::Tensor result = at::from_blob(data_buffer, sizes, strides);
@@ -77,7 +77,7 @@ TEST_F(FromBlobTest, FromBlobWithStrides) {
 TEST_F(FromBlobTest, FromBlob1D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   std::vector<int64_t> sizes = {6};
   at::Tensor result = at::from_blob(data_buffer, sizes);
   file << std::to_string(result.dim()) << " ";
@@ -89,7 +89,7 @@ TEST_F(FromBlobTest, FromBlob1D) {
 TEST_F(FromBlobTest, FromBlobDifferentDataTypes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   int* int_data = new int[4]{1, 2, 3, 4};
   std::vector<int64_t> sizes = {2, 2};
   at::Tensor result =

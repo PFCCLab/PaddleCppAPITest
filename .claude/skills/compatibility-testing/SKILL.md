@@ -62,8 +62,8 @@ try {
 }
 ```
 
-### 注意事项与约定
-- **CMakeLists 限制**：一般开发不要擅自修改 `CMakeLists.txt`。如有新增组件/目录或改进意见，请优先**向开发者（提问）询问确认**后再执行。
+### 注意事项
+- **CMakeLists 限制**：一般开发不要擅自修改 `CMakeLists.txt`。如有新增组件/目录或改进意见，请优先**向开发者提问确认**后再执行。
 - **增量编译策略**：节约生命，仅修改 `test` 时请直接进 `build` 敲击 `make -j$(nproc)`。
 - **约定输出**：所有流程均成功后请简述测试开发结果（如新增或修改了哪些文件、覆盖了哪些测试场景、是否发现 Diff 以及后续计划）输出一份 `md` 文档供开发者或其他大模型 review。
 
@@ -72,7 +72,7 @@ try {
 ### Step 1: 自动添加测试
 - 查看PaddleCppAPITest/api_coverage_report.txt中的： "## ❌ 未测试的API列表" 。
 - 取下方第一个 "###" 对应的接口，在test目录下确定没有相关测试后添加测试。
-- 添加完成后运行bash PaddleCppAPITest/coverage/analyze_api.sh。
+- 按上述要求开发测试，完成后运行bash PaddleCppAPITest/coverage/analyze_api.sh。
 - 检查相关接口是否在 "## ❌ 未测试的API列表" 下消失，消失请直接进行Step 2。
 - 如果你添加了对应接口的测试用例，并且运行了analyze_api.sh，相关接口仍显示未测试，请修改coverage/analyze_api_coverage.py脚本中的接口列表，确保它能正确的识别你添加的测试用例，同时在工作结束后向开发者汇报。
 ### Step 2: 验证测试表现
@@ -94,7 +94,7 @@ cmake .. \
   -DCMAKE_CXX_COMPILER=/usr/bin/g++-9
 make -j$(nproc)
 ```
-> **排错**：如果编译失败，请根据报错信息补充头文件或修正语法，所有修复同样需满足上述的开发规范要求。
+> **排错**：如果编译失败，请根据报错信息在对应测试文件中补充头文件或修正语法，复杂问题请到Paddle仓和Libtorch仓考察后修复测试文件，不允许直接修复Paddle源码，所有修复同样需满足上述的开发规范要求。
 
 - 运行测试与分析对比
 
@@ -114,7 +114,7 @@ cd ..
 
 **遇到 Diff 时的标准处理动作**：
 1. 在 `.cpp` 测试文件中找到产生 Diff 的具体 Test Case。
-2. 在代码中标记 Diff（例如：`// [DIFF] Paddle returns NaN, Torch returns 0`），并注释掉输出diff的测试用例以保证后续测试通过。
+2. 在代码中标记 Diff（例如：`// [DIFF] Paddle returns NaN, Torch returns 0`），不要释掉输出diff的测试用例，也不要规避，因为它们是后续分析的关键证据。
 3. 分析 Diff 代表的底层差异逻辑。
 4. **整理差异并追加写入到** `PaddleCppAPITest/doc/mismatch_api_record.md`，务必严格对齐该文件现有的 Markdown 格式。测试代码**不需要**为了迎合 Torch 强行修改预期。
 

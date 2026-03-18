@@ -14,6 +14,7 @@ from clang.cindex import AccessSpecifier, CursorKind
 
 # 设置libclang库路径
 clang.cindex.Config.set_library_file(
+    # 注：libclang-14在解析性能和稳定性上表现更好
     "/usr/lib/x86_64-linux-gnu/libclang-14.so.1"
 )
 

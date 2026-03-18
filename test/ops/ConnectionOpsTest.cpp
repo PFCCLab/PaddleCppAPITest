@@ -57,7 +57,7 @@ TEST_F(ConnectionOpsTest, CatDim1) {
   at::Tensor result = at::cat(tensors, 1);
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
   file << std::to_string(result.sizes()[1]) << " ";
@@ -80,7 +80,7 @@ TEST_F(ConnectionOpsTest, CatThreeTensors) {
   at::Tensor result = at::cat(tensors, 0);
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(result.sizes()[0]) << " ";
   file << std::to_string(result.sizes()[1]) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -95,7 +95,7 @@ TEST_F(ConnectionOpsTest, CatWithDifferentTypes) {
   at::Tensor result = at::cat(tensors, 0);
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
   file << std::to_string(result.sizes()[1]) << " ";
