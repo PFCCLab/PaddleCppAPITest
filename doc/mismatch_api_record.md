@@ -761,14 +761,13 @@ OptionalArrayRef 核心功能在两个框架中完全兼容。差异仅在于：
 
 # at::indexing（Slice / EllipsisIndexType）
 
-> Paddle 头文件：`ATen/indexing.h`
-> PyTorch 头文件：`ATen/TensorIndexing.h`
+> Paddle 头文件：`ATen/TensorIndexing.h`
 
 ## 差异点列表
 
-1.  **头文件路径不同**：PyTorch 为 `ATen/TensorIndexing.h`；Paddle compat 为 `ATen/indexing.h`
-2.  **`Tensor::operator[](Slice)` 不支持**：PyTorch 的 `Tensor::operator[]` 接受 `at::indexing::Slice`；Paddle compat 的 `operator[]` 仅重载 `int64_t`，传入 `Slice` 会编译报错
-3.  **多维 Slice 索引写法不同**：
+- [x] **头文件路径不同**：PyTorch 为 `ATen/TensorIndexing.h`；Paddle compat 为 `ATen/indexing.h`
+- [ ] **`Tensor::operator[](Slice)` 不支持**：PyTorch 的 `Tensor::operator[]` 接受 `at::indexing::Slice`；Paddle compat 的 `operator[]` 仅重载 `int64_t`，传入 `Slice` 会编译报错
+- [x] **多维 Slice 索引写法不同**：
     - PyTorch：`t.index({Slice(0,2), Slice(1,3)})` —— 接受 `std::initializer_list<TensorIndex>`
     - Paddle：`t.index(std::vector<at::indexing::Slice>{Slice(0,2), Slice(1,3)})` —— 仅重载 `std::vector<Slice>`
 4.  **`TensorIndex` 能力对齐状态**：Paddle compat 已提供 `TensorIndex`，但 `Tensor::operator[](Slice)` 仍不支持，实际使用仍需通过 `index(...)` 路径。

@@ -31,7 +31,7 @@ cd PaddleCPPAPITest
 
 ```bash
 mkdir build && cd build
-cmake ../PaddleCPPAPITest -DTORCH_DIR=<libtorch path> -G Ninja
+cmake .. -DTORCH_DIR=<libtorch path> -G Ninja
 ```
 
 ### 3. 编译项目

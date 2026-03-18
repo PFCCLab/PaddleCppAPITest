@@ -93,7 +93,6 @@ TEST_F(IndexingTest, TensorIndexing) {
 #else
   // [DIFF] 问题行：Torch 可支持更丰富的索引写法（含 operator[](Slice) 变体）。
   at::Tensor result = t.index({at::indexing::Slice()});
-#endif
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file.saveFile();
@@ -117,7 +116,6 @@ TEST_F(IndexingTest, SliceIndexing) {
 #else
   at::Tensor result =
       t.index({at::indexing::Slice(0, 2), at::indexing::Slice(1, 3)});
-#endif
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.size(0)) << " ";
   file << std::to_string(result.size(1)) << " ";
