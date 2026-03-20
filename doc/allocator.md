@@ -41,7 +41,7 @@
 | `cast_context<T>()` | ✅ | 已实现 |
 | `get_deleter()` | ✅ | 已实现 |
 | `device()` | 🔧 | 已实现；通过 `phi::Place` 反向映射到 `c10::Device` |
-| `compare_exchange_deleter()` | ❌ | 未实现 |
+| `compare_exchange_deleter()` | ✅ | 已实现 |
 | `unsafe_set_device()` | ❌ | 未实现 |
 | `operator==(DataPtr, nullptr_t)` | ✅ | 已实现 |
 | `operator==(nullptr_t, DataPtr)` | ✅ | 已实现 |
@@ -103,9 +103,9 @@
 
 | 状态 | 数量 |
 |---|---|
-| ✅ 已实现 | 22 |
+| ✅ 已实现 | 23 |
 | 🔧 部分兼容 | 3 |
-| ❌ 未实现 | 17 |
+| ❌ 未实现 | 16 |
 
 ---
 

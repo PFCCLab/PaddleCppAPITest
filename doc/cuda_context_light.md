@@ -20,8 +20,8 @@
 | `getCurrentDeviceProperties()` | 🔧 | 已声明；返回类型在 Paddle 中为 `CUDAContextDeviceProp*`（CUDA/HIP 别名） |
 | `warp_size()` | ✅ | 已声明 |
 | `getDeviceProperties(DeviceIndex)` | 🔧 | 已声明；返回类型为 `CUDAContextDeviceProp*` |
-| `canDeviceAccessPeer(DeviceIndex, DeviceIndex)` | ✅ | 已声明 |
-| `getCUDADeviceAllocator()` | ✅ | 已声明 |
+| `canDeviceAccessPeer(DeviceIndex, DeviceIndex)` | ✅ | 已声明；已实现 HIP 支持，根据 PADDLE_WITH_HIP 选择 hipDeviceCanAccessPeer 或 cudaDeviceCanAccessPeer |
+| `getCUDADeviceAllocator()` | ❌ | 已从公共接口移除；原实现返回 nullptr 可能导致运行时失败，参考 PR #78060 review 意见移除 |
 
 ---
 
@@ -66,9 +66,9 @@
 
 | 状态 | 数量 |
 |---|---|
-| ✅ 已实现 | 12 |
+| ✅ 已实现 | 11 |
 | 🔧 部分兼容 | 9 |
-| ❌ 未实现 | 1 |
+| ❌ 未实现 | 2 |  /* getCUDADeviceAllocator 已移除，clearCublasWorkspacesForStream 未实现 */
 
 ---
 
@@ -76,4 +76,7 @@
 
 - `CUDAContextLight.h` 的核心查询、workspace 与大多数 handle 接口在 Paddle compat 侧已具备。
 - 明确缺口是 `clearCublasWorkspacesForStream(cudaStream_t)`。
+- **PR #78060 修复记录**:
+  - `getCUDADeviceAllocator()` 已从公共接口头文件中移除，避免返回 nullptr 导致的运行时失败
+  - `canDeviceAccessPeer()` 已实现 HIP 支持，根据编译条件使用正确的 API
 - 主要差异来自跨 CUDA/HIP 适配策略：Paddle 使用类型别名与条件编译屏蔽后端差异，这使接口在“可用性”层面兼容，但在类型名与导出语义层面与上游存在差别。

@@ -59,8 +59,10 @@
 | `mutable_data()` | ✅ | 已实现 |
 | `mutable_data_ptr()` | 🔧 | PyTorch 返回 `DataPtr&`，Paddle 返回按值 `DataPtr` |
 | `data_ptr()` | 🔧 | PyTorch 返回 `const DataPtr&`，Paddle 返回按值 `DataPtr` |
-| `set_data_ptr(DataPtr&&)` | 🔧 | 已实现，但通过 `new_data_ptr.get()` 直接包装为 `phi::Allocation*`，语义与 `StorageImpl` 版不同 |
-| `set_data_ptr_noswap(DataPtr&&)` | 🔧 | 已实现，语义同上存在差异 |
+| `set_data_ptr(DataPtr&&)` | ❌ | **PR #78060 修复**：已移除，DataPtr 无法安全转换为 phi::Allocation*，避免未定义行为 |
+| `set_data_ptr_noswap(DataPtr&&)` | ❌ | **PR #78060 修复**：已移除，同上 |
+| `set_data_ptr(shared_ptr<phi::Allocation>)` | ✅ | Paddle 特有，使用 shared_ptr 替代 DataPtr 版本 |
+| `set_data_ptr_noswap(shared_ptr<phi::Allocation>)` | ✅ | Paddle 特有，直接使用 phi::Allocation |
 
 ---
 
@@ -149,4 +151,8 @@
 
 - Paddle compat 的 `Storage` 已覆盖基础生命周期、数据访问与别名检查主路径。
 - 与 PyTorch 的主要差距在 `StorageImpl` 体系相关接口（`intrusive_ptr/weak_ptr/legacy/external pointer/SymInt`）。
+- **PR #78060 修复记录**:
+  - 已移除不安全的 `set_data_ptr(DataPtr&&)` 和 `set_data_ptr_noswap(DataPtr&&)` 接口
+  - 这些接口将 DataPtr 的原始指针强制转换为 phi::Allocation*，可能导致未定义行为
+  - 请使用安全的 `set_data_ptr(shared_ptr<phi::Allocation>)` 替代版本
 - 主要“部分兼容”来自底层模型差异：Paddle 以 `phi::Allocation` 和 `phi::Place` 为核心，导致 `data_ptr` 引用语义、设备类型与 traits 签名与上游不完全一致。
