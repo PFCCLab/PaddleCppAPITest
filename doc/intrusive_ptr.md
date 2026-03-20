@@ -69,7 +69,7 @@
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------|------------------|--------------|--------|------|
 | `intrusive_ptr::make(args...)` | ✅ | - [ ] | P1 | 支持 |
-| `make_intrusive<T>(args...)` | ✅ | - [ ] | P0 | 支持 |
+| `make_intrusive<T>(args...)` | ✅ | - [x] | P0 | 支持；初始 strong refcount=1, weak refcount=1（与 PyTorch kUniqueRef 对齐） |
 | `get_shared()` | 🔧 | - [ ] | P2 | Paddle 特有（用于 shared_ptr 互操作） |
 
 ---
@@ -126,8 +126,9 @@
 2. **核心结论**：
    - Paddle 兼容层已实现真正的侵入式引用计数（intrusive reference counting），完全替代了早期的 `std::shared_ptr` 包装方案。
    - `intrusive_ptr_target` 使用原子合并引用计数（64-bit 原子变量同时存储 refcount 和 weakcount）。
+   - `make_intrusive<T>(args...)` 通过正规构造函数创建对象，初始 strong refcount=1, weak refcount=1（`kUniqueRef`），与 PyTorch 语义一致。
+   - `reclaim()` 用于从裸指针重新构造 `intrusive_ptr` 而不增加引用计数（与 `release()` 配对使用）。
    - `release()` 实现真正的所有权转移：内部指针清零并返回裸指针，`defined()` 返回 false。
-   - `reclaim()` 支持从裸指针重新构造 `intrusive_ptr` 而不增加引用计数。
    - `weak_intrusive_ptr` 完整支持，包括 `lock()` 原子性提升强引用、`expired()` 检查对象状态。
    - `raw::intrusive_ptr` 和 `raw::weak_intrusive_ptr` 命名空间提供底层引用计数操作接口。
 
@@ -141,6 +142,11 @@
      - 新增 `intrusive_ptr_target` 基类（原子合并引用计数）
      - `release()` 真正实现所有权转移（内部指针清零，`defined()` → false）
      - 新增 `reclaim()`、`weak_intrusive_ptr`、`raw::intrusive_ptr`/`raw::weak_intrusive_ptr` 完整支持
+   - 2026-03-20 (Round 4): 修复 `make_intrusive()` 初始引用计数 bug（PR #78070 ShigureNyako Round 4 review）
+     - 根本原因：`make_intrusive()` 使用 `reclaim()` 创建对象，`reclaim()` 不增加引用计数，导致新建对象 `use_count() = 0`
+     - 修复：`explicit intrusive_ptr(TTarget* raw)` 构造函数直接 store `kUniqueRef`（strong=1, weak=1），与 PyTorch 语义完全一致
+     - 修复：`make_intrusive()` 改为通过正规构造函数 `intrusive_ptr<T>(new T(...))` 创建对象
+     - 新增测试：`MakeIntrusiveInitialRefcountIsOne`、`CopyIntrusivePtrIncrementsRefcount`、`MoveIntrusivePtrKeepsRefcount`
 
 ---
 
