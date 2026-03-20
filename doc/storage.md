@@ -155,6 +155,6 @@
   - `data_ptr()` 现在返回 `const DataPtr&`（引用），`mutable_data_ptr()` 返回 `DataPtr&`（引用），与 PyTorch 语义一致
   - 重新实现 `set_data_ptr(DataPtr&&)` 和 `set_data_ptr_noswap(DataPtr&&)`，不再有不安全类型转换
   - 保留 Paddle 特有的 `set_data_ptr(shared_ptr<phi::Allocation>)` 重载
-  - Storage 内部新增 `data_ptr_` 成员（`DataPtr` 类型）作为 PyTorch 兼容引用的持有者
-  - 对 phi::Allocation 原生路径，`data_ptr_` 是非拥有性视图，不增加 allocation 的 refcount
+  - Storage 内部使用 `std::shared_ptr<DataPtr> data_ptr_` 作为 PyTorch 兼容引用的持有者；拷贝 Storage 时共享同一个 `shared_ptr<DataPtr>`，确保外部 DataPtr 路径（`set_data_ptr(DataPtr&&)`）的 context/deleter 不会在拷贝后悬空
+  - 对 phi::Allocation 原生路径，`*data_ptr_` 是非拥有性视图（仅含原始指针+device），不增加 allocation 的 refcount
   - `use_count()` 仍反映 `allocation_.use_count()`，行为与修复前一致
