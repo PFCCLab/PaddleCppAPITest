@@ -33,8 +33,8 @@
 
 | torch API                                     | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------------------------------------------|------------------|------------|-------|------|
-| `operator==(const CUDAStream&)`               | ❌               | ❌          |   P1  | 相等比较 |
-| `operator!=(const CUDAStream&)`               | ❌               | ❌          |   P1  | 不等比较 |
+| `operator==(const CUDAStream&)`               | ✅               | - [ ]       |   P1  | 相等比较 |
+| `operator!=(const CUDAStream&)`               | ✅               | - [ ]       |   P1  | 不等比较 |
 
 ---
 
@@ -52,8 +52,8 @@
 | torch API          | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |--------------------|------------------|------------|-------|------|
 | `device_type()`    | ✅               | - [ ]       |   P0  | 返回 `DeviceType::CUDA` |
-| `device_index()`   | ❌               | ❌          |   P1  | 获取 CUDA 设备索引，Paddle 未提供 |
-| `device()`         | ❌               | ❌          |   P1  | 获取完整 `Device` 对象，Paddle 未提供 |
+| `device_index()`   | ✅               | - [ ]       |   P1  | 获取 CUDA 设备索引 |
+| `device()`         | ✅               | - [ ]       |   P1  | 获取完整 `Device` 对象 |
 
 ---
 
@@ -99,9 +99,9 @@
 | torch API                                              | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |--------------------------------------------------------|------------------|------------|-------|------|
 | `getCurrentCUDAStream(DeviceIndex)`                    | ✅               | - [ ]       |   P0  | 获取当前 CUDA 流 |
-| `setCurrentCUDAStream(CUDAStream)`                     | ✅               | - [ ]       |   P0  | 设置当前 CUDA 流，更新 Paddle GPUContext |
+| `setCurrentCUDAStream(CUDAStream)`                     | ✅               | - [ ]       |   P0  | 设置当前 CUDA 流，存储至线程本地状态（TLS） |
 | `getDefaultCUDAStream(DeviceIndex)`                    | 🔧              | - [ ]       |   P1  | 通过 `#define` 宏转发到 `getCurrentCUDAStream`，非独立实现 |
-| `getStreamFromPool(bool isHighPriority, DeviceIndex)`  | 🔧              | - [ ]       |   P1  | 未实现真正的流池，直接返回当前流，忽略优先级参数 |
+| `getStreamFromPool(bool isHighPriority, DeviceIndex)`  | ✅               | - [ ]       |   P1  | 真实流池实现：每设备 32 条低/高优先级流，round-robin 分配 |
 | `getStreamFromPool(int priority, DeviceIndex)`         | ❌               | ❌          |   P2  | 按数值优先级从池中获取流，Paddle 未提供 |
 | `getStreamFromExternal(cudaStream_t, DeviceIndex)`     | ❌               | ❌          |   P1  | 从外部已分配流创建 `CUDAStream`，Paddle 未提供 |
 
@@ -127,10 +127,10 @@
 
 | 状态 | 数量 |
 |------|------|
-| ✅ 已完全支持 | 9 |
+| ✅ 已完全支持 | 14 |
 | 🚧 正在支持 | 0 |
-| 🔧 部分支持 | 2 |
-| ❌ 未实现 | 15 |
+| 🔧 部分支持 | 1 |
+| ❌ 未实现 | 11 |
 
 ---
 
@@ -145,14 +145,13 @@
 2. **实现说明**：
    - Paddle 兼容层的 `CUDAStream` 基于 `phi::CUDAStream`（`paddle/phi/core/cuda_stream.h`）实现
    - `stream()` 通过 `reinterpret_cast<cudaStream_t>(stream_.id())` 将 `StreamId` 还原为裸 `cudaStream_t` 句柄
-   - `device_index()` 和 `device()` 未在兼容层暴露，可通过 `unwrap().device_index()` 间接访问
+   - `device_index()` 返回 `stream_.device_index()`；`device()` 返回 `Device(CUDA, device_index())`
 
 3. **部分支持说明**：
    - `getDefaultCUDAStream`：以 `#define getDefaultCUDAStream getCurrentCUDAStream` 宏实现，行为上等价但不具备独立的"默认流"语义
-   - `getStreamFromPool(bool, DeviceIndex)`：实现中未维护真正的流池，始终返回当前活跃流；`isHighPriority` 参数被忽略，TODO 注释标注待完善
+   - `getStreamFromPool(bool, DeviceIndex)`：每设备维护含 32 条低优先级流和 32 条高优先级流的流池，懒初始化（`std::call_once`），round-robin 原子计数器分配
 
 4. **缺失的关键功能**：
-   - 比较运算符（`==`/`!=`）导致 `CUDAStream` 无法直接用于容器或条件判断
    - `std::hash` 缺失导致无法用于 `unordered_map`/`unordered_set`
    - `query()` 和 `synchronize()` 缺失，流级别的同步操作需要绕开此接口直接调用 CUDA API
    - `getStreamFromExternal()` 缺失，限制了与第三方库（如 cuDNN、NCCL）自定义流的互操作
