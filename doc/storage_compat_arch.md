@@ -6,99 +6,168 @@
 
 ## 整体分层架构
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                   PyTorch LibTorch 兼容 API 层                       │
-│  c10::Storage  │  c10::DataPtr  │  c10::Allocator  │  at::cuda::*   │
-└─────────────────────────────────────────────────────────────────────┘
-                              │ compat shim
-┌─────────────────────────────────────────────────────────────────────┐
-│                   Paddle compat 实现层                               │
-│  Storage.h     │  Allocator.h  │  CUDAContextLight.h/.cpp           │
-│  (两条内部路径) │  (Device桥接) │  (phi::GPUContext 委托)            │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────────────┐
-│                   Paddle 原生实现层（phi）                           │
-│  phi::Allocation │ phi::Allocator │ phi::Place │ phi::GPUContext     │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph L1["PyTorch LibTorch 兼容 API 层"]
+        S["c10::Storage"]
+        DP["c10::DataPtr"]
+        A["c10::Allocator"]
+        CUDA["at::cuda::*"]
+    end
+
+    subgraph L2["Paddle compat 实现层"]
+        SH["Storage.h"]
+        AH["Allocator.h"]
+        CUDAL["CUDAContextLight.h/.cpp"]
+    end
+
+    subgraph L3["Paddle 原生实现层（phi）"]
+        PHI["phi::Allocation / phi::Allocator"]
+        PLACE["phi::Place"]
+        GPU["phi::GPUContext"]
+    end
+
+    L1 -->|compat shim| L2
+    L2 --> L3
 ```
 
 ---
 
-## c10::Storage 内部两条路径
+## c10::Storage 统一单路径架构
 
-PyTorch 的 `StorageImpl` 使用单一 `DataPtr data_ptr_` 成员。Paddle compat 的 `Storage` 为了同时兼容 Paddle 原生内存管理和 PyTorch 外部 DataPtr 语义，采用了两条路径：
+PyTorch 的 `StorageImpl` 使用单一 `DataPtr data_ptr_` 成员。Paddle compat 的 `Storage` 统一使用 `shared_ptr<DataPtr>` 作为共享所有权机制，同时保留 `allocation_` 成员用于 Paddle 原生路径的向后兼容：
 
+```mermaid
+classDiagram
+    class c10_Storage["c10::Storage"] {
+        +shared_ptr~phi::Allocation~ allocation_
+        +shared_ptr~DataPtr~ data_ptr_
+        +size_t nbytes_
+        +bool resizable_
+        +use_count() size_t
+        +data_ptr() DataPtr
+        +mutable_data_ptr() DataPtr
+        +device() phi::Place
+    }
+
+    class DataPtr["c10::DataPtr"] {
+        +UniqueVoidPtr ptr_
+        +phi::Place device_
+        +get() void*
+        +get_deleter() DeleterFnPtr
+        +get_context() void*
+        +device() c10::Device
+    }
+
+    class phi_Allocation["phi::Allocation"] {
+        +void* ptr_
+        +phi::Place place_
+        +size_t size_
+    }
+
+    c10_Storage --> "0..1" phi_Allocation : allocation-backed path
+    c10_Storage --> "1" DataPtr : shared_ptr~DataPtr~
 ```
-c10::Storage
-  ├── [路径 A：allocation-backed]
-  │     shared_ptr<phi::Allocation> allocation_   ← 主所有者
-  │     shared_ptr<DataPtr>         data_ptr_     ← 非拥有性视图（含 device 信息）
-  │     shared_ptr<void>            external_ctx_ ← nullptr
-  │
-  │     device_type() / device()  → 从 allocation_->place() 读取
-  │     use_count() / unique()    → allocation_.use_count()
-  │     data_ptr() / mutable_data_ptr() → *data_ptr_（引用，含 raw ptr + device）
-  │
-  └── [路径 B：external DataPtr]
-        shared_ptr<phi::Allocation> allocation_   ← nullptr
-        shared_ptr<DataPtr>         data_ptr_     ← 包装外部指针
-        shared_ptr<void>            external_ctx_ ← 真正的上下文所有者（含 deleter）
-              （仅当原始 DataPtr 有 deleter 时存在）
 
-        device_type() / device()  → 从 data_ptr_->device() 读取（保留完整 device index）
-        use_count() / unique()    → external_ctx_.use_count()（有 deleter 时）
-                                    data_ptr_.use_count()（无 deleter 但有效指针时）
-                                    0（默认构造空 Storage）
-        data_ptr() / mutable_data_ptr() → *data_ptr_（引用）
+### 架构说明
+
+| 属性                | PyTorch StorageImpl              | Paddle compat Storage (统一设计)  |
+|---------------------|----------------------------------|-----------------------------------|
+| 数据所有权          | `DataPtr data_ptr_`（唯一来源）  | `shared_ptr<DataPtr> data_ptr_`   |
+| allocation-backed   | 无（直接通过 DataPtr）           | `shared_ptr<phi::Allocation>`     |
+| 设备信息来源        | `data_ptr_.device()`             | `allocation_->place()` 或 `data_ptr_->device()` |
+| 引用计数来源        | `intrusive_ptr<StorageImpl>`     | `allocation_.use_count()` 或 `data_ptr_.use_count()` |
+| copy-on-write       | 无（单一 StorageImpl）           | CoW 跳过带 deleter 的 DataPtr     |
+
+### use_count() 计算依据
+
+统一设计后，`use_count()` 的计算逻辑如下：
+
+```cpp
+size_t use_count() const {
+    if (allocation_) return allocation_.use_count();
+    if (data_ptr_ && *data_ptr_) return data_ptr_.use_count();
+    return 0;
+}
 ```
 
-### 路径对比：PyTorch vs Paddle compat
+- **allocation-backed 路径**：返回 `allocation_.use_count()`，即共享 `phi::Allocation` 的 Storage 副本数
+- **external DataPtr 路径**：返回 `data_ptr_.use_count()`，即共享 `shared_ptr<DataPtr>` 的 Storage 副本数
+- **空 Storage**：默认构造时返回 0，与 PyTorch 空 `intrusive_ptr<StorageImpl>` 语义一致
 
-| 属性                | PyTorch StorageImpl              | Paddle compat Storage（路径 A）  | Paddle compat Storage（路径 B）  |
-|---------------------|----------------------------------|----------------------------------|----------------------------------|
-| 数据所有权          | `DataPtr data_ptr_`（唯一来源）  | `shared_ptr<phi::Allocation>`    | `shared_ptr<void> external_ctx_` |
-| 设备信息来源        | `data_ptr_.device()`             | `allocation_->place()`           | `data_ptr_->device()`            |
-| 引用计数来源        | `intrusive_ptr<StorageImpl>`     | `allocation_.use_count()`        | `external_ctx_.use_count()`      |
-| copy-on-write       | 无（单一 StorageImpl）           | 共享 `allocation_`               | `ensureUniqueDataPtr()` + CoW    |
+### 单路径设计的优势
+
+1. **语义正确性**：`data_ptr()` 返回的 `DataPtr` 直接包含原始 context 和 deleter，不再通过 wrapper 包装
+2. **use_count 准确**：单个 Storage 的 `use_count()` 返回 1，拷贝后返回 2，符合预期
+3. **简化实现**：移除 `external_ctx_` 成员和 `makeExternalDataPtr` wrapper，代码更清晰
 
 ---
 
 ## c10::DataPtr 与 phi::Place 的映射
 
-```
-c10::DataPtr
-  ├── c10::detail::UniqueVoidPtr ptr_   ← 数据指针 + 上下文/deleter
-  └── phi::Place device_                ← 设备信息（通过 c10::Device::_PD_GetInner() 转换）
+```mermaid
+flowchart LR
+    subgraph DP["c10::DataPtr"]
+        PTR["UniqueVoidPtr ptr_"]
+        DEV["phi::Place device_"]
+    end
 
-c10::Device(phi::Place) ──→ Device::inner_ = phi::Place
-c10::Device::index()    ──→ phi::Place::GetDeviceId()   ← 保留完整 device index
-c10::Device::type()     ──→ phi::Place::GetType()       ← CPU / GPU / XPU 等
+    subgraph UV["c10::detail::UniqueVoidPtr"]
+        RAW["void* raw_ptr"]
+        CTX["void* context"]
+        DEL["DeleterFnPtr deleter"]
+    end
+
+    DP --> PTR
+    PTR --> UV
+
+    C2["c10::Device\n\ninner_ = phi::Place\nindex() → GetDeviceId()\ntype() → GetType()"] -.->|"_PD_GetInner()"| DEV
 ```
 
 ---
 
 ## at::cuda 接口映射（CUDAContextLight）
 
-```
-at::cuda::getCurrentCUDABlasHandle()
-  └── at::cuda::getCurrentGPUContext()
-        └── phi::DeviceContextPool::Instance().Get(phi::GPUPlace(device_id))
-              └── static_cast<phi::GPUContext*>(ctx)->cublas_handle()
+```mermaid
+flowchart TD
+    subgraph ATEN["at::cuda 兼容层"]
+        GETBLAS["getCurrentCUDABlasHandle()"]
+        ISAVA["is_available()"]
+        GETALLOC["getCUDADeviceAllocator()"]
+    end
 
-at::cuda::is_available()
-  └── c10::cuda::device_count() > 0
-        └── phi::backends::gpu::GetGPUDeviceCount()
-              （非 GPU 构建时返回 0，不抛异常——能力探测语义）
+    subgraph PHI["phi 层"]
+        GPUCTX["phi::DeviceContextPool"]
+        GPUINFO["phi::backends::gpu"]
+        ALLOCFAC["AllocatorFacade"]
+    end
+
+    GETBLAS -->|getCurrentGPUContext| GPUCTX -->|cublas_handle| GETBLAS
+    ISAVA -->|device_count| GPUINFO -->|GetGPUDeviceCount| ISAVA
+    GETALLOC -->|GetAllocator| ALLOCFAC -->|Allocate| GETALLOC
 ```
+
+### at::cuda::getCUDADeviceAllocator()
+
+提供 Paddle CUDA Allocator 的 c10::Allocator 适配：
+
+```cpp
+c10::Allocator* getCUDADeviceAllocator() {
+    static PaddleCUDAAllocatorAdapter adapter;
+    return &adapter;
+}
+```
+
+`PaddleCUDAAllocatorAdapter` 将 `phi::AllocatorFacade` 的 GPU 分配器包装为 `c10::Allocator` 接口，使得兼容层可以使用与 PyTorch 一致的内存分配方式。
 
 ---
 
 ## 注意事项
 
-1. **路径 B 的 CoW 机制**：调用 `mutable_data_ptr()` 时触发 `ensureUniqueDataPtr()`，将 `data_ptr_` 替换为仅包含当前副本的新 `shared_ptr<DataPtr>`，但 `external_ctx_` 仍被所有副本共享，因此 `use_count()` 依赖 `external_ctx_` 而非 `data_ptr_`。
+1. **CoW 机制**：调用 `mutable_data_ptr()` 时触发 `ensureUniqueDataPtr()`。对于不带 deleter 的 DataPtr，会创建新的 `shared_ptr<DataPtr>` 以实现 copy-on-write。对于带 deleter 的 DataPtr（外部 DataPtr 路径），CoW 被跳过以保留原始 deleter 和 context。
 
-2. **默认构造 Storage**：两条路径均为空，`*data_ptr_` 为 falsy，`use_count()` 返回 0，与 PyTorch 空 `intrusive_ptr<StorageImpl>` 的语义一致。
+2. **默认构造 Storage**：`data_ptr_` 初始化为空 DataPtr，`*data_ptr_` 为 falsy，`use_count()` 返回 0，与 PyTorch 空 `intrusive_ptr<StorageImpl>` 的语义一致。
 
 3. **多卡 device index 保留**：`phi::GPUPlace(n)` 的 device id 为 `n`，通过 `phi::Place::GetDeviceId()` 可完整读回，因此 `DataPtr::device().index()` 在多卡场景下返回正确值。
+
+4. **统一单路径设计变更**：PR #78060 后续修改将 `external_ctx_` 和 `makeExternalDataPtr` wrapper 移除，直接通过 `data_ptr_` 的引用计数管理 Storage 副本，确保 `use_count()` 和 `data_ptr().get_deleter()` 的语义与 PyTorch 一致。
