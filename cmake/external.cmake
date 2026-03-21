@@ -35,10 +35,10 @@ function(ExternalProject repourl tag destination)
     GIT_REPOSITORY ${repourl}
     GIT_TAG ${tag}
     CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-               -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-               ${cmake_cli_args}
-               -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-               -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+               -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} ${cmake_cli_args}
+               -DCMAKE_CXX_STANDARD=17
     PREFIX "${destination}"
-    INSTALL_DIR "${destination}")
+    INSTALL_DIR "${destination}"
+    INSTALL_COMMAND "${CMAKE_COMMAND}" --install "<BINARY_DIR>" --prefix
+                    "${destination}")
 endfunction()
