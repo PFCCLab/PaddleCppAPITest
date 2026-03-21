@@ -59,7 +59,7 @@
 | `device_type()`        | ✅               | - [ ]       |   P0  | 一致 |
 | `device_index()`       | ✅               | - [ ]       |   P0  | 一致 |
 | `id()`                 | ✅               | - [ ]       |   P0  | 一致 |
-| `native_handle()`      | ✅               | - [ ]       |   P1  | 声明一致（返回 `void*`） |
+| `native_handle()`      | ✅               | - [x]       |   P1  | 完整实现：在 `c10/core/Stream.cpp` 中定义，CUDA/HIP 返回 `cudaStream_t` 句柄，不支持的设备类型抛异常 |
 
 ---
 
@@ -68,8 +68,8 @@
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------------------------|------------------|------------|-------|------|
 | `wait(const T& event)`      | ✅               | - [ ]       |   P1  | 模板实现一致：调用 `event.block(*this)` |
-| `query()`                   | ✅               | - [ ]       |   P1  | 声明一致 |
-| `synchronize()`             | ✅               | - [ ]       |   P1  | 声明一致 |
+| `query()`                   | ✅               | - [x]       |   P1  | 完整实现：在 `c10/core/Stream.cpp` 中定义，CUDA 调用 `cudaStreamQuery`，CPU 始终返回 true |
+| `synchronize()`             | ✅               | - [x]       |   P1  | 完整实现：在 `c10/core/Stream.cpp` 中定义，CUDA 调用 `cudaStreamSynchronize`，CPU 为 no-op |
 
 ---
 
@@ -112,10 +112,11 @@
    - P3: 边缘功能，低优先级
 
 2. **对比范围说明**：
-   - 本文档基于头文件声明对比：
-     - `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Stream.h`
-     - `/home/may/pytorch/c10/core/Stream.h`
-   - 结论聚焦接口签名与声明层兼容性，不包含运行时行为验证。
+   - 本文档基于头文件声明及 `.cpp` 实现对比：
+     - `paddle/phi/api/include/compat/c10/core/Stream.h`（声明）
+     - `paddle/phi/api/include/compat/c10/core/Stream.cpp`（实现）
+     - `/home/may/pytorch/c10/core/Stream.h` 及 `Stream.cpp`（PyTorch 参考）
+   - `native_handle()`、`query()`、`synchronize()` 均在 `Stream.cpp` 中有完整实现，不再是仅声明。
 
 3. **主要差异说明**：
    - `C10_API` 导出宏：PyTorch 在 `StreamData3`、`Stream`、`operator<<` 上使用 `C10_API`；Paddle 兼容头未显式标注。

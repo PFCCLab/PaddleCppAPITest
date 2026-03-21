@@ -71,8 +71,8 @@
 
 | torch API        | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------|------------------|------------|-------|------|
-| `query()`        | ❌               | ❌          |   P1  | 查询流上所有操作是否已完成 |
-| `synchronize()`  | ❌               | ❌          |   P1  | 阻塞等待流上所有操作完成 |
+| `query()`        | ✅               | - [x]       |   P1  | 通过 `unwrap()` 委托到 `c10::Stream::query()`，在 `c10/core/Stream.cpp` 中实现；CPU stream 始终返回 true |
+| `synchronize()`  | ✅               | - [x]       |   P1  | 通过 `unwrap()` 委托到 `c10::Stream::synchronize()`，在 `c10/core/Stream.cpp` 中实现 |
 
 ---
 
@@ -98,10 +98,10 @@
 
 | torch API                                              | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |--------------------------------------------------------|------------------|------------|-------|------|
-| `getCurrentCUDAStream(DeviceIndex)`                    | ✅               | - [ ]       |   P0  | 获取当前 CUDA 流 |
-| `setCurrentCUDAStream(CUDAStream)`                     | ✅               | - [ ]       |   P0  | 设置当前 CUDA 流，存储至线程本地状态（TLS） |
-| `getDefaultCUDAStream(DeviceIndex)`                    | 🔧              | - [ ]       |   P1  | 通过 `#define` 宏转发到 `getCurrentCUDAStream`，非独立实现 |
-| `getStreamFromPool(bool isHighPriority, DeviceIndex)`  | ✅               | - [ ]       |   P1  | 真实流池实现：每设备 32 条低/高优先级流，round-robin 分配 |
+| `getCurrentCUDAStream(DeviceIndex)`                    | ✅               | - [x]       |   P0  | 返回 per-thread per-device 的当前流（TLS），未设置时回退到 Paddle 默认流 |
+| `setCurrentCUDAStream(CUDAStream)`                     | ✅               | - [x]       |   P0  | 设置 per-thread per-device 当前流，仅修改线程本地状态（TLS），不影响其他线程或 GPUContext |
+| `getDefaultCUDAStream(DeviceIndex)`                    | ✅               | - [x]       |   P1  | 返回设备固定默认流（null stream，`cudaStreamDefault`，id=0），独立于 TLS current stream |
+| `getStreamFromPool(bool isHighPriority, DeviceIndex)`  | ✅               | - [x]       |   P1  | 真实流池实现：每设备 32 条低/高优先级流，懒初始化（`std::call_once`），round-robin 原子计数器分配 |
 | `getStreamFromPool(int priority, DeviceIndex)`         | ❌               | ❌          |   P2  | 按数值优先级从池中获取流，Paddle 未提供 |
 | `getStreamFromExternal(cudaStream_t, DeviceIndex)`     | ❌               | ❌          |   P1  | 从外部已分配流创建 `CUDAStream`，Paddle 未提供 |
 
@@ -127,10 +127,10 @@
 
 | 状态 | 数量 |
 |------|------|
-| ✅ 已完全支持 | 14 |
+| ✅ 已完全支持 | 17 |
 | 🚧 正在支持 | 0 |
-| 🔧 部分支持 | 1 |
-| ❌ 未实现 | 11 |
+| 🔧 部分支持 | 0 |
+| ❌ 未实现 | 9 |
 
 ---
 
@@ -143,15 +143,15 @@
    - P3: 边缘功能，低优先级
 
 2. **实现说明**：
-   - Paddle 兼容层的 `CUDAStream` 基于 `phi::CUDAStream`（`paddle/phi/core/cuda_stream.h`）实现
-   - `stream()` 通过 `reinterpret_cast<cudaStream_t>(stream_.id())` 将 `StreamId` 还原为裸 `cudaStream_t` 句柄
+   - Paddle 兼容层的 `CUDAStream` 内部持有 `c10::Stream`，`stream()` 通过 `reinterpret_cast<cudaStream_t>(id())` 还原裸 `cudaStream_t` 句柄
    - `device_index()` 返回 `stream_.device_index()`；`device()` 返回 `Device(CUDA, device_index())`
+   - `query()` 和 `synchronize()` 通过 `c10::Stream::query()`/`c10::Stream::synchronize()` 实现，在 `c10/core/Stream.cpp` 中定义
 
-3. **部分支持说明**：
-   - `getDefaultCUDAStream`：以 `#define getDefaultCUDAStream getCurrentCUDAStream` 宏实现，行为上等价但不具备独立的"默认流"语义
-   - `getStreamFromPool(bool, DeviceIndex)`：每设备维护含 32 条低优先级流和 32 条高优先级流的流池，懒初始化（`std::call_once`），round-robin 原子计数器分配
+3. **流语义区分**：
+   - `getCurrentCUDAStream()`：返回 per-thread per-device 的当前流（TLS），调用 `setCurrentCUDAStream()` 后可变
+   - `getDefaultCUDAStream()`：始终返回设备的 null stream（`cudaStreamDefault`，handle=0），不受 TLS 影响
+   - `getStreamFromPool()`：从预分配流池 round-robin 取出辅助流，与 current stream 不同，适合跨流异步操作
 
-4. **缺失的关键功能**：
-   - `std::hash` 缺失导致无法用于 `unordered_map`/`unordered_set`
-   - `query()` 和 `synchronize()` 缺失，流级别的同步操作需要绕开此接口直接调用 CUDA API
+4. **缺失的功能**：
+   - `std::hash<CUDAStream>` 缺失导致无法直接用于 `unordered_map`/`unordered_set`（可通过 `std::hash<c10::Stream>` 间接支持）
    - `getStreamFromExternal()` 缺失，限制了与第三方库（如 cuDNN、NCCL）自定义流的互操作
