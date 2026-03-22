@@ -33,6 +33,55 @@ flowchart TD
 
 ---
 
+## TensorBase::storage() 跨 wrapper 共享机制（全局 TensorStorageRegistry）
+
+PyTorch 中，所有 `TensorBase` wrapper 共享同一个 `TensorImpl`，因此 `TensorBase::storage()` 直接返回 `TensorImpl::storage_`，天然共享。在 Paddle compat 层中，`at::TensorBase` 是一个 value wrapper，不直接对应 PyTorch 的 `TensorImpl` 层级，无法在 `phi::DenseTensor` 上直接挂载 compat Storage 状态（`holder_` 是 protected 且无 setter），因此引入了全局 `at::detail::TensorStorageRegistry` 来实现跨 wrapper 的 `StorageImpl` 共享。
+
+```mermaid
+flowchart TD
+    subgraph WRAPPERS["at::TensorBase wrappers（value 语义）"]
+        W1["TensorBase t1\nactive_storage_ (weak_ptr)"]
+        W2["TensorBase t2 = t1\nactive_storage_ (weak_ptr)"]
+    end
+
+    subgraph REG["at::detail::TensorStorageRegistry\n（Meyers singleton）"]
+        TABLE["unordered_map&lt;phi::TensorBase*, Entry&gt;\nkey = DenseTensor impl ptr\nEntry::original_alloc\nEntry::impl (weak_ptr&lt;StorageImpl&gt;)"]
+    end
+
+    subgraph STORAGE["c10::Storage handles"]
+        S1["Storage s1 (shared_ptr&lt;StorageImpl&gt;)"]
+        S2["Storage s2 (shared_ptr&lt;StorageImpl&gt;)"]
+    end
+
+    subgraph IMPL["c10::StorageImpl（共享）"]
+        SI["allocation_ / nbytes_ / data_ptr_"]
+    end
+
+    subgraph PHI["Paddle 内部"]
+        DT["phi::DenseTensor\nholder_ (shared_ptr&lt;phi::Allocation&gt;)"]
+        ALLOC["phi::Allocation\nptr_ / place_ / size_"]
+    end
+
+    W1 -->|"storage() → registry lookup"| REG
+    W2 -->|"storage() → registry lookup"| REG
+    REG -->|"cache hit: weak_ptr.lock()"| IMPL
+    S1 --> IMPL
+    S2 --> IMPL
+    W1 -.->|"active_storage_ (weak_ptr)"| IMPL
+    W2 -.->|"active_storage_ (weak_ptr)"| IMPL
+    IMPL --> ALLOC
+    DT --> ALLOC
+```
+
+### 工作流程说明
+
+1. `t1.storage()` 时：以 `DenseTensor*` 为 key 在注册表中查找。若无命中（cache miss），新建 `StorageImpl` 并写入注册表（`weak_ptr` 保证不阻止销毁）；同时设置 `t1.active_storage_`。
+2. `t2 = t1`（同一底层 DenseTensor）调用 `t2.storage()` 时：注册表命中，`weak_ptr.lock()` 成功，返回与 s1 共享同一 `StorageImpl` 的 handle；同时设置 `t2.active_storage_`。
+3. 通过 s1 调用 `set_data_ptr_noswap(new_alloc)` 后：`StorageImpl::data_ptr_` 被修改；s2 的 `data()` 和 `t1.data_ptr()` / `t2.data_ptr()` 均通过 `active_storage_` 读到新地址。
+4. 所有 Storage handle 释放后：`StorageImpl` 引用计数归零，自动销毁；注册表的 `weak_ptr` 自动过期，下次访问时自动重建。
+
+---
+
 ## c10::Storage 共享 StorageImpl 设计
 
 Paddle compat 的 `Storage` 采用与 PyTorch 相同的 **shared handle** 设计：多个 `Storage` 副本共享同一个 `StorageImpl`，通过任意副本的 `set_data_ptr*()`/`set_nbytes()`/`mutable_data_ptr()` 写操作均对所有副本可见。
@@ -88,23 +137,21 @@ classDiagram
 | allocation-backed | 无（直接通过 DataPtr） | `shared_ptr<phi::Allocation>`（额外保存） |
 | DataPtr 视图 | 由 Allocator 的 deleter 管理 | 对 phi::Allocation：非拥有性原始指针视图；外部 DataPtr：直接存储 |
 | 设备信息来源 | `data_ptr_.device()` | `allocation_->place()` 或 `data_ptr_.device()` |
-| 引用计数来源 | `intrusive_ptr` 计数 | allocation-backed: `allocation_.use_count()`；external DataPtr: `impl_.use_count()` |
+| 引用计数来源 | `intrusive_ptr` 计数 | 统一使用 `impl_.use_count()`（共享同一 StorageImpl 的 Storage handle 数量） |
 | copy-on-write | 无（single StorageImpl） | 无（已移除 CoW；共享 impl_ 直接传播写操作） |
 
 ### use_count() 计算依据
 
 ```cpp
 size_t use_count() const {
-    if (!impl_) return 0;
-    if (impl_->allocation_) return impl_->allocation_.use_count();
-    if (impl_->data_ptr_)   return impl_.use_count();
-    return 0;
+    if (!valid()) return 0;
+    return impl_.use_count();
 }
 ```
 
-- **allocation-backed 路径**：返回 `impl_->allocation_.use_count()`，即共享同一 `phi::Allocation` 的所有持有者数量（DenseTensor + Storage 副本等）
-- **external DataPtr 路径**：返回 `impl_.use_count()`，即共享同一 `StorageImpl` 的 Storage handle 数量
-- **空 Storage**：默认构造时返回 0，与 PyTorch 空 `intrusive_ptr<StorageImpl>` 语义一致
+- **统一返回 `impl_.use_count()`**：反映共享该 `StorageImpl` 的 `Storage` handle 数量，与 PyTorch 的 `storage_impl_.use_count()` 语义完全一致
+- **空/无效 Storage**：`valid()` 返回 false 时返回 0（即既无 allocation 也无有效 DataPtr 时）
+- **不再计入内部引用**：旧实现在 allocation-backed 路径返回 `allocation_.use_count()`，会将 `DenseTensor::holder_`、`StorageImpl::allocation_` 等内部保活引用计入，导致单 tensor 场景报告 4，共享 tensor 场景报告 5。新实现只统计 Storage handle 数量，行为符合 PyTorch 预期。
 
 ### Reference Semantics：写操作传播示意
 
@@ -205,17 +252,19 @@ c10::Allocator* getCUDADeviceAllocator() {
 
 2. **独立 Storage 互不影响**：`Storage a(alloc1); Storage b(alloc2)` 各自持有独立的 `StorageImpl`，写操作不跨越 impl 边界。
 
-   **TensorBase::storage() 引用语义**（PR #78060 当轮修复）：`TensorBase::storage()` 现在会缓存对应 `StorageImpl`，同一 tensor 的多次调用返回共享同一 `StorageImpl` 的 handle，与 PyTorch 中 `TensorBase::storage()` 返回同一底层 `storage_` 成员 handle 的语义一致：
+   **TensorBase::storage() 跨 wrapper 引用语义**：`TensorBase::storage()` 通过全局 `TensorStorageRegistry` 保证：对同一底层 `phi::DenseTensor`（相同 impl 指针）的所有 `at::TensorBase` wrapper，不论是否由同一对象的多次调用还是 copy 后的不同 wrapper 调用，都返回共享同一 `StorageImpl` 的 handle，与 PyTorch 中所有 wrapper 共享同一 `TensorImpl::storage_` 的语义一致：
 
    ```cpp
-   at::TensorBase tensor = at::ones({2, 3});
-   c10::Storage s1 = tensor.storage();
-   c10::Storage s2 = tensor.storage();  // s1 和 s2 共享同一 StorageImpl
+   at::TensorBase t1 = paddle::ones({2, 3});
+   at::TensorBase t2 = t1;                    // 同一底层 DenseTensor
+   c10::Storage s1 = t1.storage();
+   c10::Storage s2 = t2.storage();            // s1 和 s2 共享同一 StorageImpl
    s1.set_data_ptr_noswap(new_alloc);
-   assert(s2.data() == s1.data());  // ✅ 修改对 s2 可见
+   assert(s2.data() == s1.data());            // ✅ 跨 wrapper 修改对 s2 可见
+   assert(t1.data_ptr() == new_alloc->ptr()); // ✅ TensorBase::data_ptr() 也感知新地址
    ```
 
-   缓存实现通过 `mutable std::shared_ptr<phi::Allocation> storage_holder_cache_` + `mutable c10::Storage cached_storage_` 实现，当 `DenseTensor::Holder()` 变化时自动失效（Holder 更换说明底层 allocation 已被重置）。
+   实现机制：全局 `at::detail::TensorStorageRegistry`（Meyers singleton，`std::mutex` + `std::unordered_map`），以 `phi::TensorBase*`（DenseTensor impl 指针）为 key，存储 `std::weak_ptr<StorageImpl>`，保证 StorageImpl 在所有 handle 释放后自然销毁。每个 `TensorBase` 实例还持有一个轻量的 `mutable std::weak_ptr<c10::StorageImpl> active_storage_`，供 `data_ptr()` 在不经全局注册表查询的情况下感知 StorageImpl 上的写操作。
 
 3. **phi::Allocation DataPtr 视图**：allocation-backed 路径中，`impl_->data_ptr_` 是对 `phi::Allocation` 的非拥有性视图（只含原始指针 + device，无 deleter），引用计数由 `impl_->allocation_` 独立维护，`use_count()` 不会因 DataPtr 的存在而虚增。
 
