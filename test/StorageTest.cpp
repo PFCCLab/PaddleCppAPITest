@@ -394,5 +394,61 @@ TEST_F(StorageTest, StorageSetDataPtrNoswapAndTraitsProbe) {
   file.saveFile();
 }
 
+// 测试 use_count：单 tensor + 单外部 handle → use_count == 2，unique == false
+TEST_F(StorageTest, StorageUseCountBasic) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "StorageUseCountBasic ";
+
+  c10::Storage storage = tensor.storage();
+  file << std::to_string(storage.use_count()) << " ";
+  file << std::to_string(storage.unique() ? 1 : 0) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+// 测试 use_count：拷贝 handle 使引用计数递增，析构后递减
+TEST_F(StorageTest, StorageUseCountCopiedHandle) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "StorageUseCountCopiedHandle ";
+
+  c10::Storage s1 = tensor.storage();
+  size_t count_one_handle = s1.use_count();  // 2
+  {
+    c10::Storage s2 = s1;
+    file << std::to_string(s1.use_count() == count_one_handle + 1 ? 1 : 0)
+         << " ";
+    file << std::to_string(s1.use_count() == s2.use_count() ? 1 : 0) << " ";
+  }
+  file << std::to_string(s1.use_count() == count_one_handle ? 1 : 0) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+// 测试 use_count：外部 handle 全部析构后，tensor 仍保持 StorageImpl 存活
+TEST_F(StorageTest, StorageUseCountTensorKeepalive) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "StorageUseCountTensorKeepalive ";
+
+  const void* data_ptr_before = nullptr;
+  {
+    c10::Storage s = tensor.storage();
+    data_ptr_before = s.data();
+  }
+  c10::Storage s_new = tensor.storage();
+  file << std::to_string(s_new.data() == data_ptr_before ? 1 : 0) << " ";
+  file << std::to_string(s_new.use_count()) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at
