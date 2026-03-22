@@ -26,9 +26,9 @@
 | torch API | paddle API 兼容性 | 备注 |
 |---|---|---|
 | `Storage()` | ✅ | 已实现 |
-| `Storage(intrusive_ptr<StorageImpl>)` | ❌ | Paddle 使用 `shared_ptr<phi::Allocation>`，无 `StorageImpl` 构造 |
+| `Storage(intrusive_ptr<StorageImpl>)` | ❌ | Paddle 使用 `shared_ptr<StorageImpl>`，但 StorageImpl 是 compat 内部类型，不接受 PyTorch 的 `intrusive_ptr<c10::StorageImpl>` |
 | `Storage(use_byte_size_t, const SymInt&, Allocator*, bool)` | ❌ | 缺少 `SymInt` 版本 |
-| `Storage(use_byte_size_t, size_t, DataPtr, Allocator*, bool)` | ❌ | Paddle 该重载第三参为 `shared_ptr<phi::Allocation>`，非 `DataPtr` |
+| `Storage(use_byte_size_t, size_t, DataPtr, Allocator*, bool)` | ✅ | **PR #78060 修复**：已新增接受 `DataPtr` 的重载，语义与 PyTorch 一致 |
 | `Storage(use_byte_size_t, SymInt, DataPtr, Allocator*, bool)` | ❌ | 缺少 `SymInt + DataPtr` 版本 |
 | `Storage(const Storage&)` | ✅ | 已实现 |
 | `Storage(Storage&&)` | ✅ | 已实现 |
@@ -84,7 +84,7 @@
 | `unsafeGetStorageImpl()` | ❌ | 缺失 |
 | `getWeakStorageImpl()` | ❌ | 缺失 |
 | `operator bool()` | ✅ | 已实现 |
-| `use_count()` | ✅ | 已实现；allocation-backed 路径返回 `allocation_.use_count()`；external DataPtr（含 deleter）路径返回 `external_ctx_.use_count()`；external DataPtr（无 deleter 但有非空指针）路径返回 `data_ptr_.use_count()`；默认构造（空）Storage 返回 0 |
+| `use_count()` | ✅ | 已实现；allocation-backed 路径返回 `impl_->allocation_.use_count()`（共享 phi::Allocation 的持有者数）；external DataPtr 路径返回 `impl_.use_count()`（共享 StorageImpl 的 Storage handle 数）；默认构造（空）Storage 返回 0 |
 | `unique()` | ✅ | 已实现；委托给 `use_count() == 1`，语义覆盖 allocation-backed 和 external DataPtr 两条路径 |
 | `is_alias_of(const Storage&)` | ✅ | 已实现 |
 
@@ -131,9 +131,10 @@
 |---|---|
 | `Storage(shared_ptr<phi::Allocation>, unique_ptr<phi::StorageProperties>)` | 直接从 `phi::Allocation` 构造 |
 | `Storage(size_t, phi::Allocator*)` | 简化尺寸构造 |
-| `valid()` | 检查是否持有 allocation |
+| `valid()` | 检查是否持有 allocation 或有效 DataPtr |
 | `allocation()` | 返回底层 `shared_ptr<phi::Allocation>` |
-| `set_data_ptr_noswap(shared_ptr<phi::Allocation>)` | 直接替换 allocation |
+| `set_data_ptr(shared_ptr<phi::Allocation>)` | 替换 allocation，返回旧 allocation |
+| `set_data_ptr_noswap(shared_ptr<phi::Allocation>)` | 直接替换 allocation，无返回值 |
 
 ---
 
@@ -152,12 +153,9 @@
 - Paddle compat 的 `Storage` 已覆盖基础生命周期、数据访问与别名检查主路径。
 - 与 PyTorch 的主要差距在 `StorageImpl` 体系相关接口（`intrusive_ptr/weak_ptr/legacy/external pointer/SymInt`）。
 - **PR #78060 修复记录**:
-  - `data_ptr()` 现在返回 `const DataPtr&`（引用），`mutable_data_ptr()` 返回 `DataPtr&`（引用），与 PyTorch 语义一致
-  - 重新实现 `set_data_ptr(DataPtr&&)` 和 `set_data_ptr_noswap(DataPtr&&)`，不再有不安全类型转换
+  - **Reference semantics（本轮修复）**：引入 `StorageImpl` 共享状态结构体，`Storage` 改为持有 `shared_ptr<StorageImpl>`。拷贝 `Storage` 时共享同一个 `StorageImpl`，通过任意副本的 `set_data_ptr*()`/`set_nbytes()`/`mutable_data_ptr()` 写操作均对所有副本可见，与 PyTorch `Storage` 作为 `intrusive_ptr<StorageImpl>` handle 的语义一致。移除了旧的 CoW 机制（`ensureUniqueDataPtr()`）。
+  - `data_ptr()` 返回 `const DataPtr&`（引用），`mutable_data_ptr()` 返回 `DataPtr&`（引用），均直接引用 `impl_->data_ptr_`，无 CoW 包装
+  - `set_data_ptr(DataPtr&&)` 和 `set_data_ptr_noswap(DataPtr&&)` 直接修改 `impl_->data_ptr_`，对所有共享该 impl 的 Storage 副本可见
   - 保留 Paddle 特有的 `set_data_ptr(shared_ptr<phi::Allocation>)` 重载
-  - Storage 内部使用 `std::shared_ptr<DataPtr> data_ptr_` 作为 PyTorch 兼容引用的持有者；拷贝 Storage 时共享同一个 `shared_ptr<DataPtr>`，确保外部 DataPtr 路径的 context/deleter 不会在拷贝后悬空
-  - 对 phi::Allocation 原生路径，`*data_ptr_` 是非拥有性视图（仅含原始指针+device），不增加 allocation 的 refcount
-  - **后续修复**（external DataPtr 路径语义对齐）：
-    - `device_type()` / `device()`：当 `allocation_` 为空时，改为从 `data_ptr_->device()` 读取设备信息，解决 external DataPtr 路径下始终报告 CPU / default place 的问题
-    - `use_count()`：当 `allocation_` 为空时，优先使用 `external_ctx_.use_count()`（有 deleter 时）或 `data_ptr_.use_count()`（无 deleter 但有效指针时），默认构造（空）Storage 返回 0；解决了 external DataPtr 路径下 `use_count()` 始终为 0 的问题
-    - `unique()`：委托给 `use_count() == 1`，语义覆盖两条路径
+  - `use_count()`：allocation-backed 路径返回 `impl_->allocation_.use_count()`；external DataPtr 路径返回 `impl_.use_count()`；空 Storage 返回 0
+  - allocation-backed 路径中 `impl_->data_ptr_` 是对 `phi::Allocation` 的非拥有性视图（仅含原始指针+device，无 deleter），不增加 allocation 的 refcount

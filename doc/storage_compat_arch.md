@@ -33,21 +33,30 @@ flowchart TD
 
 ---
 
-## c10::Storage 统一单路径架构
+## c10::Storage 共享 StorageImpl 设计
 
-PyTorch 的 `StorageImpl` 使用单一 `DataPtr data_ptr_` 成员。Paddle compat 的 `Storage` 统一使用 `shared_ptr<DataPtr>` 作为共享所有权机制，同时保留 `allocation_` 成员用于 Paddle 原生路径的向后兼容：
+Paddle compat 的 `Storage` 采用与 PyTorch 相同的 **shared handle** 设计：多个 `Storage` 副本共享同一个 `StorageImpl`，通过任意副本的 `set_data_ptr*()`/`set_nbytes()`/`mutable_data_ptr()` 写操作均对所有副本可见。
 
 ```mermaid
 classDiagram
     class c10_Storage["c10::Storage"] {
+        +shared_ptr~StorageImpl~ impl_
+        +data_ptr() const DataPtr&
+        +mutable_data_ptr() DataPtr&
+        +set_data_ptr(DataPtr&&) DataPtr
+        +set_data_ptr_noswap(DataPtr&&)
+        +set_nbytes(size_t)
+        +use_count() size_t
+        +device() phi::Place
+        +allocation() shared_ptr~phi::Allocation~
+    }
+
+    class StorageImpl["c10::StorageImpl (Paddle compat)"] {
         +shared_ptr~phi::Allocation~ allocation_
-        +shared_ptr~DataPtr~ data_ptr_
+        +phi::Allocator* allocator_
         +size_t nbytes_
         +bool resizable_
-        +use_count() size_t
-        +data_ptr() DataPtr
-        +mutable_data_ptr() DataPtr
-        +device() phi::Place
+        +DataPtr data_ptr_
     }
 
     class DataPtr["c10::DataPtr"] {
@@ -65,41 +74,54 @@ classDiagram
         +size_t size_
     }
 
-    c10_Storage --> "0..1" phi_Allocation : allocation-backed path
-    c10_Storage --> "1" DataPtr : shared_ptr~DataPtr~
+    c10_Storage --> "1" StorageImpl : shared_ptr (all copies share one)
+    StorageImpl --> "0..1" phi_Allocation : allocation-backed path
+    StorageImpl --> "1" DataPtr : direct member (non-owning view or external)
 ```
 
 ### 架构说明
 
-| 属性                | PyTorch StorageImpl              | Paddle compat Storage (统一设计)  |
-|---------------------|----------------------------------|-----------------------------------|
-| 数据所有权          | `DataPtr data_ptr_`（唯一来源）  | `shared_ptr<DataPtr> data_ptr_`   |
-| allocation-backed   | 无（直接通过 DataPtr）           | `shared_ptr<phi::Allocation>`     |
-| 设备信息来源        | `data_ptr_.device()`             | `allocation_->place()` 或 `data_ptr_->device()` |
-| 引用计数来源        | `intrusive_ptr<StorageImpl>`     | `allocation_.use_count()` 或 `data_ptr_.use_count()` |
-| copy-on-write       | 无（单一 StorageImpl）           | CoW 跳过带 deleter 的 DataPtr     |
+| 属性 | PyTorch StorageImpl | Paddle compat StorageImpl |
+|------|---------------------|---------------------------|
+| Storage handle | `intrusive_ptr<StorageImpl>` | `shared_ptr<StorageImpl>` |
+| 数据所有权 | `DataPtr data_ptr_`（直接成员） | `DataPtr data_ptr_`（直接成员，与 PyTorch 相同） |
+| allocation-backed | 无（直接通过 DataPtr） | `shared_ptr<phi::Allocation>`（额外保存） |
+| DataPtr 视图 | 由 Allocator 的 deleter 管理 | 对 phi::Allocation：非拥有性原始指针视图；外部 DataPtr：直接存储 |
+| 设备信息来源 | `data_ptr_.device()` | `allocation_->place()` 或 `data_ptr_.device()` |
+| 引用计数来源 | `intrusive_ptr` 计数 | allocation-backed: `allocation_.use_count()`；external DataPtr: `impl_.use_count()` |
+| copy-on-write | 无（single StorageImpl） | 无（已移除 CoW；共享 impl_ 直接传播写操作） |
 
 ### use_count() 计算依据
 
-统一设计后，`use_count()` 的计算逻辑如下：
-
 ```cpp
 size_t use_count() const {
-    if (allocation_) return allocation_.use_count();
-    if (data_ptr_ && *data_ptr_) return data_ptr_.use_count();
+    if (!impl_) return 0;
+    if (impl_->allocation_) return impl_->allocation_.use_count();
+    if (impl_->data_ptr_)   return impl_.use_count();
     return 0;
 }
 ```
 
-- **allocation-backed 路径**：返回 `allocation_.use_count()`，即共享 `phi::Allocation` 的 Storage 副本数
-- **external DataPtr 路径**：返回 `data_ptr_.use_count()`，即共享 `shared_ptr<DataPtr>` 的 Storage 副本数
+- **allocation-backed 路径**：返回 `impl_->allocation_.use_count()`，即共享同一 `phi::Allocation` 的所有持有者数量（DenseTensor + Storage 副本等）
+- **external DataPtr 路径**：返回 `impl_.use_count()`，即共享同一 `StorageImpl` 的 Storage handle 数量
 - **空 Storage**：默认构造时返回 0，与 PyTorch 空 `intrusive_ptr<StorageImpl>` 语义一致
 
-### 单路径设计的优势
+### Reference Semantics：写操作传播示意
 
-1. **语义正确性**：`data_ptr()` 返回的 `DataPtr` 直接包含原始 context 和 deleter，不再通过 wrapper 包装
-2. **use_count 准确**：单个 Storage 的 `use_count()` 返回 1，拷贝后返回 2，符合预期
-3. **简化实现**：移除 `external_ctx_` 成员和 `makeExternalDataPtr` wrapper，代码更清晰
+```mermaid
+sequenceDiagram
+    participant A as Storage a
+    participant Impl as StorageImpl (shared)
+    participant B as Storage b = a
+
+    Note over A,B: Storage b = a 后，a 和 b 共享同一 impl_
+
+    A->>Impl: set_data_ptr_noswap(new_ptr)
+    Note over Impl: impl_->data_ptr_ = new_ptr
+
+    B->>Impl: data() / data_ptr()
+    Impl-->>B: new_ptr (可见)
+```
 
 ---
 
@@ -136,6 +158,11 @@ flowchart TD
         GETALLOC["getCUDADeviceAllocator()"]
     end
 
+    subgraph ADAPTER["PaddleCUDAAllocatorAdapter (c10::Allocator)"]
+        ALLOCATE["allocate(n)"]
+        COPYDATA["copy_data(dst, src, n)"]
+    end
+
     subgraph PHI["phi 层"]
         GPUCTX["phi::DeviceContextPool"]
         GPUINFO["phi::backends::gpu"]
@@ -144,12 +171,15 @@ flowchart TD
 
     GETBLAS -->|getCurrentGPUContext| GPUCTX -->|cublas_handle| GETBLAS
     ISAVA -->|device_count| GPUINFO -->|GetGPUDeviceCount| ISAVA
-    GETALLOC -->|GetAllocator| ALLOCFAC -->|Allocate| GETALLOC
+    GETALLOC -->|static adapter| ADAPTER
+    ALLOCATE -->|n>0: GetAllocator| ALLOCFAC
+    ALLOCATE -->|n=0: 保留 CUDA device| ALLOCATE
+    COPYDATA -->|cudaMemcpy D2D| COPYDATA
 ```
 
 ### at::cuda::getCUDADeviceAllocator()
 
-提供 Paddle CUDA Allocator 的 c10::Allocator 适配：
+提供 Paddle CUDA Allocator 的 `c10::Allocator` 适配：
 
 ```cpp
 c10::Allocator* getCUDADeviceAllocator() {
@@ -158,16 +188,23 @@ c10::Allocator* getCUDADeviceAllocator() {
 }
 ```
 
-`PaddleCUDAAllocatorAdapter` 将 `phi::AllocatorFacade` 的 GPU 分配器包装为 `c10::Allocator` 接口，使得兼容层可以使用与 PyTorch 一致的内存分配方式。
+`PaddleCUDAAllocatorAdapter` 将 `phi::AllocatorFacade` 的 GPU 分配器包装为 `c10::Allocator` 接口：
+
+| 方法 | 行为 |
+|------|------|
+| `allocate(0)` | 返回 `DataPtr(nullptr, nullptr, nullptr, Device(CUDA, current_device_id))`，保留当前 CUDA 设备信息，不触发实际分配 |
+| `allocate(n>0)` | 通过 `AllocatorFacade` 在当前 GPU 上分配，所有权通过 `deletePaddleCUDAAllocation` deleter 管理 |
+| `copy_data(dst, src, n)` | 使用 `cudaMemcpy(dst, src, n, cudaMemcpyDeviceToDevice)` 实现 GPU-to-GPU 拷贝，兼容 `c10::Allocator::clone()` 语义 |
+| `raw_deleter()` | 返回 `deletePaddleCUDAAllocation`，用于 raw 指针释放路径 |
 
 ---
 
 ## 注意事项
 
-1. **CoW 机制**：调用 `mutable_data_ptr()` 时触发 `ensureUniqueDataPtr()`。对于不带 deleter 的 DataPtr，会创建新的 `shared_ptr<DataPtr>` 以实现 copy-on-write。对于带 deleter 的 DataPtr（外部 DataPtr 路径），CoW 被跳过以保留原始 deleter 和 context。
+1. **StorageImpl 共享设计**：`Storage b = a` 后两者共享同一个 `StorageImpl`。任何通过 a 或 b 的写操作（`set_data_ptr*`、`set_nbytes`、`mutable_data_ptr` 返回引用后修改）立即对另一方可见。这与 PyTorch 中 `Storage` 作为 `intrusive_ptr<StorageImpl>` handle 的语义一致。
 
-2. **默认构造 Storage**：`data_ptr_` 初始化为空 DataPtr，`*data_ptr_` 为 falsy，`use_count()` 返回 0，与 PyTorch 空 `intrusive_ptr<StorageImpl>` 的语义一致。
+2. **独立 Storage 互不影响**：`Storage a(alloc1); Storage b(alloc2)` 各自持有独立的 `StorageImpl`，写操作不跨越 impl 边界。`TensorBase::storage()` 每次调用均创建新的 `Storage`（带新 `StorageImpl`），两次独立调用所得的 Storage 互不影响。
 
-3. **多卡 device index 保留**：`phi::GPUPlace(n)` 的 device id 为 `n`，通过 `phi::Place::GetDeviceId()` 可完整读回，因此 `DataPtr::device().index()` 在多卡场景下返回正确值。
+3. **phi::Allocation DataPtr 视图**：allocation-backed 路径中，`impl_->data_ptr_` 是对 `phi::Allocation` 的非拥有性视图（只含原始指针 + device，无 deleter），引用计数由 `impl_->allocation_` 独立维护，`use_count()` 不会因 DataPtr 的存在而虚增。
 
-4. **统一单路径设计变更**：PR #78060 后续修改将 `external_ctx_` 和 `makeExternalDataPtr` wrapper 移除，直接通过 `data_ptr_` 的引用计数管理 Storage 副本，确保 `use_count()` 和 `data_ptr().get_deleter()` 的语义与 PyTorch 一致。
+4. **多卡 device index 保留**：`phi::GPUPlace(n)` 的 device id 为 `n`，通过 `phi::Place::GetDeviceId()` 可完整读回，因此 `DataPtr::device().index()` 在多卡场景下返回正确值。

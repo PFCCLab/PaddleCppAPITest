@@ -60,8 +60,8 @@
 | `raw_deleter()` | ✅ | 默认返回 `nullptr` |
 | `raw_allocate(size_t)` | ✅ | 已实现 |
 | `raw_deallocate(void*)` | ✅ | 已实现 |
-| `copy_data(void*, const void*, size_t)` | ✅ | 纯虚接口已声明 |
-| `default_copy_data(void*, const void*, size_t)` | ✅ | `protected` 辅助实现 |
+| `copy_data(void*, const void*, size_t)` | ✅ | 纯虚接口已声明；`PaddleCUDAAllocatorAdapter` 重写此方法，使用 `cudaMemcpy(..., cudaMemcpyDeviceToDevice)` 实现 GPU-to-GPU 拷贝（支持 `clone()` 语义） |
+| `default_copy_data(void*, const void*, size_t)` | ✅ | `protected` 辅助实现（CPU 路径使用 `std::memcpy`；CUDA allocator 重写 `copy_data` 以使用 D2D copy） |
 
 ---
 
@@ -113,4 +113,7 @@
 
 - `DataPtr` 核心接口和 `Allocator` 主体接口在 compat 头文件中已基本具备。
 - 与上游 PyTorch 的主要差距集中在：全局分配器注册机制、`InefficientStdFunctionContext`、内存分析与 `CachingAllocator` 相关接口。
-- **PR #78060 修复记录**：`DataPtr::device()` 现在完整保留 GPU device index（多卡场景下 `device().index()` 返回正确值）；新增 `unsafe_set_device()` 实现。内部实现通过 `c10::Device::_PD_GetInner()` 直接存储完整 `phi::Place`。
+- **PR #78060 修复记录**：
+  - `DataPtr::device()` 现在完整保留 GPU device index（多卡场景下 `device().index()` 返回正确值）；新增 `unsafe_set_device()` 实现。内部实现通过 `c10::Device::_PD_GetInner()` 直接存储完整 `phi::Place`。
+  - **本轮修复** — `PaddleCUDAAllocatorAdapter::allocate(0)`：不再返回默认 CPU `DataPtr()`，改为返回 `DataPtr(nullptr, nullptr, nullptr, Device(CUDA/HIP, current_device_id))`，保留当前 CUDA 设备信息，使 `allocate(0).device().type() == DeviceType::CUDA`。
+  - **本轮修复** — `PaddleCUDAAllocatorAdapter::copy_data()`：不再继承 `default_copy_data`（使用 `std::memcpy`），改为调用 `cudaMemcpy(dst, src, n, cudaMemcpyDeviceToDevice)`（HIP 路径使用 `hipMemcpy`），正确支持 GPU-to-GPU 内存拷贝，兼容 `c10::Allocator::clone()` 语义。
