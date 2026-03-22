@@ -195,7 +195,7 @@ c10::Allocator* getCUDADeviceAllocator() {
 | `allocate(0)` | 返回 `DataPtr(nullptr, nullptr, nullptr, Device(CUDA, current_device_id))`，保留当前 CUDA 设备信息，不触发实际分配 |
 | `allocate(n>0)` | 通过 `AllocatorFacade` 在当前 GPU 上分配，所有权通过 `deletePaddleCUDAAllocation` deleter 管理 |
 | `copy_data(dst, src, n)` | 使用 `cudaMemcpy(dst, src, n, cudaMemcpyDeviceToDevice)` 实现 GPU-to-GPU 拷贝，兼容 `c10::Allocator::clone()` 语义 |
-| `raw_deleter()` | 返回 `deletePaddleCUDAAllocation`，用于 raw 指针释放路径 |
+| `raw_deleter()` | 返回 `nullptr`，表示 raw API 不可用。`c10::Allocator` raw 契约要求 `allocate(n)` 返回的 DataPtr 满足 `get()==get_context()`，但本实现中 `data=device_ptr`、`context=phi::Allocation*`，两者不等，因此不能宣称 raw API 可用（PR #78060 当轮修复）。 |
 
 ---
 
@@ -203,7 +203,19 @@ c10::Allocator* getCUDADeviceAllocator() {
 
 1. **StorageImpl 共享设计**：`Storage b = a` 后两者共享同一个 `StorageImpl`。任何通过 a 或 b 的写操作（`set_data_ptr*`、`set_nbytes`、`mutable_data_ptr` 返回引用后修改）立即对另一方可见。这与 PyTorch 中 `Storage` 作为 `intrusive_ptr<StorageImpl>` handle 的语义一致。
 
-2. **独立 Storage 互不影响**：`Storage a(alloc1); Storage b(alloc2)` 各自持有独立的 `StorageImpl`，写操作不跨越 impl 边界。`TensorBase::storage()` 每次调用均创建新的 `Storage`（带新 `StorageImpl`），两次独立调用所得的 Storage 互不影响。
+2. **独立 Storage 互不影响**：`Storage a(alloc1); Storage b(alloc2)` 各自持有独立的 `StorageImpl`，写操作不跨越 impl 边界。
+
+   **TensorBase::storage() 引用语义**（PR #78060 当轮修复）：`TensorBase::storage()` 现在会缓存对应 `StorageImpl`，同一 tensor 的多次调用返回共享同一 `StorageImpl` 的 handle，与 PyTorch 中 `TensorBase::storage()` 返回同一底层 `storage_` 成员 handle 的语义一致：
+
+   ```cpp
+   at::TensorBase tensor = at::ones({2, 3});
+   c10::Storage s1 = tensor.storage();
+   c10::Storage s2 = tensor.storage();  // s1 和 s2 共享同一 StorageImpl
+   s1.set_data_ptr_noswap(new_alloc);
+   assert(s2.data() == s1.data());  // ✅ 修改对 s2 可见
+   ```
+
+   缓存实现通过 `mutable std::shared_ptr<phi::Allocation> storage_holder_cache_` + `mutable c10::Storage cached_storage_` 实现，当 `DenseTensor::Holder()` 变化时自动失效（Holder 更换说明底层 allocation 已被重置）。
 
 3. **phi::Allocation DataPtr 视图**：allocation-backed 路径中，`impl_->data_ptr_` 是对 `phi::Allocation` 的非拥有性视图（只含原始指针 + device，无 deleter），引用计数由 `impl_->allocation_` 独立维护，`use_count()` 不会因 DataPtr 的存在而虚增。
 

@@ -29,6 +29,7 @@
 | `DataPtr()` | ✅ | 已实现 |
 | `DataPtr(void*, Device)` | ✅ | 已实现；完整保留 `Device`（含 device index），通过 `device._PD_GetInner()` 存入 `phi::Place` |
 | `DataPtr(void*, void*, DeleterFnPtr, Device)` | ✅ | 已实现；device index 保留语义同上 |
+| `DataPtr(DataPtr&&)` / `operator=(DataPtr&&)` | ✅ | 已实现；move-only（copy 构造与 copy 赋值显式 `= delete`，与 PyTorch 接口一致） |
 | `operator->()` | ✅ | 已实现 |
 | `unsafe_reset_data_and_ctx()` | ✅ | 已实现 |
 | `clear()` | ✅ | 已实现 |
@@ -103,7 +104,7 @@
 
 | 状态 | 数量 |
 |---|---|
-| ✅ 已实现 | 26 |
+| ✅ 已实现 | 27 |
 | 🔧 部分兼容 | 0 |
 | ❌ 未实现 | 16 |
 
@@ -117,3 +118,5 @@
   - `DataPtr::device()` 现在完整保留 GPU device index（多卡场景下 `device().index()` 返回正确值）；新增 `unsafe_set_device()` 实现。内部实现通过 `c10::Device::_PD_GetInner()` 直接存储完整 `phi::Place`。
   - **本轮修复** — `PaddleCUDAAllocatorAdapter::allocate(0)`：不再返回默认 CPU `DataPtr()`，改为返回 `DataPtr(nullptr, nullptr, nullptr, Device(CUDA/HIP, current_device_id))`，保留当前 CUDA 设备信息，使 `allocate(0).device().type() == DeviceType::CUDA`。
   - **本轮修复** — `PaddleCUDAAllocatorAdapter::copy_data()`：不再继承 `default_copy_data`（使用 `std::memcpy`），改为调用 `cudaMemcpy(dst, src, n, cudaMemcpyDeviceToDevice)`（HIP 路径使用 `hipMemcpy`），正确支持 GPU-to-GPU 内存拷贝，兼容 `c10::Allocator::clone()` 语义。
+  - **本轮修复** — `DataPtr` 显式 move-only：新增 `DataPtr(const DataPtr&) = delete` 与 `DataPtr& operator=(const DataPtr&) = delete`，与 PyTorch 的 `c10::DataPtr` 接口严格一致。（原实现依赖 `UniqueVoidPtr` 内部 `unique_ptr` 隐式禁止拷贝，现显式声明使接口契约明确。）
+  - **本轮修复** — `PaddleCUDAAllocatorAdapter::raw_deleter()` 返回 `nullptr`：`c10::Allocator` raw API 契约要求 `allocate(n)` 返回的 `DataPtr` 满足 `get() == get_context()`。本适配器中 `data` 为设备原始指针，`context` 为 `phi::Allocation*`，二者不等，因此不能宣称 raw API 可用，`raw_deleter()` 显式返回 `nullptr` 避免误用 `raw_allocate`/`raw_deallocate`。
