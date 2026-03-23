@@ -84,7 +84,7 @@
 | `unsafeGetStorageImpl()` | ❌ | 缺失 |
 | `getWeakStorageImpl()` | ❌ | 缺失 |
 | `operator bool()` | ✅ | 已实现 |
-| `use_count()` | ✅ | 已实现；统一返回 `impl_.use_count()`（共享同一 `StorageImpl` 的所有强引用持有者数量，包括 `Storage` handle 和 tensor 自身的 `active_storage_`）；空/无效 Storage 返回 0。与 PyTorch 的 `storage_impl_.use_count()` 语义一致，`Storage storage = tensor.storage()` 后 `use_count == 2`（tensor + storage 各持有一个强引用）。 |
+| `use_count()` | ✅ | 已实现；对外暴露的计数等价于“共享同一 `StorageImpl` 的 `Storage` handle 数量”。内部 `StorageHolderView` 为了让 `DenseTensor::holder_` 反映 live storage 会暂持一个 bookkeeping 引用，但 `use_count()` 会将该内部引用扣除；空/无效 Storage 返回 0。`Storage storage = tensor.storage()` 后 `use_count == 2`（tensor wrapper 内部 handle + 外部复制出的 handle）。 |
 | `unique()` | ✅ | 已实现；委托给 `use_count() == 1` |
 | `is_alias_of(const Storage&)` | ✅ | 已实现 |
 
@@ -157,6 +157,6 @@
   - `data_ptr()` 返回 `const DataPtr&`（引用），`mutable_data_ptr()` 返回 `DataPtr&`（引用），均直接引用 `impl_->data_ptr_`，无 CoW 包装
   - `set_data_ptr(DataPtr&&)` 和 `set_data_ptr_noswap(DataPtr&&)` 直接修改 `impl_->data_ptr_`，对所有共享该 impl 的 Storage 副本可见
   - 保留 Paddle 特有的 `set_data_ptr(shared_ptr<phi::Allocation>)` 重载
-  - `use_count()`：旧实现 allocation-backed 路径返回 `impl_->allocation_.use_count()`，会将 DenseTensor::holder_ 等内部引用计入，导致单 tensor 报告 4、共享 tensor 报告 5；**本轮修复**后统一返回 `impl_.use_count()`（所有强引用持有者计数，含 tensor 自身的 `active_storage_`），空/无效 Storage 返回 0
+  - `use_count()`：旧实现 allocation-backed 路径返回 allocation 的引用计数，会把 `DenseTensor::holder_` 等内部实现细节暴露出来；**本轮修复**后按 `StorageImpl` 共享语义计数，并扣除 `StorageHolderView` 的内部 bookkeeping 引用，因此对外结果与 PyTorch 的 `Storage` handle 计数口径保持一致
   - allocation-backed 路径中 `impl_->data_ptr_` 是对 `phi::Allocation` 的非拥有性视图（仅含原始指针+device，无 deleter），不增加 allocation 的 refcount
-  - **TensorBase::storage() 跨 wrapper 共享（本轮修复）**：引入全局 `at::detail::TensorStorageRegistry`（Meyers singleton），以 `phi::TensorBase*` 为 key、`weak_ptr<StorageImpl>` 为值，确保同一底层 `phi::DenseTensor` 的所有 `at::TensorBase` wrapper 调用 `storage()` 时返回共享同一 `StorageImpl` 的 handle；每个 TensorBase 实例持有 `mutable std::shared_ptr<c10::StorageImpl> active_storage_`，使 tensor 自身计入 `use_count()`（对齐 PyTorch `TensorImpl` 持有 `Storage` handle 的语义），并保证 `set_data_ptr_noswap()` 写入的 mutation 在外部 Storage handle 全部析构后仍存活于 tensor 中
+  - **TensorBase::storage() 跨 wrapper 共享（本轮修复）**：不再依赖全局 `TensorStorageRegistry`。`TensorBase::storage()` 会从 `phi::DenseTensor::holder_` 恢复或创建共享的 `StorageImpl`，并通过 `StorageHolderView` 把 live storage 状态回写给 tensor holder；因此同一底层 `DenseTensor` 的多个 `TensorBase` wrapper 仍能观察到同一个 storage 语义，同时 `set_data_ptr_noswap()` 之类的写入会立即反映到 `tensor.data_ptr()`

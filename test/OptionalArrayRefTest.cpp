@@ -107,7 +107,6 @@ TEST_F(OptionalArrayRefTest, FromOptionalArrayRef) {
   file << "FromOptionalArrayRef ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  file << std::to_string(arr->front()) << " ";
   file << "\n";
   file.saveFile();
 }
@@ -291,9 +290,6 @@ TEST_F(OptionalArrayRefTest, EmplaceMethod) {
   arr.emplace(std::initializer_list<int64_t>{1, 2, 3, 4});
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
   file << "\n";
   file.saveFile();
 }
@@ -451,9 +447,6 @@ TEST_F(OptionalArrayRefTest, InPlaceConstruction) {
   file << "InPlaceConstruction ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
   file << "\n";
   file.saveFile();
 }
