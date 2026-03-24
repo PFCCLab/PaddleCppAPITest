@@ -3,7 +3,7 @@
 本文档说明 Paddle compat 层如何将 PyTorch 的 `c10::Storage` / `c10::DataPtr` 接口映射到 Paddle 内部实现。
 
 > **Note**: 本文档已根据 PR #78060 的最新修复更新。主要变更：
-> - 移除了 `TensorStorageRegistry` 全局注册表机制
+> - 在 `TensorBase` 内维护按 `StorageImpl*` 归一的 canonical storage 缓存（静态弱引用注册表）
 > - `TensorBase::storage()` 改为通过 `DenseTensor::holder_` 上的 compat holder 复用同一个 `StorageImpl`
 > - `storage()` 返回类型改为 `const c10::Storage&`（引用而非值）
 > - `TensorBase` 内部改为共享 canonical `std::shared_ptr<c10::Storage>`，避免 alias wrapper 数量抬高 `Storage::use_count()`
@@ -80,7 +80,7 @@ flowchart TD
 
 1. **首次同步**：`TensorBase::storage()` / `has_storage()` / `data_ptr()` 调用 `SyncStorageFromTensor()`，读取当前 `phi::DenseTensor::holder_`。
 2. **holder 适配**：如果 holder 还是原始 `phi::Allocation`，compat 层会创建一个共享 `StorageImpl`，再生成 `StorageHolderView` 并回写到 `DenseTensor::holder_`。
-3. **跨 wrapper 共享**：后续所有看到同一个 holder 的 `TensorBase` wrapper 都能恢复同一个 `StorageImpl`。对于 `t2 = t1` 这类 alias wrapper，二者共享同一个 canonical `Storage` 句柄，不会因为 wrapper 数量增加而额外抬高 `Storage::use_count()`。
+3. **跨 wrapper 共享**：后续 wrapper 通过 holder 恢复同一个 `StorageImpl`，并通过 canonical storage 缓存复用同一个 `Storage` 对象。对于 `t2 = t1` 以及独立从同一底层 tensor 构造 wrapper 的场景，`Storage::use_count()` 都不因 wrapper 数量增加而抬高。
 4. **live 数据指针**：`Storage::set_data_ptr*()` 更新 `StorageImpl` 后，`StorageHolderView::ptr()` 立即反映新地址，`tensor.data_ptr()` 与 `tensor.storage()` 因此保持一致。
 
 ---
@@ -273,13 +273,13 @@ c10::Allocator* getCUDADeviceAllocator() {
 
 2. **独立 Storage 互不影响**：`Storage a(alloc1); Storage b(alloc2)` 各自持有独立的 `StorageImpl`，写操作不跨越 impl 边界。
 
-   **TensorBase::storage() live 共享设计**（PR #78060 修复后）：每个 `TensorBase` wrapper 都持有自己的 `storage_` handle，但共享同一个底层 `StorageImpl`。不再使用全局 `TensorStorageRegistry`，而是把 shared impl 信息编码到 `DenseTensor::holder_` 上：
+    **TensorBase::storage() live 共享设计**（PR #78060 修复后）：`TensorBase` 通过 `DenseTensor::holder_` 恢复 shared `StorageImpl`，并按 `StorageImpl*` 复用 canonical `Storage` 对象（静态弱引用缓存）。这样 wrapper 数量不会额外抬高 owner 计数：
 
    ```cpp
    at::TensorBase t1 = paddle::ones({2, 3});
    at::TensorBase t2 = t1;                    // 同一底层 DenseTensor
-   c10::Storage s1 = t1.storage();
-    c10::Storage s2 = t2.storage();           // s1 / s2 共享同一 StorageImpl
+    c10::Storage s1 = t1.storage();
+    c10::Storage s2 = t2.storage();            // s1 / s2 共享同一 StorageImpl
    s1.set_data_ptr_noswap(new_alloc);
    // t2.data_ptr() / s2.data() 立即看到相同的新地址
    ```

@@ -159,4 +159,4 @@
   - 保留 Paddle 特有的 `set_data_ptr(shared_ptr<phi::Allocation>)` 重载
   - `use_count()`：旧实现 allocation-backed 路径返回 allocation 的引用计数，会把 `DenseTensor::holder_` 等内部实现细节暴露出来；**本轮修复**后按 `StorageImpl` 共享语义计数，并扣除 `StorageHolderView` 的内部 bookkeeping 引用，因此对外结果与 PyTorch 的 `Storage` handle 计数口径保持一致
   - allocation-backed 路径中 `impl_->data_ptr_` 是对 `phi::Allocation` 的非拥有性视图（仅含原始指针+device，无 deleter），不增加 allocation 的 refcount
-  - **TensorBase::storage() 跨 wrapper 共享（本轮修复）**：不再依赖全局 `TensorStorageRegistry`。`TensorBase::storage()` 会从 `phi::DenseTensor::holder_` 恢复或创建共享的 `StorageImpl`，并通过 `StorageHolderView` 把 live storage 状态回写给 tensor holder；因此同一底层 `DenseTensor` 的多个 `TensorBase` wrapper 仍能观察到同一个 storage 语义，同时 `set_data_ptr_noswap()` 之类的写入会立即反映到 `tensor.data_ptr()`
+  - **TensorBase::storage() 跨 wrapper 共享（本轮修复）**：通过 `phi::DenseTensor::holder_` 恢复/创建共享 `StorageImpl`，并在 `TensorBase` 侧按 `StorageImpl*` 复用 canonical `Storage` 对象（静态弱引用缓存）。配合 `StorageHolderView` 回写 holder，可保证同一底层 `DenseTensor` 的多个 wrapper 观测到一致 storage 语义，`set_data_ptr_noswap()` 写入可立即反映到 `tensor.data_ptr()`。
