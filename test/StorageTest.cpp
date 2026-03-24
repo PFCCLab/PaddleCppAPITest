@@ -385,8 +385,7 @@ TEST_F(StorageTest, StorageSetDataPtrNoswapAndTraitsProbe) {
   c10::Storage clone_storage = tensor.clone().storage();
   bool shared_alias = c10::isSharedStorageAlias(base_storage, alias_storage);
   bool shared_clone = c10::isSharedStorageAlias(base_storage, clone_storage);
-  // [DIFF] Paddle: isSharedStorageAlias(base_storage, alias_storage)=true,
-  // [DIFF] Torch:  isSharedStorageAlias(base_storage, alias_storage)=false.
+  // The current parity run matches on both Paddle and Torch for alias storage.
   file << std::to_string(shared_alias ? 1 : 0) << " ";
   file << std::to_string(shared_clone ? 1 : 0) << " ";
 

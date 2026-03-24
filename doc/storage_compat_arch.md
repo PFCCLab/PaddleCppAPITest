@@ -6,6 +6,7 @@
 > - 移除了 `TensorStorageRegistry` 全局注册表机制
 > - `TensorBase::storage()` 改为通过 `DenseTensor::holder_` 上的 compat holder 复用同一个 `StorageImpl`
 > - `storage()` 返回类型改为 `const c10::Storage&`（引用而非值）
+> - `TensorBase` 内部改为共享 canonical `std::shared_ptr<c10::Storage>`，避免 alias wrapper 数量抬高 `Storage::use_count()`
 > - `has_storage()` / `data_ptr()` 均基于 live holder 同步，而不是构造时快照
 > - `use_count()` 以 `Storage` handle 视角计数，并扣除内部 `StorageHolderView` bookkeeping 引用
 
@@ -42,13 +43,13 @@ flowchart TD
 
 ## TensorBase::storage() 实现机制
 
-PyTorch 中，所有 `TensorBase` wrapper 共享同一个 `TensorImpl`，因此 `TensorBase::storage()` 直接返回 `TensorImpl::storage_`。Paddle compat 层仍然保留 `at::TensorBase::storage_` 成员，但它不再是构造时的一次性快照，而是通过 `phi::DenseTensor::holder_` 上挂接的 compat holder 复用同一个 `StorageImpl`。
+PyTorch 中，所有 `TensorBase` wrapper 共享同一个 `TensorImpl`，因此 `TensorBase::storage()` 直接返回 `TensorImpl::storage_`。Paddle compat 层中，`at::TensorBase` 维护一个共享的 canonical `std::shared_ptr<c10::Storage>`，并通过 `phi::DenseTensor::holder_` 上挂接的 compat holder 复用同一个 `StorageImpl`。
 
 ```mermaid
 flowchart TD
     subgraph WRAPPERS["at::TensorBase wrappers（value 语义）"]
-        W1["TensorBase t1\nstorage_ (c10::Storage handle)"]
-        W2["TensorBase t2 = t1\nstorage_ (same StorageImpl)"]
+        W1["TensorBase t1\nstorage_ (shared_ptr<c10::Storage>)"]
+        W2["TensorBase t2 = t1\nstorage_ (same shared_ptr target)"]
     end
 
     subgraph STORAGE["c10::Storage handles"]
@@ -66,8 +67,8 @@ flowchart TD
         ALLOC["phi::Allocation\nptr_ / place_ / size_"]
     end
 
-    W1 -->|"storage()"| S1
-    W2 -->|"storage()"| S2
+    W1 -->|"storage() returns const ref"| S1
+    W2 -->|"storage() returns const ref"| S2
     S1 --> SI
     S2 --> SI
     SI --> ALLOC
@@ -79,7 +80,7 @@ flowchart TD
 
 1. **首次同步**：`TensorBase::storage()` / `has_storage()` / `data_ptr()` 调用 `SyncStorageFromTensor()`，读取当前 `phi::DenseTensor::holder_`。
 2. **holder 适配**：如果 holder 还是原始 `phi::Allocation`，compat 层会创建一个共享 `StorageImpl`，再生成 `StorageHolderView` 并回写到 `DenseTensor::holder_`。
-3. **跨 wrapper 共享**：后续所有看到同一个 holder 的 `TensorBase` wrapper 都能恢复同一个 `StorageImpl`，因此 `t2 = t1`、view/slice 等共享底层 holder 的场景会保持一致的 storage 语义。
+3. **跨 wrapper 共享**：后续所有看到同一个 holder 的 `TensorBase` wrapper 都能恢复同一个 `StorageImpl`。对于 `t2 = t1` 这类 alias wrapper，二者共享同一个 canonical `Storage` 句柄，不会因为 wrapper 数量增加而额外抬高 `Storage::use_count()`。
 4. **live 数据指针**：`Storage::set_data_ptr*()` 更新 `StorageImpl` 后，`StorageHolderView::ptr()` 立即反映新地址，`tensor.data_ptr()` 与 `tensor.storage()` 因此保持一致。
 
 ---
@@ -167,7 +168,10 @@ size_t use_count() const {
 ```
 
 - **减去 holder bookkeeping 引用**：`StorageHolderView` 需要共享 `StorageImpl` 才能让 `DenseTensor` 的 `holder_` 始终反映 live storage，但它不应计入对外暴露的 `use_count()`
-- **典型计数示例**：单个 tensor + 单个 `Storage` handle：`use_count == 2`；复制后两个 handle：`use_count == 3`
+- **典型计数示例**：
+    - 单 wrapper 场景，仅通过 `const auto& s = tensor.storage()` 借用引用：`use_count == 1`
+    - 增加一个显式 `Storage` 复制句柄（如 `Storage s2 = tensor.storage()`）：`use_count == 2`
+    - 额外复制 alias wrapper（`TensorBase alias = tensor`）不应单独再 +1
 - **空/无效 Storage**：`valid()` 返回 false 时返回 0
 
 ### Reference Semantics：写操作传播示意
