@@ -1,6 +1,3 @@
-##### TensorBase.h 头文件 API 兼容情况
-
-
 ##### TensorBase.h 头文件 API 兼容性
 
 ✅ 表示已经支持
