@@ -12,35 +12,6 @@
 
 ---
 
-## 整体分层架构
-
-```mermaid
-flowchart TD
-    subgraph L1["PyTorch LibTorch 兼容 API 层"]
-        S["c10::Storage"]
-        DP["c10::DataPtr"]
-        A["c10::Allocator"]
-        CUDA["at::cuda::*"]
-    end
-
-    subgraph L2["Paddle compat 实现层"]
-        SH["Storage.h"]
-        AH["Allocator.h"]
-        CUDAL["CUDAContextLight.h/.cpp"]
-    end
-
-    subgraph L3["Paddle 原生实现层（phi）"]
-        PHI["phi::Allocation / phi::Allocator"]
-        PLACE["phi::Place"]
-        GPU["phi::GPUContext"]
-    end
-
-    L1 -->|compat shim| L2
-    L2 --> L3
-```
-
----
-
 ## TensorBase::storage() 实现机制
 
 PyTorch 中，所有 `TensorBase` wrapper 共享同一个 `TensorImpl`，因此 `TensorBase::storage()` 直接返回 `TensorImpl::storage_`。Paddle compat 层中，`at::TensorBase` 维护一个共享的 canonical `std::shared_ptr<c10::Storage>`，并通过 `phi::DenseTensor::holder_` 上挂接的 compat holder 复用同一个 `StorageImpl`。
