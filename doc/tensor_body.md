@@ -1,10 +1,15 @@
 ##### tensor_body.h 头文件 API 兼容性
 
-**状态说明：**
-- ✅ 已支持
-- 🚧 正在开发
-- ⏳ 尚未开发
-- ❌ 不准备支持
+对比文件：
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/core/TensorBody.h`
+- `/home/may/pytorch/aten/src/ATen/templates/TensorBody.h`
+
+状态说明：
+- `✅` 已实现（接口存在且签名/语义基本一致）
+- `🔧` 部分兼容（接口存在，但签名或实现语义有差异）
+- `❌` 未实现（PyTorch 有，Paddle compat 头文件无）
+
+---
 
 **按照首字母进行排序**
 

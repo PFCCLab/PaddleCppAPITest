@@ -1,9 +1,13 @@
 ##### Philox CUDA RNG 头文件 API 兼容性
 
-✅ 表示已经支持
-🚧 表示正在支持
-❌ 表示不准备支持
-🔧 表示部分支持（有功能限制）
+对比文件：
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/cuda/PhiloxCudaState.h`
+- `/home/may/pytorch/aten/src/ATen/cuda/PhiloxCudaState.h`
+
+状态说明：
+- `✅` 已实现（接口存在且签名/语义基本一致）
+- `🔧` 部分兼容（接口存在，但签名或实现语义有差异）
+- `❌` 未实现（PyTorch 有，Paddle compat 头文件无）
 
 **涉及文件**：
 - `ATen/cuda/PhiloxCudaState.h`（canonical 定义）
