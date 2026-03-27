@@ -48,7 +48,7 @@ TEST_F(CUDAContextTest, GetDeviceProperties) {
       file << "null ";
     }
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
 #else
 // [DIFF] 问题行：Paddle 分支额外依赖 PADDLE_WITH_CUDA，
@@ -68,7 +68,7 @@ TEST_F(CUDAContextTest, GetDeviceProperties) {
       file << "null ";
     }
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
 #else
   file << "api_not_available ";
@@ -100,7 +100,7 @@ TEST_F(CUDAContextTest, GetCurrentDeviceProperties) {
       file << "null ";
     }
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
 #else
 #ifdef PADDLE_WITH_CUDA
@@ -116,7 +116,7 @@ TEST_F(CUDAContextTest, GetCurrentDeviceProperties) {
       file << "null ";
     }
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
 #else
   file << "api_not_available ";

@@ -86,7 +86,7 @@ TEST_F(EqualTest, NotEqualDtype) {
     bool result = t1.equal(t2);
     write_bool_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
   file << "\n";
   file.saveFile();
@@ -119,7 +119,7 @@ TEST_F(EqualTest, ExceptionTest) {
     bool result = t1.equal(t2);
     write_bool_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
   file << "\n";
   file.saveFile();

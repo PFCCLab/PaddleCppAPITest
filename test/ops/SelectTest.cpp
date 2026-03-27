@@ -113,7 +113,7 @@ TEST_F(SelectTest, SelectException) {
     at::Tensor result = t1.select(0, 5);  // out of bounds
     write_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception: " << e.what();
   }
   file << "\n";
   file.saveFile();

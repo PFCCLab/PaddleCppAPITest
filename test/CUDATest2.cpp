@@ -60,7 +60,7 @@ TEST_F(CUDATest2, StreamSynchronize) {
     c10::cuda::stream_synchronize(stream.stream());
     file << "1 ";
   } catch (const std::exception& e) {
-    file << "exception ";
+    file << "exception " << e.what() << " ";
   }
 #else
   // Paddle 兼容头当前 stream
