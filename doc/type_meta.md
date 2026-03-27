@@ -1,5 +1,14 @@
 ## typeid.h 中 TypeMeta 相关类详细兼容文档
 
+### 已拆分类文档索引
+
+1. `doc/typeid/type_identifier.md`：`caffe2::TypeIdentifier`
+2. `doc/typeid/type_meta_data.md`：`caffe2::detail::TypeMetaData`
+3. `doc/typeid/type_meta.md`：`caffe2::TypeMeta`
+4. `doc/typeid/uninitialized.md`：`caffe2::detail::_Uninitialized`
+5. `doc/typeid/guard_long_unique_dummy.md`：`caffe2::detail::_guard_long_unique_dummy<T>`
+6. `doc/typeid/is_paddle_fundamental.md`：`caffe2::detail::is_paddle_fundamental<T>`
+
 对比文件：
 - `/home/may/Paddle/paddle/phi/api/include/compat/c10/util/typeid.h`
 - `/home/may/pytorch/c10/util/typeid.h`
@@ -31,7 +40,7 @@
 2. `TypeMetaData` 保存某个类型的完整元信息（大小、构造/析构函数指针、类型名、id）。
 3. `TypeMeta` 仅存一个 `index_`，通过全局 metadata 表索引到 `TypeMetaData`。
 4. 宏 `CAFFE_DECLARE_KNOWN_TYPE/CAFFE_DEFINE_KNOWN_TYPE/CAFFE_KNOWN_TYPE_NOEXPORT` 驱动自定义类型注册。
-5. Torch 使用 `_guard_long_unique` 解决 `long` 在不同编译器 ABI 下是否与 `int32_t/int64_t` 同构的问题；Paddle compat 尚未补齐。
+5. Torch 与 Paddle 都使用 `_guard_long_unique` 解决 `long` 在不同编译器 ABI 下是否与 `int32_t/int64_t` 同构的问题。
 
 ---
 
@@ -47,15 +56,15 @@
 | 项 | Torch | Paddle compat | 兼容性 | 说明 |
 |---|---|---|---|---|
 | 底层表示 | `IdWrapper<TypeIdentifier, c10::util::type_index>` | 直接持有 `std::size_t id_` | 🔧 | 结构实现不同，但外部可观察 API 基本一致 |
-| `Get<T>()` | `get_type_index<T>()`（TypeIndex 哈希） | 函数内静态对象地址（未接入 TypeIndex） | 🔧 | 两者都满足“同进程唯一”，但 id 生成机制不同 |
+| `Get<T>()` | `get_type_index<T>()`（TypeIndex 哈希） | `get_type_index<T>()`（TypeIndex 哈希） | ✅ | 两边都通过 TypeIndex 生成 id |
 | `uninitialized()` | 返回 0 | 返回 0 | ✅ | 行为一致 |
 | `underlyingId()` | 有（来自 IdWrapper） | 显式实现 | ✅ | 行为一致 |
 | 比较/输出 | `<`, `==`, `!=`, `<<` | 同名接口 | ✅ | 语义一致 |
 
 **行为差异影响**
-1. Torch 的类型 id 生成依赖 `type_index` 体系；Paddle 依赖静态地址。
-2. 对于“同一进程内比较”通常无差异；对于极端场景（不同构建方式、多 DSO 边界行为）应额外做回归验证。
-3. 由于 Paddle 的 `TypeIdentifier::Get<T>()` 当前未接入 `TypeIndex.h`，`TypeIndex` 的哈希策略变更不会直接影响 TypeMeta 的 id 结果。
+1. Torch 与 Paddle 的类型 id 生成都依赖 `type_index` 体系。
+2. 对于“同一进程内比较”通常一致；对于极端场景（不同构建方式、多 DSO 边界行为）仍建议回归验证。
+3. TypeMeta 的 id 行为会随 TypeIndex 哈希策略变化而联动。
 
 **建议测试点**
 1. `Get<int>() == Get<int>()`。
@@ -163,7 +172,7 @@
 1. Torch 在 `__CUDACC__` 下将 `addTypeMetaData<T>()` 放到导出声明，规避 nvcc/clang 对类型名规范化差异。
 2. Paddle compat 当前无该分支，NVCC 相关场景需额外回归。
 
-#### 3.7 Torch 专有：`_guard_long_unique` 系列
+#### 3.7 `long` guard：`_guard_long_unique` 系列
 
 **对象**
 1. `detail::_guard_long_unique_dummy<T>`
@@ -173,11 +182,11 @@
 - 避免编译器把 `long` 与 `int32_t/int64_t` 同构时引发类型注册冲突。
 
 **兼容性**
-- ❌ Paddle compat 缺失。
+- ✅ 已对齐。
 
 **影响**
-1. 对 `long` 和 `std::vector<long>` 的 known type 注册在跨平台 ABI 下存在潜在不一致。
-2. 若业务代码显式依赖 `long` 注册行为，可能与 Torch 结果不一致。
+1. 两边都具备 `long/std::vector<long>` 同构防冲突机制，注册语义基本一致。
+2. 仍建议在 gcc/clang 下做回归，确认具体 ABI 组合场景无漂移。
 
 ---
 
@@ -190,7 +199,7 @@
 | `CAFFE_DECLARE_KNOWN_TYPE` | 有 | 有 | ✅ | 语义一致 |
 | `CAFFE_KNOWN_TYPE_NOEXPORT` | 有 | 有 | ✅ | 语义一致 |
 | 内置已知类型注册风格 | 声明/定义分离（常见于 `.cpp`） | 头文件内惰性注册（NOEXPORT） | 🔧 | 结果通常一致，初始化与链接路径不同 |
-| `long` guard 注册 | 有 | 无 | ❌ | Torch 更完整 |
+| `long` guard 注册 | 有 | 有 | ✅ | 已对齐 |
 
 ---
 
@@ -210,7 +219,7 @@
 
 #### P2
 
-1. `long` 与 `std::vector<long>` 的跨平台行为补测（在 Torch 侧有 guard，Paddle 侧预期存在差异）。
+1. `long` 与 `std::vector<long>` 的跨平台行为补测（验证已对齐机制在不同编译器下稳定）。
 2. NVCC 编译链路下 `TypeIdentifier::Get` 与注册路径回归。
 
 ---
@@ -221,9 +230,8 @@
 2. 仍需重点关注三类行为差异：
    - 类型名输出稳定性
    - qint/量化相关 itemsize 路径
-   - long guard 与 CUDA 编译器分支
+   - CUDA 编译器分支
 3. 若目标是“与 Torch 行为严格对齐”，建议下一步优先补齐：
-   - long guard 注册逻辑
    - `TypeName<T>()` 的全限定名策略
    - qint 路径的元数据一致性定义与测试
 
@@ -234,8 +242,8 @@
 参考文档：`doc/type_index.md`
 
 1. Torch 链路：`TypeIdentifier::Get<T>() -> c10::util::get_type_index<T>() -> type_index_impl<T>()`。
-2. Paddle 当前链路：`TypeIdentifier::Get<T>() -> 函数内静态对象地址`，不经过 `TypeIndex.h`。
+2. Paddle 链路：`TypeIdentifier::Get<T>() -> c10::util::get_type_index<T>() -> type_index_impl<T>()`。
 3. 对 TypeMeta 的直接影响：
-   - `TypeMeta::id()` 的生成机制与 Torch 不同。
-   - `TypeMeta::TypeName<T>()` 目前无法复用 Torch 那套全限定名提取能力。
-4. 若后续希望进一步对齐，可评估将 Paddle 的 `TypeIdentifier::Get<T>()` 切换为 `get_type_index<T>()`；切换前建议先完成跨 TU/DSO 与 CUDA 链路回归。
+   - `TypeMeta::id()` 生成路径与 Torch 对齐。
+   - `TypeMeta::TypeName<T>()` 仍未复用 Torch 全限定名提取能力（该差异仍存在）。
+4. 后续对齐重点可聚焦在类型名与错误路径差异，而非 id 生成链路。

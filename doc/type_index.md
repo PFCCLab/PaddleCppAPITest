@@ -111,10 +111,8 @@
 ### 5. 与 TypeMeta 的直接关系
 
 1. Torch `caffe2::TypeIdentifier::Get<T>()` 依赖 `c10::util::get_type_index<T>()`。
-2. Paddle compat 当前 `TypeIdentifier::Get<T>()` 使用“函数内静态对象地址”，并未接入 `TypeIndex.h`。
-3. 这会带来两个上层差异：
-   - `TypeIdentifier` 生成机制不一致（TypeIndex 哈希 vs 地址标识）
-   - 类型名稳定性链路不一致（Torch 有全限定名 API，Paddle 缺失）
+2. Paddle compat 当前 `TypeIdentifier::Get<T>()` 也依赖 `c10::util::get_type_index<T>()`。
+3. 因此在 id 生成链路上，两边已对齐；仍存在的上层差异主要是类型名稳定性链路（Torch 有全限定名 API，Paddle 缺失）。
 
 ---
 
@@ -130,8 +128,8 @@
 
 1. 增补 `get_type_index<std::string>()` 特化，至少与 Torch 常量策略对齐。
 2. 增补 `get_fully_qualified_type_name<T>()`，降低上游 `TypeMeta::TypeName<T>()` 的编译器差异。
-3. 评估在 `TypeIdentifier::Get<T>()` 中切换到 `get_type_index<T>()` 的兼容收益与风险。
-4. 若不切换生成机制，需在文档中明确“Paddle 的 TypeIdentifier 与 TypeIndex 脱钩”为设计选择。
+3. 继续保持 `TypeIdentifier::Get<T>()` 与 `get_type_index<T>()` 的一致依赖，并补充跨 TU/跨编译器回归验证。
+4. 文档层面将重点放在类型名与 CUDA 分支差异，而非 id 生成机制差异。
 
 ---
 
@@ -145,7 +143,7 @@
 #### P1
 
 1. `std::string`、`std::vector<int>`、自定义类型的哈希稳定性回归。
-2. 与 `TypeIdentifier::Get<T>()` 的关联行为验证（当前应体现“解耦”特征）。
+2. 与 `TypeIdentifier::Get<T>()` 的关联行为验证（当前应体现“联动”特征）。
 
 #### P2
 
