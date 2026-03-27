@@ -22,44 +22,43 @@ using paddle_api_test::ThreadSafeParam;
 // 按 dtype 分发写出 tensor 内容: <ndim> <numel> [sizes...] [values...]
 static void write_abs_result_to_file(FileManerger* file,
                                      const at::Tensor& result) {
-  at::Tensor serializable = result.contiguous().cpu();
-  *file << std::to_string(serializable.dim()) << " ";
-  *file << std::to_string(serializable.numel()) << " ";
-  for (int64_t i = 0; i < serializable.dim(); ++i) {
-    *file << std::to_string(serializable.sizes()[i]) << " ";
+  *file << std::to_string(result.dim()) << " ";
+  *file << std::to_string(result.numel()) << " ";
+  for (int64_t i = 0; i < result.dim(); ++i) {
+    *file << std::to_string(result.sizes()[i]) << " ";
   }
-  switch (serializable.scalar_type()) {
+  switch (result.scalar_type()) {
     case at::kFloat: {
-      float* data = serializable.data_ptr<float>();
-      for (int64_t i = 0; i < serializable.numel(); ++i) {
+      float* data = result.data_ptr<float>();
+      for (int64_t i = 0; i < result.numel(); ++i) {
         *file << std::to_string(data[i]) << " ";
       }
       break;
     }
     case at::kDouble: {
-      double* data = serializable.data_ptr<double>();
-      for (int64_t i = 0; i < serializable.numel(); ++i) {
+      double* data = result.data_ptr<double>();
+      for (int64_t i = 0; i < result.numel(); ++i) {
         *file << std::to_string(data[i]) << " ";
       }
       break;
     }
     case at::kInt: {
-      int32_t* data = serializable.data_ptr<int32_t>();
-      for (int64_t i = 0; i < serializable.numel(); ++i) {
+      int32_t* data = result.data_ptr<int32_t>();
+      for (int64_t i = 0; i < result.numel(); ++i) {
         *file << std::to_string(data[i]) << " ";
       }
       break;
     }
     case at::kLong: {
-      int64_t* data = serializable.data_ptr<int64_t>();
-      for (int64_t i = 0; i < serializable.numel(); ++i) {
+      int64_t* data = result.data_ptr<int64_t>();
+      for (int64_t i = 0; i < result.numel(); ++i) {
         *file << std::to_string(data[i]) << " ";
       }
       break;
     }
     case at::kBool: {
-      bool* data = serializable.data_ptr<bool>();
-      for (int64_t i = 0; i < serializable.numel(); ++i) {
+      bool* data = result.data_ptr<bool>();
+      for (int64_t i = 0; i < result.numel(); ++i) {
         *file << std::to_string(static_cast<int>(data[i])) << " ";
       }
       break;
