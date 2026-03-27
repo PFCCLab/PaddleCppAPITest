@@ -47,7 +47,7 @@
 | 项 | Torch | Paddle compat | 兼容性 | 说明 |
 |---|---|---|---|---|
 | 底层表示 | `IdWrapper<TypeIdentifier, c10::util::type_index>` | 直接持有 `std::size_t id_` | 🔧 | 结构实现不同，但外部可观察 API 基本一致 |
-| `Get<T>()` | `get_type_index<T>()` | 函数内静态对象地址 | 🔧 | 两者都满足“同进程唯一”，但跨编译器/DSO 稳定性语义来源不同 |
+| `Get<T>()` | `get_type_index<T>()`（TypeIndex 哈希） | 函数内静态对象地址（未接入 TypeIndex） | 🔧 | 两者都满足“同进程唯一”，但 id 生成机制不同 |
 | `uninitialized()` | 返回 0 | 返回 0 | ✅ | 行为一致 |
 | `underlyingId()` | 有（来自 IdWrapper） | 显式实现 | ✅ | 行为一致 |
 | 比较/输出 | `<`, `==`, `!=`, `<<` | 同名接口 | ✅ | 语义一致 |
@@ -55,6 +55,7 @@
 **行为差异影响**
 1. Torch 的类型 id 生成依赖 `type_index` 体系；Paddle 依赖静态地址。
 2. 对于“同一进程内比较”通常无差异；对于极端场景（不同构建方式、多 DSO 边界行为）应额外做回归验证。
+3. 由于 Paddle 的 `TypeIdentifier::Get<T>()` 当前未接入 `TypeIndex.h`，`TypeIndex` 的哈希策略变更不会直接影响 TypeMeta 的 id 结果。
 
 **建议测试点**
 1. `Get<int>() == Get<int>()`。
@@ -225,3 +226,16 @@
    - long guard 注册逻辑
    - `TypeName<T>()` 的全限定名策略
    - qint 路径的元数据一致性定义与测试
+
+---
+
+### 7. 与 TypeIndex.h 的关联更新
+
+参考文档：`doc/type_index.md`
+
+1. Torch 链路：`TypeIdentifier::Get<T>() -> c10::util::get_type_index<T>() -> type_index_impl<T>()`。
+2. Paddle 当前链路：`TypeIdentifier::Get<T>() -> 函数内静态对象地址`，不经过 `TypeIndex.h`。
+3. 对 TypeMeta 的直接影响：
+   - `TypeMeta::id()` 的生成机制与 Torch 不同。
+   - `TypeMeta::TypeName<T>()` 目前无法复用 Torch 那套全限定名提取能力。
+4. 若后续希望进一步对齐，可评估将 Paddle 的 `TypeIdentifier::Get<T>()` 切换为 `get_type_index<T>()`；切换前建议先完成跨 TU/DSO 与 CUDA 链路回归。
