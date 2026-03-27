@@ -1,4 +1,4 @@
-##### TypeIndex(TypeIndex.h) 头文件 API 兼容情况
+## TypeIndex(TypeIndex.h) 头文件 API 兼容情况
 
 对比文件：
 - `/home/may/Paddle/paddle/phi/api/include/compat/c10/util/TypeIndex.h`

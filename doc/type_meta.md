@@ -1,4 +1,4 @@
-##### typeid.h 中 TypeMeta 相关类详细兼容文档
+## typeid.h 中 TypeMeta 相关类详细兼容文档
 
 对比文件：
 - `/home/may/Paddle/paddle/phi/api/include/compat/c10/util/typeid.h`
