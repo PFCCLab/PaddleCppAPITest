@@ -30,6 +30,7 @@ TEST_F(CUDADataTypeTest, GetCudaDataType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "GetCudaDataType ";
 
 #if !defined(HAS_CUDA)
   GTEST_SKIP() << "CUDA not available";
@@ -62,6 +63,7 @@ TEST_F(CUDADataTypeTest, GetCudaDataType) {
   file << std::to_string(
               at::cuda::ScalarTypeToCudaDataType(c10::ScalarType::Short))
        << " ";
+  file << "\n";
   file.saveFile();
 #endif
 }
@@ -71,6 +73,7 @@ TEST_F(CUDADataTypeTest, GetCudaDataTypeBFloat16) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetCudaDataTypeBFloat16 ";
 
 #if !defined(HAS_CUDA)
   GTEST_SKIP() << "CUDA not available";
@@ -78,6 +81,7 @@ TEST_F(CUDADataTypeTest, GetCudaDataTypeBFloat16) {
   file << std::to_string(
               at::cuda::ScalarTypeToCudaDataType(c10::ScalarType::BFloat16))
        << " ";
+  file << "\n";
   file.saveFile();
 #endif
 }
@@ -87,6 +91,7 @@ TEST_F(CUDADataTypeTest, GetCudaDataTypeComplex) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetCudaDataTypeComplex ";
 
 #if !defined(HAS_CUDA)
   GTEST_SKIP() << "CUDA not available";
@@ -97,6 +102,7 @@ TEST_F(CUDADataTypeTest, GetCudaDataTypeComplex) {
   file << std::to_string(at::cuda::ScalarTypeToCudaDataType(
               c10::ScalarType::ComplexDouble))
        << " ";
+  file << "\n";
   file.saveFile();
 #endif
 }
@@ -111,6 +117,7 @@ TEST_F(CUDADataTypeTest, EmptyCUDA) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmptyCUDA ";
 
 #if !defined(HAS_CUDA)
   GTEST_SKIP() << "CUDA not available";
@@ -126,6 +133,7 @@ TEST_F(CUDADataTypeTest, EmptyCUDA) {
   } catch (...) {
     file << "cuda_not_available ";
   }
+  file << "\n";
   file.saveFile();
 #endif
 }
@@ -139,6 +147,7 @@ TEST_F(CUDADataTypeTest, EmptyCudaDifferentDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmptyCudaDifferentDtype ";
 
 #if !defined(HAS_CUDA)
   GTEST_SKIP() << "CUDA not available";
@@ -151,6 +160,7 @@ TEST_F(CUDADataTypeTest, EmptyCudaDifferentDtype) {
   } catch (...) {
     file << "cuda_not_available ";
   }
+  file << "\n";
   file.saveFile();
 #endif
 }

@@ -29,11 +29,13 @@ TEST_F(LibraryTest, LibraryKindEnum) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "LibraryKindEnum ";
 
   file << std::to_string(static_cast<int>(torch::Library::Kind::DEF)) << " ";
   file << std::to_string(static_cast<int>(torch::Library::Kind::IMPL)) << " ";
   file << std::to_string(static_cast<int>(torch::Library::Kind::FRAGMENT))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -44,6 +46,7 @@ TEST_F(LibraryTest, IValueBasicConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IValueBasicConstruction ";
 
 #if USE_PADDLE_API
   // [DIFF] 问题行：Paddle 路径类型与方法名与 Torch
@@ -66,6 +69,7 @@ TEST_F(LibraryTest, IValueBasicConstruction) {
   file << std::to_string(ival_double.isDouble() ? 1 : 0) << " ";
   file << std::to_string(ival_string.isString() ? 1 : 0) << " ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -75,6 +79,7 @@ TEST_F(LibraryTest, IValueVectorConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IValueVectorConstruction ";
 
 #if USE_PADDLE_API
   std::vector<torch::IValue> args_vec = {
@@ -86,6 +91,7 @@ TEST_F(LibraryTest, IValueVectorConstruction) {
 
   file << std::to_string(args_vec.size()) << " ";
   file << std::to_string(args_vec.empty() ? 0 : 1) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -94,6 +100,7 @@ TEST_F(LibraryTest, IValueGet) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IValueGet ";
 
 #if USE_PADDLE_API
   torch::IValue ival_int(42);
@@ -131,6 +138,7 @@ TEST_F(LibraryTest, IValueGet) {
   }
 #endif
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -139,6 +147,7 @@ TEST_F(LibraryTest, IValueIsNone) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IValueIsNone ";
 
 #if USE_PADDLE_API
   torch::IValue ival_none;
@@ -153,6 +162,7 @@ TEST_F(LibraryTest, IValueIsNone) {
   file << std::to_string(ival_none.isNone() ? 1 : 0) << " ";
   file << std::to_string(ival_int.isNone() ? 0 : 1) << " ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -161,6 +171,7 @@ TEST_F(LibraryTest, IValueSizeToInt64) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IValueSizeToInt64 ";
 
   size_t sz = 42;
 #if USE_PADDLE_API
@@ -170,6 +181,7 @@ TEST_F(LibraryTest, IValueSizeToInt64) {
   c10::IValue ival(static_cast<int64_t>(sz));
   file << std::to_string(ival.toInt()) << " ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -178,6 +190,7 @@ TEST_F(LibraryTest, IValueTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IValueTensor ";
 
   at::Tensor tensor = at::ones({3, 3});
 #if USE_PADDLE_API
@@ -187,6 +200,7 @@ TEST_F(LibraryTest, IValueTensor) {
   c10::IValue ival(tensor);
   file << std::to_string(ival.isTensor() ? 1 : 0) << " ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -195,6 +209,7 @@ TEST_F(LibraryTest, TensorOperations) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorOperations ";
 
   at::Tensor t1 = at::ones({2, 3});
   at::Tensor t2 = at::ones({2, 3});
@@ -205,6 +220,7 @@ TEST_F(LibraryTest, TensorOperations) {
   // Paddle 兼容层不支持 + 运算符和 .add() 方法
   file << "tensor_add_skipped ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -214,9 +230,11 @@ TEST_F(LibraryTest, DeviceTest) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DeviceTest ";
 
   at::Device device(c10::DeviceType::CPU);
   file << std::to_string(device.type() == c10::DeviceType::CPU ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -225,10 +243,12 @@ TEST_F(LibraryTest, TensorOptionsTest) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorOptionsTest ";
 
   auto opts =
       c10::TensorOptions().dtype(at::kFloat).device(c10::DeviceType::CPU);
   file << std::to_string(opts.dtype() == at::kFloat ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 #endif
@@ -239,6 +259,7 @@ TEST_F(LibraryTest, LibraryConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "LibraryConstruction ";
 
   // 测试 Library 的各种方法
   torch::Library lib(torch::Library::DEF, "test_ns");
@@ -252,6 +273,7 @@ TEST_F(LibraryTest, LibraryConstruction) {
   lib.impl("test_op", fn_wrapper);
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -260,6 +282,7 @@ TEST_F(LibraryTest, CppFunctionFromFunctionPointer) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CppFunctionFromFunctionPointer ";
 
   // 定义一个简单的函数
   auto fn = [](const at::Tensor& t) -> at::Tensor { return t; };
@@ -270,6 +293,7 @@ TEST_F(LibraryTest, CppFunctionFromFunctionPointer) {
   torch::CppFunction cpp_fn(cpp_wrapper);
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -281,12 +305,14 @@ TEST_F(LibraryTest, CppFunctionMakeFromBoxedKernel) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CppFunctionMakeFromBoxedKernel ";
 
   // 使用 makeFromBoxedKernel 创建 CppFunction
   auto cpp_fn = torch::CppFunction::makeFromBoxedKernel(
       c10::BoxedKernel::makeFallthrough());
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -295,10 +321,12 @@ TEST_F(LibraryTest, CppFunctionMakeFallthrough) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CppFunctionMakeFallthrough ";
 
   auto cpp_fn = torch::CppFunction::makeFallthrough();
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -307,10 +335,12 @@ TEST_F(LibraryTest, CppFunctionMakeNamedNotSupported) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CppFunctionMakeNamedNotSupported ";
 
   auto cpp_fn = torch::CppFunction::makeNamedNotSupported();
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -319,6 +349,7 @@ TEST_F(LibraryTest, CppFunctionDebug) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CppFunctionDebug ";
 
   auto fn = [](const at::Tensor& t) -> at::Tensor { return t; };
   auto dbg_wrapper = [fn](const torch::FunctionArgs& args) -> torch::IValue {
@@ -329,6 +360,7 @@ TEST_F(LibraryTest, CppFunctionDebug) {
       torch::CppFunction(dbg_wrapper).debug("test_debug_info");
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -337,6 +369,7 @@ TEST_F(LibraryTest, DispatchWithDispatchKey) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DispatchWithDispatchKey ";
 
   auto fn = [](const at::Tensor& t) -> at::Tensor { return t; };
   auto dispatch_wrapper =
@@ -349,6 +382,7 @@ TEST_F(LibraryTest, DispatchWithDispatchKey) {
   auto cpp_fn = torch::dispatch(torch::DispatchKey::CPU, dispatch_wrapper);
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -357,6 +391,7 @@ TEST_F(LibraryTest, DispatchWithDeviceType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DispatchWithDeviceType ";
 
   auto fn = [](const at::Tensor& t) -> at::Tensor { return t; };
   auto dispatch_wrapper2 =
@@ -369,6 +404,7 @@ TEST_F(LibraryTest, DispatchWithDeviceType) {
   auto cpp_fn2 = torch::dispatch(c10::DeviceType::CPU, dispatch_wrapper2);
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -377,6 +413,7 @@ TEST_F(LibraryTest, SchemaFromString) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SchemaFromString ";
 
   // 使用 torch::schema 从字符串构造
   c10::FunctionSchema schema =
@@ -385,6 +422,7 @@ TEST_F(LibraryTest, SchemaFromString) {
   file << schema.name() << " ";
   file << std::to_string(schema.arguments().size()) << " ";
   file << std::to_string(schema.returns().size()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -393,12 +431,14 @@ TEST_F(LibraryTest, SchemaWithAliasAnalysis) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SchemaWithAliasAnalysis ";
 
   // 使用 torch::schema 带 AliasAnalysisKind
   c10::FunctionSchema schema = torch::schema(
       "foo(Tensor self) -> Tensor", c10::AliasAnalysisKind::PURE_FUNCTION);
 
   file << schema.name() << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -407,6 +447,7 @@ TEST_F(LibraryTest, SelectiveStrEnabled) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SelectiveStrEnabled ";
 
   // 测试 SelectiveStr<true>
   torch::detail::SelectiveStr<true> sel_str("test_operator");
@@ -415,6 +456,7 @@ TEST_F(LibraryTest, SelectiveStrEnabled) {
   const char* name = sel_str.operator const char*();
 
   file << name << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -423,12 +465,14 @@ TEST_F(LibraryTest, ClassNotSelected) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ClassNotSelected ";
 
   // ClassNotSelected 的方法返回 *this，所以可以链式调用
   torch::detail::ClassNotSelected not_selected;
   not_selected.def("test_method").def_pickle("test_pickle");
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -437,6 +481,7 @@ TEST_F(LibraryTest, DispatchKeyEnum) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DispatchKeyEnum ";
 
   // 测试各种 DispatchKey
   file << std::to_string(static_cast<int>(torch::DispatchKey::CPU)) << " ";
@@ -444,6 +489,7 @@ TEST_F(LibraryTest, DispatchKeyEnum) {
   file << std::to_string(static_cast<int>(torch::DispatchKey::XLA)) << " ";
   file << std::to_string(static_cast<int>(torch::DispatchKey::Meta)) << " ";
   file << std::to_string(static_cast<int>(torch::DispatchKey::CPU)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -452,6 +498,7 @@ TEST_F(LibraryTest, FunctionSchemaBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionSchemaBasic ";
 
   c10::FunctionSchema schema =
       torch::schema("mul(Tensor self, Tensor other) -> Tensor");
@@ -469,6 +516,7 @@ TEST_F(LibraryTest, FunctionSchemaBasic) {
     file << schema.returns()[0].name() << " ";
   }
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -477,6 +525,7 @@ TEST_F(LibraryTest, FunctionSchemaWithDefault) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionSchemaWithDefault ";
 
   c10::FunctionSchema schema = torch::schema(
       "zeros(int[] size, ScalarType dtype=None, Device device=None, bool "
@@ -485,6 +534,7 @@ TEST_F(LibraryTest, FunctionSchemaWithDefault) {
   file << schema.name() << " ";
   file << std::to_string(schema.arguments().size()) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -497,6 +547,7 @@ TEST_F(LibraryTest, AliasAnalysisKindEnum) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "AliasAnalysisKindEnum ";
 
   file << std::to_string(static_cast<int>(c10::AliasAnalysisKind::FROM_SCHEMA))
        << " ";
@@ -506,6 +557,7 @@ TEST_F(LibraryTest, AliasAnalysisKindEnum) {
   file << std::to_string(static_cast<int>(c10::AliasAnalysisKind::CONSERVATIVE))
        << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -514,6 +566,7 @@ TEST_F(LibraryTest, MakeTorchLibraryMacro) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MakeTorchLibraryMacro ";
 
   // 使用 MAKE_TORCH_LIBRARY 宏创建 Library（不实际注册）
   torch::Library lib = MAKE_TORCH_LIBRARY(test_ns);
@@ -524,6 +577,7 @@ TEST_F(LibraryTest, MakeTorchLibraryMacro) {
   // 测试 Library::Kind::DEF
   file << std::to_string(static_cast<int>(lib.kind_)) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -532,6 +586,7 @@ TEST_F(LibraryTest, MakeTorchLibraryImplMacro) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MakeTorchLibraryImplMacro ";
 
   // 使用 MAKE_TORCH_LIBRARY_IMPL 宏创建 Library（不实际注册）
   torch::Library lib = MAKE_TORCH_LIBRARY_IMPL(test_ns, CPU);
@@ -550,6 +605,7 @@ TEST_F(LibraryTest, MakeTorchLibraryImplMacro) {
   // 测试 Library::Kind::IMPL
   file << std::to_string(static_cast<int>(lib.kind_)) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -558,6 +614,7 @@ TEST_F(LibraryTest, OperatorNameConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "OperatorNameConstruction ";
 
   c10::OperatorName op_name;
   op_name.name = "test_op";
@@ -566,6 +623,7 @@ TEST_F(LibraryTest, OperatorNameConstruction) {
   file << op_name.name << " ";
   file << op_name.overload_name << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -574,6 +632,7 @@ TEST_F(LibraryTest, FunctionSchemaArgumentTypes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionSchemaArgumentTypes ";
 
   c10::FunctionSchema schema =
       torch::schema("test_op(Tensor t, int count, float rate) -> Tensor");
@@ -584,6 +643,7 @@ TEST_F(LibraryTest, FunctionSchemaArgumentTypes) {
     file << arg.type->kind() << " ";
   }
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -592,6 +652,7 @@ TEST_F(LibraryTest, FunctionSchemaReturnType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionSchemaReturnType ";
 
   c10::FunctionSchema schema1 = torch::schema("op1() -> Tensor");
   c10::FunctionSchema schema2 = torch::schema("op2() -> int");
@@ -602,6 +663,7 @@ TEST_F(LibraryTest, FunctionSchemaReturnType) {
   file << schema2.returns()[0].type->kind() << " ";
   file << schema3.returns()[0].type->kind() << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -614,11 +676,13 @@ TEST_F(LibraryTest, ArgTest) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ArgTest ";
 
   torch::arg my_arg("x");
   my_arg = torch::arg::none();
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -627,6 +691,7 @@ TEST_F(LibraryTest, FunctionArgsTest) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionArgsTest ";
 
   torch::FunctionArgs args1;          // 默认构造
   torch::FunctionArgs args2(1, 2.0);  // 模板参数构造
@@ -639,6 +704,7 @@ TEST_F(LibraryTest, FunctionArgsTest) {
 
   file << vals.size() << " " << args2.get().size() << " " << args3.get().size()
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -647,6 +713,7 @@ TEST_F(LibraryTest, FunctionResultTest) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionResultTest ";
 
   torch::FunctionResult r1;      // 默认构造
   torch::FunctionResult r2(42);  // 值构造
@@ -667,6 +734,7 @@ TEST_F(LibraryTest, FunctionResultTest) {
   std::string s = r2.to_string();
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -675,6 +743,7 @@ TEST_F(LibraryTest, FunctionArgsGetTemplate) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionArgsGetTemplate ";
 
 #if USE_PADDLE_API
   torch::FunctionArgs args(1, 2.5, std::string("test"));
@@ -689,6 +758,7 @@ TEST_F(LibraryTest, FunctionArgsGetTemplate) {
   // libtorch 没有 FunctionArgs，使用占位输出
   file << "-1 -1 -1 ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -697,6 +767,7 @@ TEST_F(LibraryTest, FunctionArgsEmpty) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionArgsEmpty ";
 
 #if USE_PADDLE_API
   torch::FunctionArgs empty_args;
@@ -707,6 +778,7 @@ TEST_F(LibraryTest, FunctionArgsEmpty) {
 #else
   file << "-1 -1 ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -715,6 +787,7 @@ TEST_F(LibraryTest, FunctionArgsIterator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionArgsIterator ";
 
 #if USE_PADDLE_API
   torch::FunctionArgs args(10, 20, 30);
@@ -737,6 +810,7 @@ TEST_F(LibraryTest, FunctionArgsIterator) {
 #else
   file << "-1 -1 -1 ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -745,6 +819,7 @@ TEST_F(LibraryTest, FunctionResultGetTemplate) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionResultGetTemplate ";
 
 #if USE_PADDLE_API
   torch::FunctionResult r_int(42);
@@ -760,6 +835,7 @@ TEST_F(LibraryTest, FunctionResultGetTemplate) {
 #else
   file << "-1 -1 -1 ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -768,6 +844,7 @@ TEST_F(LibraryTest, FunctionResultHasValue) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FunctionResultHasValue ";
 
 #if USE_PADDLE_API
   torch::FunctionResult r_with_value(42);
@@ -778,6 +855,7 @@ TEST_F(LibraryTest, FunctionResultHasValue) {
 #else
   file << "-1 -1 ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -786,6 +864,7 @@ TEST_F(LibraryTest, CppFunctionCallTest) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CppFunctionCallTest ";
 
   auto fn = [](int x) -> int { return x + 1; };
   auto call_wrapper = [fn](const torch::FunctionArgs& args) -> torch::IValue {
@@ -804,6 +883,7 @@ TEST_F(LibraryTest, CppFunctionCallTest) {
 
   file << std::to_string(valid ? 1 : 0) << " " << r1.get<int>() << " "
        << r2.get<int>() << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -819,6 +899,7 @@ TEST_F(LibraryTest, GlobalRegistryTest) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GlobalRegistryTest ";
 
   // 测试 ClassRegistration 构造
   torch::ClassRegistration class_reg("my_ns", "MyClass");
@@ -893,6 +974,7 @@ TEST_F(LibraryTest, GlobalRegistryTest) {
   torch::dispatch_key_to_string(torch::DispatchKey::CPU);
 
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 

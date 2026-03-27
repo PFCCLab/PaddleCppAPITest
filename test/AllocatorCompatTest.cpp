@@ -50,6 +50,7 @@ TEST_F(AllocatorTest, DefaultConstructor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "DefaultConstructor ";
 
   c10::DataPtr data_ptr;
 
@@ -60,6 +61,7 @@ TEST_F(AllocatorTest, DefaultConstructor) {
   // context 应该为 nullptr
   file << std::to_string(data_ptr.get_context() == nullptr) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -69,6 +71,7 @@ TEST_F(AllocatorTest, ConstructorWithDataAndDevice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ConstructorWithDataAndDevice ";
 
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         c10::Device(c10::DeviceType::CPU));
@@ -83,6 +86,7 @@ TEST_F(AllocatorTest, ConstructorWithDataAndDevice) {
   file << std::to_string(ptr[0]) << " ";
   file << std::to_string(ptr[1]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -91,6 +95,7 @@ TEST_F(AllocatorTest, ConstructorWithDeleter) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ConstructorWithDeleter ";
 
   g_deleter_called = false;
 
@@ -107,6 +112,7 @@ TEST_F(AllocatorTest, ConstructorWithDeleter) {
   // deleter 应该正确设置
   file << std::to_string(data_ptr.get_deleter() == test_deleter) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -115,6 +121,7 @@ TEST_F(AllocatorTest, MoveConstructor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MoveConstructor ";
 
   c10::DataPtr original(static_cast<void*>(test_data_),
                         c10::Device(c10::DeviceType::CPU));
@@ -125,6 +132,7 @@ TEST_F(AllocatorTest, MoveConstructor) {
   file << std::to_string(moved.get() == original_ptr) << " ";
   file << std::to_string(moved.get() == static_cast<void*>(test_data_)) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -133,6 +141,7 @@ TEST_F(AllocatorTest, MoveAssignment) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MoveAssignment ";
 
   c10::DataPtr original(static_cast<void*>(test_data_),
                         c10::Device(c10::DeviceType::CPU));
@@ -143,6 +152,7 @@ TEST_F(AllocatorTest, MoveAssignment) {
   // 移动赋值后应该持有原始指针
   file << std::to_string(assigned.get() == original_ptr) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -156,6 +166,7 @@ TEST_F(AllocatorTest, Clear) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Clear ";
 
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         test_ctx_,
@@ -174,6 +185,7 @@ TEST_F(AllocatorTest, Clear) {
   file << std::to_string(data_ptr.get_context() == nullptr) << " ";
   // 注意：不测试 get_deleter() == nullptr，因为两个框架行为不同
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -182,6 +194,7 @@ TEST_F(AllocatorTest, NullptrComparison) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NullptrComparison ";
 
   c10::DataPtr null_ptr;
   c10::DataPtr valid_ptr(static_cast<void*>(test_data_),
@@ -201,6 +214,7 @@ TEST_F(AllocatorTest, NullptrComparison) {
   file << std::to_string(valid_ptr != nullptr) << " ";
   file << std::to_string(nullptr != valid_ptr) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -209,6 +223,7 @@ TEST_F(AllocatorTest, AtDataPtrAlias) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "AtDataPtrAlias ";
 
   // at::DataPtr 应该是 c10::DataPtr 的别名
   at::DataPtr at_ptr(static_cast<void*>(test_data_),
@@ -222,6 +237,7 @@ TEST_F(AllocatorTest, AtDataPtrAlias) {
   file << std::to_string(c10_ptr.get() == static_cast<void*>(test_data_))
        << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -230,6 +246,7 @@ TEST_F(AllocatorTest, ArrowOperator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ArrowOperator ";
 
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         c10::Device(c10::DeviceType::CPU));
@@ -240,6 +257,7 @@ TEST_F(AllocatorTest, ArrowOperator) {
        << " ";
   file << std::to_string(data_ptr.operator->() == data_ptr.get()) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -248,6 +266,7 @@ TEST_F(AllocatorTest, EmptyDataPtrEdgeCases) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmptyDataPtrEdgeCases ";
 
   c10::DataPtr empty_ptr;
 
@@ -260,6 +279,7 @@ TEST_F(AllocatorTest, EmptyDataPtrEdgeCases) {
   empty_ptr.clear();
   file << std::to_string(empty_ptr.get() == nullptr) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -268,6 +288,7 @@ TEST_F(AllocatorTest, ChainedMoves) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ChainedMoves ";
 
   c10::DataPtr original(static_cast<void*>(test_data_),
                         c10::Device(c10::DeviceType::CPU));
@@ -282,6 +303,7 @@ TEST_F(AllocatorTest, ChainedMoves) {
   file << std::to_string(moved3.get() == ptr) << " ";
   file << std::to_string(moved3.get() == static_cast<void*>(test_data_)) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -290,6 +312,7 @@ TEST_F(AllocatorTest, DeleterCalledOnDestruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DeleterCalledOnDestruction ";
 
   {
     // 在作用域内创建 DataPtr
@@ -302,6 +325,7 @@ TEST_F(AllocatorTest, DeleterCalledOnDestruction) {
   }
   // DataPtr 出作用域后，deleter 应该被调用（内存已释放）
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -310,6 +334,7 @@ TEST_F(AllocatorTest, GetReturnsCorrectPointer) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetReturnsCorrectPointer ";
 
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         c10::Device(c10::DeviceType::CPU));
@@ -324,6 +349,7 @@ TEST_F(AllocatorTest, GetReturnsCorrectPointer) {
   file << std::to_string(float_ptr[2]) << " ";
   file << std::to_string(float_ptr[3]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -332,6 +358,7 @@ TEST_F(AllocatorTest, DeleterFnPtrType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DeleterFnPtrType ";
 
   // 验证 DeleterFnPtr 类型存在且可用
   c10::DeleterFnPtr deleter = test_deleter;
@@ -344,6 +371,7 @@ TEST_F(AllocatorTest, DeleterFnPtrType) {
 
   file << std::to_string(data_ptr.get_deleter() == deleter) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 

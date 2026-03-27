@@ -36,8 +36,10 @@ TEST(TensorBodyTest, IndexPutTest) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.createFile();
+  file << "IndexPutTest ";
   file << std::to_string(t2.sum().item<float>()) << " ";
   file << std::to_string(t3.sum().item<float>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 

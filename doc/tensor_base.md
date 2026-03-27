@@ -1,14 +1,13 @@
-##### TensorBase.h 头文件 API 兼容情况
+## TensorBase.h 头文件 API 兼容性
 
+对比文件：
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/core/TensorBase.h`
+- `/home/may/pytorch/aten/src/ATen/core/TensorBase.h`
 
-##### TensorBase.h 头文件 API 兼容性
-
-✅ 表示已经支持
-🚧 表示正在支持
-❌ 表示不准备支持
-🔧 表示部分支持（有功能限制）
-
-**按照功能分类排序**
+状态说明：
+- `✅` 已实现（接口存在且签名/语义基本一致）
+- `🔧` 部分兼容（接口存在，但签名或实现语义有差异）
+- `❌` 未实现（PyTorch 有，Paddle compat 头文件无）
 
 ---
 
@@ -173,9 +172,9 @@
 
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
-| `has_storage()`              | 🔧               | 🚧          |   P2  | 当前等价于 `defined()`，语义弱于 PyTorch |
-| `storage()`                  | 🔧               | 🚧          |   P2  | 依赖 DenseTensor Holder，不同 layout 下语义有限 |
-| `is_alias_of(other)`         | 🔧               | 🚧          |   P2  | 基于 allocation 指针比较，语义近似 |
+| `has_storage()`              | 🔧               | ✅          |   P2  | 基于 live `DenseTensor::holder_` 同步；非 Dense 路径仍受限 |
+| `storage()`                  | 🔧               | ✅          |   P2  | 通过 holder 同步与 canonical storage 复用，对齐 owner count 语义 |
+| `is_alias_of(other)`         | 🔧               | ✅          |   P2  | 委托 `storage().is_alias_of()`，对齐 shared `StorageImpl` 语义 |
 | `share_memory_()`            | - [ ]            | - [ ]       |   P3  |  |
 
 ---
@@ -185,7 +184,7 @@
 | torch API                    | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |------------------------------|------------------|------------|-------|------|
 | `is_same(other)`             | ✅               | 🚧          |   P2  | 是否同一张量 |
-| `use_count()`                | ✅               | 🚧          |   P3  | 引用计数 |
+| `use_count()`                | ✅               | ✅          |   P3  | 已补充跨 wrapper owner-count 不变式回归测试 |
 | `weak_use_count()`           | 🔧               | 🚧          |   P3  | 当前固定返回 0 |
 | `is_uniquely_owned()`        | - [ ]            | - [ ]       |   P3  | PyTorch 提供，compat 暂未实现 |
 | `reset()`                    | ✅               | 🚧          |   P2  | 重置张量 |
@@ -277,11 +276,10 @@
 ### 兼容性统计
 
 | 状态 | 数量 |
-|------|------|
-| ✅ 已完全支持 | 47 |
-| 🚧 正在支持 | 0 |
-| 🔧 部分支持 | 20 |
-| - [ ] 未实现 | 61 |
+|---|---|
+| ✅ 已实现 | 47 |
+| 🔧 部分兼容 | 20 |
+| ❌ 未实现 | 61 |
 
 ---
 

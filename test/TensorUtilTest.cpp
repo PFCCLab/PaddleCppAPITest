@@ -36,8 +36,10 @@ TEST_F(TensorUtilTest, ToString) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ToString ";
   std::string tensor_str = tensor.toString();
   file << tensor_str << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -46,11 +48,13 @@ TEST_F(TensorUtilTest, IsContiguousOrFalse) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsContiguousOrFalse ";
   file << std::to_string(tensor.is_contiguous_or_false()) << " ";
 
   // 测试非连续的tensor
   at::Tensor transposed = tensor.transpose(0, 2);
   file << std::to_string(transposed.is_contiguous_or_false()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -59,6 +63,7 @@ TEST_F(TensorUtilTest, IsSame) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsSame ";
 
   // Test that tensor is same as itself
   file << std::to_string(tensor.is_same(tensor)) << " ";
@@ -74,6 +79,7 @@ TEST_F(TensorUtilTest, IsSame) {
   // Test that a view of the tensor
   at::Tensor view = tensor.view({24});
   file << std::to_string(tensor.is_same(view)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -83,6 +89,7 @@ TEST_F(TensorUtilTest, UseCount) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "UseCount ";
 
   // Get initial use count
   size_t initial_count = tensor.use_count();
@@ -99,6 +106,7 @@ TEST_F(TensorUtilTest, UseCount) {
   // After copy goes out of scope, use count should decrease
   size_t final_count = tensor.use_count();
   file << std::to_string(final_count) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -109,10 +117,12 @@ TEST_F(TensorUtilTest, WeakUseCount) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "WeakUseCount ";
 
   // Get initial weak use count
   size_t initial_weak_count = tensor.weak_use_count();
   (void)initial_weak_count;
+  file << "\n";
   file.saveFile();
 }
 
@@ -123,6 +133,7 @@ TEST_F(TensorUtilTest, Print) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Print ";
 
   // 创建一个小的tensor用于print测试
   at::Tensor small_tensor = at::ones({2, 2}, at::kFloat);
@@ -134,6 +145,7 @@ TEST_F(TensorUtilTest, Print) {
   });
 
   file << std::to_string(1) << " ";  // 如果执行到这里说明print()没有崩溃
+  file << "\n";
   file.saveFile();
 }
 

@@ -33,7 +33,9 @@ TEST_F(EqualTest, BasicEqual) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "BasicEqual ";
   write_bool_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -47,7 +49,9 @@ TEST_F(EqualTest, NotEqualContent) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NotEqualContent ";
   write_bool_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -60,7 +64,9 @@ TEST_F(EqualTest, NotEqualShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NotEqualShape ";
   write_bool_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -75,12 +81,14 @@ TEST_F(EqualTest, NotEqualDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NotEqualDtype ";
   try {
     bool result = t1.equal(t2);
     write_bool_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -94,7 +102,9 @@ TEST_F(EqualTest, EqualScalar) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EqualScalar ";
   write_bool_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -102,14 +112,16 @@ TEST_F(EqualTest, ExceptionTest) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ExceptionTest ";
   try {
     at::Tensor t1;  // undefined tensor
     at::Tensor t2 = at::zeros({4}, at::kFloat);
     bool result = t1.equal(t2);
     write_bool_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
+  file << "\n";
   file.saveFile();
 }
 

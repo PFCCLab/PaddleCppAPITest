@@ -40,11 +40,13 @@ TEST_F(TensorFactoryTest, TensorFromFloatArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "TensorFromFloatArrayRef ";
   write_tensor_info_to_file(&file, t);
   float* ptr = t.data_ptr<float>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(ptr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -58,11 +60,13 @@ TEST_F(TensorFactoryTest, TensorFromDoubleArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorFromDoubleArrayRef ";
   write_tensor_info_to_file(&file, t);
   double* ptr = t.data_ptr<double>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(ptr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -76,11 +80,13 @@ TEST_F(TensorFactoryTest, TensorFromIntArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorFromIntArrayRef ";
   write_tensor_info_to_file(&file, t);
   int* ptr = t.data_ptr<int>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(ptr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -94,11 +100,13 @@ TEST_F(TensorFactoryTest, TensorFromLongArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorFromLongArrayRef ";
   write_tensor_info_to_file(&file, t);
   int64_t* ptr = t.data_ptr<int64_t>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(ptr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -115,6 +123,7 @@ TEST_F(TensorFactoryTest, TensorFromBoolArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorFromBoolArrayRef ";
   // 手动写 dim / numel / sizes（与 write_tensor_info_to_file 一致）
   file << std::to_string(t.dim()) << " ";
   file << std::to_string(t.numel()) << " ";
@@ -126,6 +135,7 @@ TEST_F(TensorFactoryTest, TensorFromBoolArrayRef) {
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(static_cast<int>(ptr[i])) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -139,11 +149,13 @@ TEST_F(TensorFactoryTest, TensorFromInitializerListFloat) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorFromInitializerListFloat ";
   write_tensor_info_to_file(&file, t);
   float* ptr = t.data_ptr<float>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(ptr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -157,11 +169,13 @@ TEST_F(TensorFactoryTest, TensorFromInitializerListLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorFromInitializerListLong ";
   write_tensor_info_to_file(&file, t);
   int64_t* ptr = t.data_ptr<int64_t>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(ptr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -172,9 +186,11 @@ TEST_F(TensorFactoryTest, TensorFromScalarFloat) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorFromScalarFloat ";
   write_tensor_info_to_file(&file, t);
   float* ptr = t.data_ptr<float>();
   file << std::to_string(ptr[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -185,9 +201,11 @@ TEST_F(TensorFactoryTest, TensorFromScalarLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorFromScalarLong ";
   write_tensor_info_to_file(&file, t);
   int64_t* ptr = t.data_ptr<int64_t>();
   file << std::to_string(ptr[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -202,11 +220,13 @@ TEST_F(TensorFactoryTest, TensorWithExplicitOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorWithExplicitOptions ";
   write_tensor_info_to_file(&file, t);
   float* ptr = t.data_ptr<float>();
   for (int64_t i = 0; i < t.numel(); ++i) {
     file << std::to_string(ptr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -219,11 +239,13 @@ TEST_F(TensorFactoryTest, TensorLargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorLargeShape ";
   write_tensor_info_to_file(&file, t);
   float* ptr = t.data_ptr<float>();
   file << std::to_string(ptr[0]) << " ";
   file << std::to_string(ptr[4999]) << " ";
   file << std::to_string(ptr[9999]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -240,6 +262,7 @@ TEST_F(TensorFactoryTest, TensorSpecialValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorSpecialValues ";
   write_tensor_info_to_file(&file, t);
   float* ptr = t.data_ptr<float>();
   file << std::to_string(std::isnan(ptr[0]) ? 1 : 0) << " ";
@@ -247,6 +270,7 @@ TEST_F(TensorFactoryTest, TensorSpecialValues) {
   file << std::to_string(std::isinf(ptr[2]) && ptr[2] < 0 ? 1 : 0) << " ";
   file << std::to_string(ptr[3]) << " ";
   file << std::to_string(ptr[4]) << " ";
+  file << "\n";
   file.saveFile();
 }
 

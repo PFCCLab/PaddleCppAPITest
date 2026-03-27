@@ -23,6 +23,7 @@ TEST_F(DeviceCompatTest, DeviceStr) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "DeviceStr ";
 
   c10::Device cpu_device(c10::kCPU);
   auto cpu_str = cpu_device.str();
@@ -43,6 +44,7 @@ TEST_F(DeviceCompatTest, DeviceStr) {
   file << cuda_0_str << " ";
   file << cuda_1_str << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -50,6 +52,7 @@ TEST_F(DeviceCompatTest, HasIndex) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "HasIndex ";
 
   c10::Device cpu_default(c10::kCPU);
   c10::Device cpu_0(c10::kCPU, 0);
@@ -66,6 +69,7 @@ TEST_F(DeviceCompatTest, HasIndex) {
   file << std::to_string(cuda_default_has ? 1 : 0) << " ";
   file << std::to_string(cuda_1_has ? 1 : 0) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 

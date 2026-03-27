@@ -53,7 +53,8 @@ TEST_F(AllocatorTest, Diff_ConstructorDefaultDevice) {
   // [DIFF] 用例级差异：Paddle 支持单参数构造；Torch 要求显式传入 device。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.openAppend();
+  file.createFile();
+  file << "Diff_ConstructorDefaultDevice ";
 
   // PyTorch 必须显式指定 device
   c10::DataPtr ptr_with_device(static_cast<void*>(test_data_),
@@ -63,6 +64,7 @@ TEST_F(AllocatorTest, Diff_ConstructorDefaultDevice) {
                          static_cast<void*>(test_data_))
        << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -75,6 +77,7 @@ TEST_F(AllocatorTest, Diff_CopySemantics) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Diff_CopySemantics ";
 
   // PyTorch 只支持移动，拷贝构造和拷贝赋值被删除
   // c10::DataPtr copied(original);  // 编译错误：deleted function
@@ -89,6 +92,7 @@ TEST_F(AllocatorTest, Diff_CopySemantics) {
   file << std::to_string(moved.get() != nullptr) << " ";
   file << std::to_string(true) << " ";  // 占位符保持输出长度一致
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -100,6 +104,7 @@ TEST_F(AllocatorTest, Diff_DefaultDeleter) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Diff_DefaultDeleter ";
 
   c10::DataPtr default_ptr;
 
@@ -109,6 +114,7 @@ TEST_F(AllocatorTest, Diff_DefaultDeleter) {
   bool has_deleter = (default_ptr.get_deleter() != nullptr);
   file << std::to_string(has_deleter || !has_deleter) << " ";  // 总是 true
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -120,6 +126,7 @@ TEST_F(AllocatorTest, Diff_ClearDeleterBehavior) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Diff_ClearDeleterBehavior ";
 
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         test_ctx_,
@@ -136,6 +143,7 @@ TEST_F(AllocatorTest, Diff_ClearDeleterBehavior) {
   // 不假设具体行为，只记录
   file << std::to_string(true) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -147,6 +155,7 @@ TEST_F(AllocatorTest, Diff_DeviceType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Diff_DeviceType ";
 
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         c10::Device(c10::DeviceType::CPU));
@@ -156,6 +165,7 @@ TEST_F(AllocatorTest, Diff_DeviceType) {
   file << std::to_string(!device_str.empty()) << " ";
   file << std::to_string(device_str == "cpu") << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -168,6 +178,7 @@ TEST_F(AllocatorTest, Diff_AllocationMethod) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Diff_AllocationMethod ";
 
   c10::DataPtr data_ptr(static_cast<void*>(test_data_),
                         c10::Device(c10::DeviceType::CPU));
@@ -176,6 +187,7 @@ TEST_F(AllocatorTest, Diff_AllocationMethod) {
   file << "torch_no_allocation_method ";
   file << std::to_string(true) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 

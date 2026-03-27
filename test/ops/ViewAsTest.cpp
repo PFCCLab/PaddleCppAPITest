@@ -34,6 +34,7 @@ TEST_F(ViewAsTest, ViewAsSameShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ViewAsSameShape ";
 
   at::Tensor other = at::zeros({2, 3}, at::kFloat);
   at::Tensor result = src.view_as(other);
@@ -41,6 +42,7 @@ TEST_F(ViewAsTest, ViewAsSameShape) {
   file << std::to_string(result.sizes()[0]) << " ";
   file << std::to_string(result.sizes()[1]) << " ";
   file << std::to_string(result.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -48,7 +50,8 @@ TEST_F(ViewAsTest, ViewAsSameShape) {
 TEST_F(ViewAsTest, ViewAs2DTo1D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ViewAs2DTo1D ";
 
   at::Tensor other = at::zeros({6}, at::kFloat);
   at::Tensor result = src.view_as(other);
@@ -58,6 +61,7 @@ TEST_F(ViewAsTest, ViewAs2DTo1D) {
   float* data = result.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[5]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -65,7 +69,8 @@ TEST_F(ViewAsTest, ViewAs2DTo1D) {
 TEST_F(ViewAsTest, ViewAs2DTo3D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ViewAs2DTo3D ";
 
   at::Tensor other = at::zeros({1, 2, 3}, at::kFloat);
   at::Tensor result = src.view_as(other);
@@ -73,6 +78,7 @@ TEST_F(ViewAsTest, ViewAs2DTo3D) {
   file << std::to_string(result.sizes()[0]) << " ";
   file << std::to_string(result.sizes()[1]) << " ";
   file << std::to_string(result.sizes()[2]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -80,7 +86,8 @@ TEST_F(ViewAsTest, ViewAs2DTo3D) {
 TEST_F(ViewAsTest, ViewAs2DReshape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ViewAs2DReshape ";
 
   at::Tensor other = at::zeros({3, 2}, at::kFloat);
   at::Tensor result = src.view_as(other);
@@ -89,6 +96,7 @@ TEST_F(ViewAsTest, ViewAs2DReshape) {
   // view 共享存储，修改 result 会影响 src
   result.fill_(0.f);
   file << std::to_string(src[0][0].item<float>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -96,7 +104,8 @@ TEST_F(ViewAsTest, ViewAs2DReshape) {
 TEST_F(ViewAsTest, ViewAsSharesStorage) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ViewAsSharesStorage ";
 
   at::Tensor other = at::zeros({6}, at::kFloat);
   at::Tensor result = src.view_as(other);
@@ -104,6 +113,7 @@ TEST_F(ViewAsTest, ViewAsSharesStorage) {
   result[0] = 99.f;
   // src 的对应位置应同步更新
   file << std::to_string(src[0][0].item<float>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 

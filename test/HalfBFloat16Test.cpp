@@ -31,8 +31,10 @@ TEST_F(HalfBFloat16Test, HalfBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "HalfBasic ";
   // 由于 fp16 精度，结果是近似值
   file << std::to_string(f) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -43,7 +45,9 @@ TEST_F(HalfBFloat16Test, HalfZero) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "HalfZero ";
   file << std::to_string(f) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -54,7 +58,9 @@ TEST_F(HalfBFloat16Test, HalfNegative) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "HalfNegative ";
   file << std::to_string(f) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -65,8 +71,10 @@ TEST_F(HalfBFloat16Test, HalfSmallValue) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "HalfSmallValue ";
   // 近似保留
   file << std::to_string(std::abs(f - 0.001f) < 0.001f ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -77,8 +85,10 @@ TEST_F(HalfBFloat16Test, HalfNamespace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "HalfNamespace ";
   file << std::to_string(static_cast<float>(h1)) << " ";
   file << std::to_string(static_cast<float>(h2)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -92,7 +102,9 @@ TEST_F(HalfBFloat16Test, BFloat16Basic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "BFloat16Basic ";
   file << std::to_string(f) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -103,7 +115,9 @@ TEST_F(HalfBFloat16Test, BFloat16Zero) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "BFloat16Zero ";
   file << std::to_string(f) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -114,7 +128,9 @@ TEST_F(HalfBFloat16Test, BFloat16Negative) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "BFloat16Negative ";
   file << std::to_string(f) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -125,8 +141,10 @@ TEST_F(HalfBFloat16Test, BFloat16Namespace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "BFloat16Namespace ";
   file << std::to_string(static_cast<float>(b1)) << " ";
   file << std::to_string(static_cast<float>(b2)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -136,8 +154,10 @@ TEST_F(HalfBFloat16Test, ScalarTypeMapping) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ScalarTypeMapping ";
   file << std::to_string(static_cast<int>(at::kHalf)) << " ";
   file << std::to_string(static_cast<int>(at::kBFloat16)) << " ";
+  file << "\n";
   file.saveFile();
 }
 

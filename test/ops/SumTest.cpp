@@ -386,12 +386,14 @@ TEST_F(SumTest, SumInvalidDim) {
 TEST_F(SumTest, MemberSumAllElements) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "MemberSumAllElements ";
   at::Tensor result = test_tensor.sum();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   float result_value = *result.data_ptr<float>();
   file << std::to_string(result_value) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -399,11 +401,13 @@ TEST_F(SumTest, MemberSumAllElements) {
 TEST_F(SumTest, MemberSumWithDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "MemberSumWithDtype ";
   at::Tensor result = test_tensor.sum(at::kDouble);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   double result_value = *result.data_ptr<double>();
   file << std::to_string(result_value) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -411,7 +415,8 @@ TEST_F(SumTest, MemberSumWithDtype) {
 TEST_F(SumTest, MemberSumAlongDim0) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "MemberSumAlongDim0 ";
   at::Tensor result = test_tensor.sum({0}, /*keepdim=*/false);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
@@ -419,6 +424,7 @@ TEST_F(SumTest, MemberSumAlongDim0) {
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[1]) << " ";
   file << std::to_string(data[2]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -426,7 +432,8 @@ TEST_F(SumTest, MemberSumAlongDim0) {
 TEST_F(SumTest, MemberSumKeepdim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "MemberSumKeepdim ";
   at::Tensor result = test_tensor.sum({1}, /*keepdim=*/true);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
@@ -434,6 +441,7 @@ TEST_F(SumTest, MemberSumKeepdim) {
   float* data = result.data_ptr<float>();
   file << std::to_string(data[0]) << " ";  // 1+2+3=6
   file << std::to_string(data[1]) << " ";  // 4+5+6=15
+  file << "\n";
   file.saveFile();
 }
 
@@ -441,7 +449,8 @@ TEST_F(SumTest, MemberSumKeepdim) {
 TEST_F(SumTest, MemberSumMultiDimWithDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "MemberSumMultiDimWithDtype ";
   at::Tensor result = test_tensor.sum(at::IntArrayRef{0, 1},
                                       /*keepdim=*/false,
                                       std::make_optional(at::kDouble));
@@ -450,6 +459,7 @@ TEST_F(SumTest, MemberSumMultiDimWithDtype) {
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   double val = *result.data_ptr<double>();
   file << std::to_string(val) << " ";  // 21
+  file << "\n";
   file.saveFile();
 }
 

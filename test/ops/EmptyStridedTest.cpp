@@ -40,7 +40,9 @@ TEST_F(EmptyStridedTest, BasicRowMajor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "BasicRowMajor ";
   write_empty_strided_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -50,7 +52,9 @@ TEST_F(EmptyStridedTest, ColumnMajor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ColumnMajor ";
   write_empty_strided_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -61,8 +65,10 @@ TEST_F(EmptyStridedTest, WithDtypeFloat) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "WithDtypeFloat ";
   write_empty_strided_result_to_file(&file, result);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -73,8 +79,10 @@ TEST_F(EmptyStridedTest, WithDtypeDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "WithDtypeDouble ";
   write_empty_strided_result_to_file(&file, result);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -85,8 +93,10 @@ TEST_F(EmptyStridedTest, WithDtypeInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "WithDtypeInt ";
   write_empty_strided_result_to_file(&file, result);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -97,8 +107,10 @@ TEST_F(EmptyStridedTest, WithDtypeLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "WithDtypeLong ";
   write_empty_strided_result_to_file(&file, result);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -108,7 +120,9 @@ TEST_F(EmptyStridedTest, OneDimensional) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "OneDimensional ";
   write_empty_strided_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -119,7 +133,9 @@ TEST_F(EmptyStridedTest, HighDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "HighDim ";
   write_empty_strided_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -131,6 +147,7 @@ TEST_F(EmptyStridedTest, VerifyStrides) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "VerifyStrides ";
   // 验证 strides 与请求一致
   bool strides_match = true;
   for (int64_t i = 0; i < result.dim(); ++i) {
@@ -141,6 +158,7 @@ TEST_F(EmptyStridedTest, VerifyStrides) {
   }
   file << std::to_string(strides_match) << " ";
   write_empty_strided_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -150,7 +168,9 @@ TEST_F(EmptyStridedTest, LargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "LargeShape ";
   write_empty_strided_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 

@@ -35,6 +35,7 @@ TEST_F(PythonTest, GetTHPDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "GetTHPDtype ";
 
   // 测试各种 ScalarType 到 Python 对象的转换
   // 注意：实际转换需要 Python 运行时，这里只验证函数存在且可以调用
@@ -59,10 +60,11 @@ TEST_F(PythonTest, GetTHPDtype) {
       torch::getTHPDtype(dtype);
       file << "1 ";
     } catch (...) {
-      file << "exception: " << e.what();
+      file << "exception ";
     }
   }
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -71,15 +73,17 @@ TEST_F(PythonTest, PyObjectToDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PyObjectToDtype ";
 
   // 测试 getTHPDtype 函数可用
   try {
     torch::getTHPDtype(c10::ScalarType::Float);
     file << "1 ";
   } catch (...) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -88,6 +92,7 @@ TEST_F(PythonTest, NamespaceExists) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NamespaceExists ";
 
   // 验证 torch::getTHPDtype 可用
   // NOLINTNEXTLINE
@@ -95,6 +100,7 @@ TEST_F(PythonTest, NamespaceExists) {
 
   // 如果编译通过，说明函数存在
   file << "1 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -103,6 +109,7 @@ TEST_F(PythonTest, GetTHPDtypeAllTypes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetTHPDtypeAllTypes ";
 
   // 测试主要 ScalarType - 使用 libtorch 支持的类型
   c10::ScalarType all_types[] = {
@@ -125,10 +132,11 @@ TEST_F(PythonTest, GetTHPDtypeAllTypes) {
       torch::getTHPDtype(st);
       file << "1 ";
     } catch (...) {
-      file << "exception: " << e.what();
+      file << "exception ";
     }
   }
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -146,7 +154,7 @@ TEST_F(PythonTest, TorchNamespaceGetTHPDtype) {
     torch::getTHPDtype(dtype);
     file << "1 ";
   } catch (...) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
 }
 

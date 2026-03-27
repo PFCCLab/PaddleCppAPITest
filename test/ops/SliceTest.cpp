@@ -57,11 +57,13 @@ TEST_F(SliceTest, SliceBasicDim0) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "SliceBasicDim0 ";
   write_slice_result_to_file(&file, result);
   // 验证首元素
   at::Tensor cont = result.contiguous();
   float* data = cont.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -71,7 +73,9 @@ TEST_F(SliceTest, SliceDim1) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceDim1 ";
   write_slice_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -81,7 +85,9 @@ TEST_F(SliceTest, SliceDim2) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceDim2 ";
   write_slice_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -91,11 +97,13 @@ TEST_F(SliceTest, SliceMemberFunction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceMemberFunction ";
   write_slice_result_to_file(&file, result);
   at::Tensor cont = result.contiguous();
   float* data = cont.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[cont.numel() - 1]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -107,8 +115,10 @@ TEST_F(SliceTest, SliceNulloptBounds) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceNulloptBounds ";
   write_slice_result_to_file(&file, result);
   file << std::to_string(result.numel() == tensor.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -121,7 +131,9 @@ TEST_F(SliceTest, SliceMultipleDims) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceMultipleDims ";
   write_slice_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -136,12 +148,14 @@ TEST_F(SliceTest, Slice2D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Slice2D ";
   write_slice_result_to_file(&file, result);
   at::Tensor cont = result.contiguous();
   float* rdata = cont.data_ptr<float>();
   for (int64_t i = 0; i < cont.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -156,6 +170,7 @@ TEST_F(SliceTest, SliceDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceDouble ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -164,6 +179,7 @@ TEST_F(SliceTest, SliceDouble) {
   for (int64_t i = 0; i < cont.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -178,6 +194,7 @@ TEST_F(SliceTest, SliceInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceInt ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -186,6 +203,7 @@ TEST_F(SliceTest, SliceInt) {
   for (int64_t i = 0; i < cont.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -200,6 +218,7 @@ TEST_F(SliceTest, SliceLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceLong ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -208,6 +227,7 @@ TEST_F(SliceTest, SliceLong) {
   for (int64_t i = 0; i < cont.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -222,11 +242,13 @@ TEST_F(SliceTest, SliceLargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceLargeShape ";
   write_slice_result_to_file(&file, result);
   at::Tensor cont = result.contiguous();
   float* rdata = cont.data_ptr<float>();
   file << std::to_string(rdata[0]) << " ";
   file << std::to_string(rdata[cont.numel() - 1]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -247,12 +269,14 @@ TEST_F(SliceTest, SliceSpecialValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceSpecialValues ";
   write_slice_result_to_file(&file, result);
   at::Tensor cont = result.contiguous();
   float* rdata = cont.data_ptr<float>();
   for (int64_t i = 0; i < cont.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 

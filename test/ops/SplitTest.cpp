@@ -72,6 +72,7 @@ TEST_F(SplitTest, SplitAndTensorSplitFamilies) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "SplitAndTensorSplitFamilies ";
 
   at::Tensor base =
       at::arange(24, at::TensorOptions().dtype(at::kFloat)).reshape({2, 3, 4});
@@ -97,6 +98,7 @@ TEST_F(SplitTest, SplitAndTensorSplitFamilies) {
       at::arange(24, at::TensorOptions().dtype(at::kFloat)).reshape({2, 3, 4});
   write_tensor_list_or_exception(&file, [&]() { return cube.dsplit(2); });
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -104,6 +106,7 @@ TEST_F(SplitTest, SymintSectionAndChunkSize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SymintSectionAndChunkSize ";
 
   at::Tensor float_tensor =
       at::arange(18, at::TensorOptions().dtype(at::kFloat)).reshape({3, 6});
@@ -123,6 +126,7 @@ TEST_F(SplitTest, SymintSectionAndChunkSize) {
     return large_long_tensor.unsafe_split_symint(unsafe_split_size, 0);
   });
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -130,6 +134,7 @@ TEST_F(SplitTest, SymintIndicesAndSplitSizes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SymintIndicesAndSplitSizes ";
 
   at::Tensor non_contiguous =
       at::arange(12, at::TensorOptions().dtype(at::kDouble))
@@ -158,6 +163,7 @@ TEST_F(SplitTest, SymintIndicesAndSplitSizes) {
         c10::SymIntArrayRef(unsafe_sized_splits), 0);
   });
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -165,6 +171,7 @@ TEST_F(SplitTest, BoundaryShapesAndDtypes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "BoundaryShapesAndDtypes ";
 
   at::Tensor scalar =
       at::ones({}, at::TensorOptions().dtype(at::kDouble)).fill_(7.0);
@@ -185,6 +192,7 @@ TEST_F(SplitTest, BoundaryShapesAndDtypes) {
   write_tensor_list_or_exception(
       &file, [&]() { return ones_int.split_symint(unit_split_size, 2); });
 
+  file << "\n";
   file.saveFile();
 }
 

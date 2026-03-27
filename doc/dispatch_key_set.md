@@ -1,11 +1,13 @@
-##### DispatchKeySet.h 头文件 API 兼容性
+## DispatchKeySet.h 头文件 API 兼容性
 
-✅ 表示已经支持
-🚧 表示正在支持
-❌ 表示不准备支持
-🔧 表示部分支持（有功能限制）
+对比文件：
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/DispatchKeySet.h`
+- `/home/may/pytorch/c10/core/DispatchKeySet.h`
 
-**按照功能分类排序**
+状态说明：
+- `✅` 已实现（接口存在且签名/语义基本一致）
+- `🔧` 部分兼容（接口存在，但签名或实现语义有差异）
+- `❌` 未实现（PyTorch 有，Paddle compat 头文件无）
 
 ---
 
@@ -140,11 +142,10 @@
 ### 兼容性统计
 
 | 状态 | 数量 |
-|------|------|
-| ✅ 已完全支持 | 74 |
-| 🚧 正在支持 | 0 |
-| 🔧 部分支持 | 1 |
-| ❌ 未支持 | 0 |
+|---|---|
+| ✅ 已实现 | 74 |
+| 🔧 部分兼容 | 1 |
+| ❌ 未实现 | 0 |
 
 ---
 

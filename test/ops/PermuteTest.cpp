@@ -61,8 +61,10 @@ TEST_F(PermuteTest, BasicPermute) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "BasicPermute ";
   write_permute_result_to_file(&file, result);
   write_permute_data_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -72,8 +74,10 @@ TEST_F(PermuteTest, PermuteReverse) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteReverse ";
   write_permute_result_to_file(&file, result);
   write_permute_data_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -83,7 +87,9 @@ TEST_F(PermuteTest, PermuteIdentity) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteIdentity ";
   write_permute_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -93,8 +99,10 @@ TEST_F(PermuteTest, PermuteMemberFunction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteMemberFunction ";
   write_permute_result_to_file(&file, result);
   write_permute_data_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -109,8 +117,10 @@ TEST_F(PermuteTest, Permute2D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Permute2D ";
   write_permute_result_to_file(&file, result);
   write_permute_data_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -125,7 +135,9 @@ TEST_F(PermuteTest, PermuteHighDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteHighDim ";
   write_permute_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -140,6 +152,7 @@ TEST_F(PermuteTest, PermuteLargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteLargeShape ";
   write_permute_result_to_file(&file, result);
   // 只输出前 10 个元素避免文件过大
   at::Tensor cont = result.contiguous();
@@ -147,6 +160,7 @@ TEST_F(PermuteTest, PermuteLargeShape) {
   for (int64_t i = 0; i < 10; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -161,6 +175,7 @@ TEST_F(PermuteTest, PermuteDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteDouble ";
   *(&file) << std::to_string(result.dim()) << " ";
   *(&file) << std::to_string(result.numel()) << " ";
   *(&file) << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -172,6 +187,7 @@ TEST_F(PermuteTest, PermuteDouble) {
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -186,6 +202,7 @@ TEST_F(PermuteTest, PermuteInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteInt ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -197,6 +214,7 @@ TEST_F(PermuteTest, PermuteInt) {
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -211,6 +229,7 @@ TEST_F(PermuteTest, PermuteLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteLong ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -222,6 +241,7 @@ TEST_F(PermuteTest, PermuteLong) {
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -233,7 +253,9 @@ TEST_F(PermuteTest, PermuteNonContiguous) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteNonContiguous ";
   write_permute_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -252,6 +274,7 @@ TEST_F(PermuteTest, PermuteSpecialValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PermuteSpecialValues ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   at::Tensor cont = result.contiguous();
@@ -259,6 +282,7 @@ TEST_F(PermuteTest, PermuteSpecialValues) {
   for (int64_t i = 0; i < 6; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 

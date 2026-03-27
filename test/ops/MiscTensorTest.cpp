@@ -24,10 +24,12 @@ TEST(TensorBodyTest, IsVariableTest) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.createFile();
+  file << "IsVariableTest ";
 
   at::Tensor t = at::ones({2, 3}, at::TensorOptions().dtype(at::kFloat));
   file << std::to_string(t.is_variable() ? 1 : 0) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -35,6 +37,7 @@ TEST(TensorBodyTest, MaskedSelectTest) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.openAppend();
+  file << "MaskedSelectTest ";
 
   at::Tensor t =
       tensor_from_vector_1d<float>({1.0f, 2.0f, 3.0f, 4.0f}, at::kFloat)
@@ -48,6 +51,7 @@ TEST(TensorBodyTest, MaskedSelectTest) {
   file << std::to_string(result.size(0)) << " ";
   file << std::to_string(result.sum().item<float>()) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 

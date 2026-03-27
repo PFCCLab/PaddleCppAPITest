@@ -48,12 +48,14 @@ TEST_F(TensorAccessorTest, PackedAccessor32) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "PackedAccessor32 ";
   auto accessor = tensor.packed_accessor32<float, 3>();
   file << std::to_string(accessor.size(0)) << " ";
   file << std::to_string(accessor.size(1)) << " ";
   file << std::to_string(accessor.size(2)) << " ";
   file << std::to_string(accessor[0][0][0]) << " ";
   file << std::to_string(accessor[1][2][3]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -62,12 +64,14 @@ TEST_F(TensorAccessorTest, PackedAccessor64) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PackedAccessor64 ";
   auto accessor = tensor.packed_accessor64<float, 3>();
   file << std::to_string(accessor.size(0)) << " ";
   file << std::to_string(accessor.size(1)) << " ";
   file << std::to_string(accessor.size(2)) << " ";
   file << std::to_string(accessor[0][0][0]) << " ";
   file << std::to_string(accessor[1][2][3]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -76,12 +80,14 @@ TEST_F(TensorAccessorTest, GenericPackedAccessor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GenericPackedAccessor ";
   auto accessor = tensor.generic_packed_accessor<float, 3>();
   file << std::to_string(accessor.size(0)) << " ";
   file << std::to_string(accessor.size(1)) << " ";
   file << std::to_string(accessor.size(2)) << " ";
   file << std::to_string(accessor[0][0][0]) << " ";
   file << std::to_string(accessor[1][2][3]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -91,12 +97,14 @@ TEST_F(TensorAccessorTest, PackedAccessorDeprecated) {
   // 在不同实现中的行为与兼容承诺不一致。
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "PackedAccessorDeprecated ";
   auto accessor = tensor.packed_accessor<float, 3>();
   file << std::to_string(accessor.size(0)) << " ";
   file << std::to_string(accessor.size(1)) << " ";
   file << std::to_string(accessor.size(2)) << " ";
   file << std::to_string(accessor[0][0][0]) << " ";
   file << std::to_string(accessor[1][2][3]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -105,6 +113,7 @@ TEST_F(TensorAccessorTest, IsNonOverlappingAndDense) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsNonOverlappingAndDense ";
   file << std::to_string(tensor.is_non_overlapping_and_dense()) << " ";
 
   // 测试非连续的tensor
@@ -114,6 +123,7 @@ TEST_F(TensorAccessorTest, IsNonOverlappingAndDense) {
   // 测试连续化后的tensor
   at::Tensor contiguous = transposed.contiguous();
   file << std::to_string(contiguous.is_non_overlapping_and_dense()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -122,7 +132,9 @@ TEST_F(TensorAccessorTest, HasNames) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "HasNames ";
   file << std::to_string(tensor.has_names()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -131,6 +143,7 @@ TEST_F(TensorAccessorTest, TensorAccessorBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessorBasic ";
 
   // 使用 accessor 方法获取 TensorAccessor (仅适用于 contiguous tensor)
   auto accessor = tensor.accessor<float, 3>();
@@ -161,6 +174,7 @@ TEST_F(TensorAccessorTest, TensorAccessorBasic) {
   file << std::to_string(accessor[0][0][0]) << " ";
   file << std::to_string(accessor[1][2][3]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -169,6 +183,7 @@ TEST_F(TensorAccessorTest, TensorAccessorConstData) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessorConstData ";
 
   const auto accessor = tensor.accessor<float, 3>();
 
@@ -177,6 +192,7 @@ TEST_F(TensorAccessorTest, TensorAccessorConstData) {
   file << std::to_string(const_data_ptr[0]) << " ";
   file << std::to_string(const_data_ptr[tensor.numel() - 1]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -187,6 +203,7 @@ TEST_F(TensorAccessorTest, TensorAccessorNonContiguous) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessorNonContiguous ";
 
   // 创建非连续 tensor (transpose 后)
   at::Tensor transposed = tensor.transpose(0, 2);
@@ -196,6 +213,7 @@ TEST_F(TensorAccessorTest, TensorAccessorNonContiguous) {
   file << "non_contiguous_tensor ";
   file << std::to_string(transposed.is_contiguous()) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -204,6 +222,7 @@ TEST_F(TensorAccessorTest, TensorAccessorBaseDirect) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessorBaseDirect ";
 
   // 直接构造 TensorAccessorBase - 测试构造函数
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
@@ -238,6 +257,7 @@ TEST_F(TensorAccessorTest, TensorAccessorBaseDirect) {
   file << std::to_string(ptr[0]) << " ";
   file << std::to_string(ptr[5]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -246,6 +266,7 @@ TEST_F(TensorAccessorTest, TensorAccessorBaseConstData) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessorBaseConstData ";
 
   float data[] = {10.0f, 20.0f, 30.0f};
   int64_t sizes[] = {3};
@@ -265,6 +286,7 @@ TEST_F(TensorAccessorTest, TensorAccessorBaseConstData) {
   file << std::to_string(const_ptr[0]) << " ";
   file << std::to_string(const_ptr[2]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -273,6 +295,7 @@ TEST_F(TensorAccessorTest, TensorAccessorDirect) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessorDirect ";
 
   // 直接构造 TensorAccessor (3维) - 测试构造函数
   float data[] = {1.0f,  2.0f,  3.0f,  4.0f,  5.0f,  6.0f,  7.0f,  8.0f,
@@ -316,6 +339,7 @@ TEST_F(TensorAccessorTest, TensorAccessorDirect) {
   file << std::to_string(accessor[0][0][0]) << " ";
   file << std::to_string(accessor[1][2][3]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -324,6 +348,7 @@ TEST_F(TensorAccessorTest, TensorAccessor1D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessor1D ";
 
   float data[] = {1.5f, 2.5f, 3.5f, 4.5f, 5.5f};
   int64_t sizes[] = {5};
@@ -344,6 +369,7 @@ TEST_F(TensorAccessorTest, TensorAccessor1D) {
   file << std::to_string(accessor[0]) << " ";
   file << std::to_string(accessor[4]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -352,6 +378,7 @@ TEST_F(TensorAccessorTest, DefaultPtrTraits) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DefaultPtrTraits ";
 
   // 测试 DefaultPtrTraits::PtrType
   using Traits = at::DefaultPtrTraits<float>;
@@ -362,6 +389,7 @@ TEST_F(TensorAccessorTest, DefaultPtrTraits) {
   file << std::to_string(ptr[1]) << " ";
   file << std::to_string(ptr[2]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -370,6 +398,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorBaseDirect) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GenericPackedTensorAccessorBaseDirect ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
   int64_t sizes[] = {2, 3};
@@ -390,6 +419,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorBaseDirect) {
   file << std::to_string(base.data()[0]) << " ";
   file << std::to_string(base.data()[5]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -398,6 +428,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorDirect) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GenericPackedTensorAccessorDirect ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
   int64_t sizes[] = {2, 2, 2};
@@ -430,6 +461,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorDirect) {
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[7]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -438,6 +470,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorTranspose) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GenericPackedTensorAccessorTranspose ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
   int64_t sizes[] = {2, 2, 2};
@@ -455,6 +488,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorTranspose) {
   file << std::to_string(accessor.stride(1)) << " ";
   file << std::to_string(accessor.stride(2)) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -463,6 +497,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessor1D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GenericPackedTensorAccessor1D ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f};
   int64_t sizes[] = {5};
@@ -485,6 +520,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessor1D) {
   data[2] = 99.0f;
   file << std::to_string(data[2]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -493,6 +529,7 @@ TEST_F(TensorAccessorTest, PackedTensorAccessor64Alias) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PackedTensorAccessor64Alias ";
 
   // PackedTensorAccessor64 是 GenericPackedTensorAccessor 使用 int64_t 的别名
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f};
@@ -506,6 +543,7 @@ TEST_F(TensorAccessorTest, PackedTensorAccessor64Alias) {
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[3]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -514,6 +552,7 @@ TEST_F(TensorAccessorTest, PackedTensorAccessor32Alias) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PackedTensorAccessor32Alias ";
 
   // PackedTensorAccessor32 是 GenericPackedTensorAccessor 使用 int32_t 的别名
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f};
@@ -527,6 +566,7 @@ TEST_F(TensorAccessorTest, PackedTensorAccessor32Alias) {
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[3]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -535,6 +575,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorInt64Source) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GenericPackedTensorAccessorInt64Source ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
   int64_t sizes[] = {2, 3};
@@ -549,6 +590,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorInt64Source) {
   file << std::to_string(base.stride(0)) << " ";
   file << std::to_string(base.stride(1)) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -557,6 +599,7 @@ TEST_F(TensorAccessorTest, TensorAccessor2D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessor2D ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
   int64_t sizes[] = {2, 3};
@@ -577,6 +620,7 @@ TEST_F(TensorAccessorTest, TensorAccessor2D) {
   file << std::to_string(accessor[1][0]) << " ";
   file << std::to_string(accessor[1][2]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -585,6 +629,7 @@ TEST_F(TensorAccessorTest, ConstGenericPackedTensorAccessor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ConstGenericPackedTensorAccessor ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f};
   int64_t sizes[] = {2, 2};
@@ -605,6 +650,7 @@ TEST_F(TensorAccessorTest, ConstGenericPackedTensorAccessor) {
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[3]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -613,6 +659,7 @@ TEST_F(TensorAccessorTest, ConstGenericPackedTensorAccessorBaseData) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ConstGenericPackedTensorAccessorBaseData ";
 
   float data[] = {10.0f, 20.0f, 30.0f, 40.0f};
   int64_t sizes[] = {2, 2};
@@ -627,6 +674,7 @@ TEST_F(TensorAccessorTest, ConstGenericPackedTensorAccessorBaseData) {
   file << std::to_string(const_ptr[0]) << " ";
   file << std::to_string(const_ptr[3]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -635,6 +683,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessor1DTranspose) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GenericPackedTensorAccessor1DTranspose ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f};
   int64_t sizes[] = {5};
@@ -647,6 +696,7 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessor1DTranspose) {
   file << std::to_string(accessor.size(0)) << " ";
   file << std::to_string(accessor.stride(0)) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -655,6 +705,7 @@ TEST_F(TensorAccessorTest, PackedAccessor64Write) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PackedAccessor64Write ";
 
   // 创建可变的 tensor
   at::Tensor mutable_tensor = at::ones({2, 3}, at::kFloat);
@@ -669,6 +720,7 @@ TEST_F(TensorAccessorTest, PackedAccessor64Write) {
   file << std::to_string(mutable_tensor.accessor<float, 2>()[0][0]) << " ";
   file << std::to_string(mutable_tensor.accessor<float, 2>()[1][2]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -677,6 +729,7 @@ TEST_F(TensorAccessorTest, TensorAccessorWrite) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessorWrite ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f};
   int64_t sizes[] = {2, 2};
@@ -693,6 +746,7 @@ TEST_F(TensorAccessorTest, TensorAccessorWrite) {
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[3]) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -702,6 +756,7 @@ TEST_F(TensorAccessorTest, TensorAccessorCoverage) {
   auto file_name = GetTestCaseResultFileName();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorAccessorCoverage ";
 
   std::vector<float> data = {1.0f, 2.0f, 3.0f, 4.0f};
   int64_t sizes[] = {2, 2};
@@ -728,6 +783,7 @@ TEST_F(TensorAccessorTest, TensorAccessorCoverage) {
   const float* c_ptr = const_accessor.data();
   file << (c_ptr != nullptr ? "1 " : "0 ");
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -735,6 +791,7 @@ TEST(_TensorAccessorTest, BasicMethods) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.openAppend();
+  file << "BasicMethods ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f};
   int64_t sizes[] = {2, 2};
@@ -749,6 +806,7 @@ TEST(_TensorAccessorTest, BasicMethods) {
   const at::TensorAccessor<float, 2>& c_acc = acc;
   file << (c_acc.data() != nullptr ? "1 " : "0 ");
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -756,6 +814,7 @@ TEST(GenericPackedTensorAccessorBaseTest, BasicMethods) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.openAppend();
+  file << "BasicMethods ";
 
   float data[] = {1.0f, 2.0f, 3.0f, 4.0f};
   int64_t sizes[] = {2, 2};
@@ -773,6 +832,7 @@ TEST(GenericPackedTensorAccessorBaseTest, BasicMethods) {
           c_acc = acc;
   file << (c_acc.data() != nullptr ? "1 " : "0 ");
 
+  file << "\n";
   file.saveFile();
 }
 }  // namespace test

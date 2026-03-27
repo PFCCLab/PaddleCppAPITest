@@ -45,3 +45,5 @@ Makefile
 # System files
 .DS_Store
 Thumbs.db
+
+.humanize

@@ -56,12 +56,14 @@ TEST_F(TransposeTest, Transpose2D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "Transpose2D ";
   write_transpose_result_to_file(&file, result);
   at::Tensor cont = result.contiguous();
   float* rdata = cont.data_ptr<float>();
   for (int64_t i = 0; i < 15; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -71,12 +73,14 @@ TEST_F(TransposeTest, Transpose3D_Dim0_Dim2) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Transpose3D_Dim0_Dim2 ";
   write_transpose_result_to_file(&file, result);
   at::Tensor cont = result.contiguous();
   float* rdata = cont.data_ptr<float>();
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -86,12 +90,14 @@ TEST_F(TransposeTest, Transpose3D_Dim1_Dim2) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Transpose3D_Dim1_Dim2 ";
   write_transpose_result_to_file(&file, result);
   at::Tensor cont = result.contiguous();
   float* rdata = cont.data_ptr<float>();
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -101,7 +107,9 @@ TEST_F(TransposeTest, TransposeSameDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeSameDim ";
   write_transpose_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -111,7 +119,9 @@ TEST_F(TransposeTest, TransposeMemberFunction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeMemberFunction ";
   write_transpose_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -122,7 +132,9 @@ TEST_F(TransposeTest, TransposeInplace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeInplace ";
   write_transpose_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -132,7 +144,9 @@ TEST_F(TransposeTest, TransposeScalarAPI) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeScalarAPI ";
   write_transpose_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -147,6 +161,7 @@ TEST_F(TransposeTest, TransposeDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeDouble ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -158,6 +173,7 @@ TEST_F(TransposeTest, TransposeDouble) {
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -172,6 +188,7 @@ TEST_F(TransposeTest, TransposeInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeInt ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -183,6 +200,7 @@ TEST_F(TransposeTest, TransposeInt) {
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -197,6 +215,7 @@ TEST_F(TransposeTest, TransposeLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeLong ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -208,6 +227,7 @@ TEST_F(TransposeTest, TransposeLong) {
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -222,6 +242,7 @@ TEST_F(TransposeTest, TransposeLargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeLargeShape ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
@@ -233,6 +254,7 @@ TEST_F(TransposeTest, TransposeLargeShape) {
   file << std::to_string(rdata[1]) << " ";
   file << std::to_string(rdata[100]) << " ";
   file << std::to_string(rdata[9999]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -250,6 +272,7 @@ TEST_F(TransposeTest, TransposeSpecialValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TransposeSpecialValues ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   at::Tensor cont = result.contiguous();
@@ -257,6 +280,7 @@ TEST_F(TransposeTest, TransposeSpecialValues) {
   for (int64_t i = 0; i < 6; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 

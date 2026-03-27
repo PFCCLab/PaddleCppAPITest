@@ -720,6 +720,7 @@ TEST_F(IValueTest, CoreIsToMethods) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "CoreIsToMethods ";
 
   CompatIValue iv_bool(true);
   CompatIValue iv_int(static_cast<int64_t>(42));
@@ -738,6 +739,7 @@ TEST_F(IValueTest, CoreIsToMethods) {
   file << std::to_string(iv_to_tensor(iv_tensor).numel()) << " ";
   file << std::to_string(static_cast<int>(iv_to_scalar_type(iv_scalar_type)))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -745,6 +747,7 @@ TEST_F(IValueTest, ListAndTupleMethods) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ListAndTupleMethods ";
 
   CompatIValue iv_list(std::vector<int64_t>{1, 2, 3, 4});
   CompatIValue iv_tuple(
@@ -762,6 +765,7 @@ TEST_F(IValueTest, ListAndTupleMethods) {
   file << std::to_string(std::get<0>(tuple_std)) << " ";
   file << std::to_string(std::get<1>(tuple_std)) << " ";
   file << std::get<2>(tuple_std) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -769,6 +773,7 @@ TEST_F(IValueTest, TryToMethods) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TryToMethods ";
 
   CompatIValue iv_from_int(static_cast<int64_t>(9));
   CompatIValue iv_from_double(6.75);
@@ -803,6 +808,7 @@ TEST_F(IValueTest, TryToMethods) {
   file << std::to_string(ok_tensor ? out_tensor.numel() : -1) << " ";
   file << std::to_string(ok_scalar ? 1 : 0) << " ";
   file << std::to_string(static_cast<int>(out_scalar_type)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -810,6 +816,7 @@ TEST_F(IValueTest, ToTemplateExtended) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToTemplateExtended ";
 
   CompatIValue iv_string(std::string("generic_to_template"));
   CompatIValue iv_vector(std::vector<int64_t>{9, 8, 7});
@@ -829,6 +836,7 @@ TEST_F(IValueTest, ToTemplateExtended) {
   file << std::get<2>(out_tuple) << " ";
   file << std::to_string(out_optional.has_value() ? 1 : 0) << " ";
   file << std::to_string(out_optional.value_or(-1)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -836,6 +844,7 @@ TEST_F(IValueTest, OptionalAndConvertMethods) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "OptionalAndConvertMethods ";
 
   CompatIValue iv_none;
   CompatIValue iv_bool(true);
@@ -873,6 +882,7 @@ TEST_F(IValueTest, OptionalAndConvertMethods) {
   file << std::to_string(std::get<0>(out_tuple)) << " ";
   file << std::to_string(std::get<1>(out_tuple)) << " ";
   file << std::get<2>(out_tuple) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -880,6 +890,7 @@ TEST_F(IValueTest, ReprAndTypeStringMethods) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ReprAndTypeStringMethods ";
 
   CompatIValue iv_int(static_cast<int64_t>(123));
   CompatIValue iv_string(std::string("repr_value"));
@@ -929,6 +940,7 @@ TEST_F(IValueTest, ReprAndTypeStringMethods) {
                              ? 1
                              : 0)
        << " ";
+  file << "\n";
   file.saveFile();
 }
 

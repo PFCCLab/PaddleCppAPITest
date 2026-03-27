@@ -30,8 +30,10 @@ TEST_F(TensorTest, test) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "test ";
   file << std::to_string(tensor.dim()) << " ";
   file << std::to_string(tensor.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 

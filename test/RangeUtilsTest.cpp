@@ -39,8 +39,10 @@ TEST_F(RangeUtilsTest, ArangeCheckBoundsValidInt32) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ArangeCheckBoundsValidInt32 ";
 
   write_bool_result(&file, bounds_check_succeeds(0, 5, 1));
+  file << "\n";
   file.saveFile();
 }
 
@@ -48,8 +50,10 @@ TEST_F(RangeUtilsTest, ArangeCheckBoundsValidDoubleNegativeStep) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ArangeCheckBoundsValidDoubleNegativeStep ";
 
   write_bool_result(&file, bounds_check_succeeds(5.0, -1.0, -1.5));
+  file << "\n";
   file.saveFile();
 }
 
@@ -57,8 +61,10 @@ TEST_F(RangeUtilsTest, ArangeCheckBoundsZeroStepThrows) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ArangeCheckBoundsZeroStepThrows ";
 
   write_bool_result(&file, !bounds_check_succeeds(0.0f, 5.0f, 0.0f));
+  file << "\n";
   file.saveFile();
 }
 
@@ -66,11 +72,13 @@ TEST_F(RangeUtilsTest, ArangeCheckBoundsWrongDirectionThrows) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ArangeCheckBoundsWrongDirectionThrows ";
 
   write_bool_result(&file,
                     !bounds_check_succeeds(static_cast<int64_t>(0),
                                            static_cast<int64_t>(5),
                                            static_cast<int64_t>(-1)));
+  file << "\n";
   file.saveFile();
 }
 
@@ -78,8 +86,10 @@ TEST_F(RangeUtilsTest, ComputeArangeSizeInt32) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ComputeArangeSizeInt32 ";
 
   file << std::to_string(at::native::compute_arange_size<int>(2, 12, 3)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -87,12 +97,14 @@ TEST_F(RangeUtilsTest, ComputeArangeSizeInt64NegativeStep) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ComputeArangeSizeInt64NegativeStep ";
 
   file << std::to_string(at::native::compute_arange_size<int64_t>(
               static_cast<int64_t>(5),
               static_cast<int64_t>(-1),
               static_cast<int64_t>(-2)))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -100,10 +112,12 @@ TEST_F(RangeUtilsTest, ComputeArangeSizeFloat) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ComputeArangeSizeFloat ";
 
   file << std::to_string(
               at::native::compute_arange_size<float>(0.0f, 1.0f, 0.25f))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -111,9 +125,11 @@ TEST_F(RangeUtilsTest, ComputeArangeSizeDoubleZeroLength) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ComputeArangeSizeDoubleZeroLength ";
 
   file << std::to_string(at::native::compute_arange_size<double>(5.0, 5.0, 1.0))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 

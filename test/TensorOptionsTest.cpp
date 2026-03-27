@@ -37,12 +37,14 @@ TEST_F(TensorOptionsTest, DefaultConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "DefaultConstruction ";
   // 默认 dtype 是 Float, layout 是 Strided, device 是 CPU
   file << std::to_string(get_dtype_as_int(opts)) << " ";
   file << std::to_string(static_cast<int>(opts.layout())) << " ";
   file << std::to_string(opts.device().is_cpu() ? 1 : 0) << " ";
   file << std::to_string(opts.requires_grad() ? 1 : 0) << " ";
   file << std::to_string(opts.pinned_memory() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -52,7 +54,9 @@ TEST_F(TensorOptionsTest, FromScalarType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromScalarType ";
   file << std::to_string(get_dtype_as_int(opts)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -62,8 +66,10 @@ TEST_F(TensorOptionsTest, FromLayout) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromLayout ";
   file << std::to_string(static_cast<int>(opts.layout())) << " ";
   file << std::to_string(opts.has_layout() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -73,8 +79,10 @@ TEST_F(TensorOptionsTest, FromDevice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromDevice ";
   file << std::to_string(opts.device().is_cpu() ? 1 : 0) << " ";
   file << std::to_string(opts.has_device() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -84,7 +92,9 @@ TEST_F(TensorOptionsTest, FromMemoryFormat) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromMemoryFormat ";
   file << std::to_string(opts.has_memory_format() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -98,6 +108,7 @@ TEST_F(TensorOptionsTest, ChainedSetters) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ChainedSetters ";
   // Paddle 不支持在创建 tensor 时设置 requires_grad，
   // 单独用不含 requires_grad 的 opts 来探测 dtype，避免 at::empty 抛出异常。
   auto opts_for_dtype = c10::TensorOptions().dtype(at::kDouble);
@@ -108,6 +119,7 @@ TEST_F(TensorOptionsTest, ChainedSetters) {
   file << std::to_string(opts.has_dtype() ? 1 : 0) << " ";
   file << std::to_string(opts.has_layout() ? 1 : 0) << " ";
   file << std::to_string(opts.has_requires_grad() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -117,6 +129,7 @@ TEST_F(TensorOptionsTest, HasAndOptMethods) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "HasAndOptMethods ";
   // 默认无设置
   file << std::to_string(opts.has_device() ? 1 : 0) << " ";
   file << std::to_string(opts.has_dtype() ? 1 : 0) << " ";
@@ -128,6 +141,7 @@ TEST_F(TensorOptionsTest, HasAndOptMethods) {
   file << std::to_string(opts.device_opt().has_value() ? 1 : 0) << " ";
   file << std::to_string(opts.dtype_opt().has_value() ? 1 : 0) << " ";
   file << std::to_string(opts.layout_opt().has_value() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -141,7 +155,9 @@ TEST_F(TensorOptionsTest, DeviceIndex) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DeviceIndex ";
   file << std::to_string(opts.device_index()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -154,10 +170,12 @@ TEST_F(TensorOptionsTest, IsSparse) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsSparse ";
   file << std::to_string(opts_strided.is_sparse() ? 1 : 0) << " ";
   file << std::to_string(opts_sparse.is_sparse() ? 1 : 0) << " ";
   file << std::to_string(opts_sparse_csr.is_sparse_csr() ? 1 : 0) << " ";
   file << std::to_string(opts_sparse_csr.is_sparse_compressed() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -172,11 +190,13 @@ TEST_F(TensorOptionsTest, ConvenienceFunctions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ConvenienceFunctions ";
   file << std::to_string(get_dtype_as_int(opts_dtype)) << " ";
   file << std::to_string(static_cast<int>(opts_layout.layout())) << " ";
   file << std::to_string(opts_device.device().is_cpu() ? 1 : 0) << " ";
   file << std::to_string(opts_requires.requires_grad() ? 1 : 0) << " ";
   file << std::to_string(opts_memory.has_memory_format() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -189,8 +209,10 @@ TEST_F(TensorOptionsTest, MergeMemoryFormat) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MergeMemoryFormat ";
   file << std::to_string(merged.has_memory_format() ? 1 : 0) << " ";
   file << std::to_string(not_merged.has_memory_format() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -202,9 +224,11 @@ TEST_F(TensorOptionsTest, CreateTensorWithOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CreateTensorWithOptions ";
   file << std::to_string(static_cast<int>(t.scalar_type())) << " ";
   file << std::to_string(t.dim()) << " ";
   file << std::to_string(t.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -215,7 +239,9 @@ TEST_F(TensorOptionsTest, ToString) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToString ";
   file << std::to_string(opts.has_dtype() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -225,6 +251,7 @@ TEST_F(TensorOptionsTest, DefaultHelperFunctions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DefaultHelperFunctions ";
 
   auto layout_default = c10::layout_or_default(std::optional<c10::Layout>{});
   auto layout_sparse =
@@ -249,6 +276,7 @@ TEST_F(TensorOptionsTest, DefaultHelperFunctions) {
   file << std::to_string(static_cast<int>(dtype_long)) << " ";
   file << std::to_string(pinned_default ? 1 : 0) << " ";
   file << std::to_string(pinned_true ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 

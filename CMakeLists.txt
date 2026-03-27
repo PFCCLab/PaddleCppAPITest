@@ -77,6 +77,21 @@ file(GLOB_RECURSE TEST_BASE_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 set(PADDLE_TARGET_FOLDER ${CMAKE_BINARY_DIR}/paddle)
 
 # ---------------------------------------------------------------------------
+# CUDA Toolkit (needed for CUDA-specific test headers in the Torch build)
+# ---------------------------------------------------------------------------
+find_package(CUDAToolkit QUIET)
+if(CUDAToolkit_FOUND)
+  message(STATUS "Found CUDA Toolkit: ${CUDAToolkit_INCLUDE_DIRS}")
+  set(CUDA_INCLUDE_DIRS "${CUDAToolkit_INCLUDE_DIRS}")
+elseif(EXISTS "/usr/local/cuda/include")
+  set(CUDA_INCLUDE_DIRS "/usr/local/cuda/include")
+  message(STATUS "Using default CUDA include dir: ${CUDA_INCLUDE_DIRS}")
+else()
+  message(WARNING "CUDA headers not found; CUDA tests may not compile.")
+  set(CUDA_INCLUDE_DIRS "")
+endif()
+
+# ---------------------------------------------------------------------------
 # Build Torch test case
 # ---------------------------------------------------------------------------
 set(TORCH_DIR

@@ -55,6 +55,7 @@ TEST_F(EyeTest, EyeNWithOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "EyeNWithOptions ";
 
   at::Tensor t = at::eye(4, at::TensorOptions().dtype(at::kFloat));
   write_tensor_to_file(&file, t);
@@ -62,6 +63,7 @@ TEST_F(EyeTest, EyeNWithOptions) {
   at::Tensor zero_n = at::eye(0, at::TensorOptions().dtype(at::kFloat));
   write_tensor_to_file(&file, zero_n);
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -69,6 +71,7 @@ TEST_F(EyeTest, EyeNMWithOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EyeNMWithOptions ";
 
   at::Tensor t = at::eye(3, 5, at::TensorOptions().dtype(at::kLong));
   write_tensor_to_file(&file, t);
@@ -76,6 +79,7 @@ TEST_F(EyeTest, EyeNMWithOptions) {
   at::Tensor one_shape = at::eye(1, 1, at::TensorOptions().dtype(at::kLong));
   write_tensor_to_file(&file, one_shape);
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -83,6 +87,7 @@ TEST_F(EyeTest, EyeNWithExplicitOptionalArgs) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EyeNWithExplicitOptionalArgs ";
 
   at::Tensor t = at::eye(6,
                          std::optional<at::ScalarType>(at::kDouble),
@@ -90,6 +95,7 @@ TEST_F(EyeTest, EyeNWithExplicitOptionalArgs) {
                          std::nullopt,
                          std::nullopt);
   write_tensor_to_file(&file, t);
+  file << "\n";
   file.saveFile();
 }
 
@@ -97,6 +103,7 @@ TEST_F(EyeTest, EyeNMWithExplicitOptionalArgs) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EyeNMWithExplicitOptionalArgs ";
 
   at::Tensor t = at::eye(2,
                          4,
@@ -114,6 +121,7 @@ TEST_F(EyeTest, EyeNMWithExplicitOptionalArgs) {
                                std::nullopt);
   write_tensor_to_file(&file, large_t);
 
+  file << "\n";
   file.saveFile();
 }
 

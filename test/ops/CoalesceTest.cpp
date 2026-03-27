@@ -61,9 +61,11 @@ TEST_F(CoalesceTest, NnzBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "NnzBasic ";
 
   file << std::to_string(sparse_unique._nnz()) << " ";  // 3
   file << std::to_string(sparse_dup._nnz()) << " ";     // 3（含重复）
+  file << "\n";
   file.saveFile();
 }
 
@@ -71,7 +73,8 @@ TEST_F(CoalesceTest, NnzBasic) {
 TEST_F(CoalesceTest, ValuesBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ValuesBasic ";
 
   at::Tensor v = sparse_unique._values();
   file << std::to_string(v.dim()) << " ";
@@ -80,6 +83,7 @@ TEST_F(CoalesceTest, ValuesBasic) {
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[1]) << " ";
   file << std::to_string(data[2]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -87,10 +91,12 @@ TEST_F(CoalesceTest, ValuesBasic) {
 TEST_F(CoalesceTest, IsCoalescedInitial) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "IsCoalescedInitial ";
 
   // 含重复索引，未经显式 coalesce，初始状态 is_coalesced 为 false
   file << std::to_string(static_cast<int>(sparse_dup.is_coalesced())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -98,10 +104,12 @@ TEST_F(CoalesceTest, IsCoalescedInitial) {
 TEST_F(CoalesceTest, CoalesceReducesNnz) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "CoalesceReducesNnz ";
 
   at::Tensor coalesced = sparse_dup.coalesce();
   file << std::to_string(coalesced._nnz()) << " ";  // 2（重复已合并）
+  file << "\n";
   file.saveFile();
 }
 
@@ -109,10 +117,12 @@ TEST_F(CoalesceTest, CoalesceReducesNnz) {
 TEST_F(CoalesceTest, CoalesceIsCoalesced) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "CoalesceIsCoalesced ";
 
   at::Tensor coalesced = sparse_dup.coalesce();
   file << std::to_string(static_cast<int>(coalesced.is_coalesced())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -120,7 +130,8 @@ TEST_F(CoalesceTest, CoalesceIsCoalesced) {
 TEST_F(CoalesceTest, CoalesceAccumulatesValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "CoalesceAccumulatesValues ";
 
   at::Tensor coalesced = sparse_dup.coalesce();
   at::Tensor v = coalesced._values();
@@ -131,6 +142,7 @@ TEST_F(CoalesceTest, CoalesceAccumulatesValues) {
   float sum = 0.f;
   for (int i = 0; i < v.numel(); ++i) sum += data[i];
   file << std::to_string(sum) << " ";  // 1 + 12 = 13
+  file << "\n";
   file.saveFile();
 }
 
@@ -138,11 +150,13 @@ TEST_F(CoalesceTest, CoalesceAccumulatesValues) {
 TEST_F(CoalesceTest, CoalesceUniqueIndicesPreservesNnz) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "CoalesceUniqueIndicesPreservesNnz ";
 
   at::Tensor coalesced = sparse_unique.coalesce();
   file << std::to_string(coalesced._nnz()) << " ";  // 仍为 3
   file << std::to_string(static_cast<int>(coalesced.is_coalesced())) << " ";
+  file << "\n";
   file.saveFile();
 }
 

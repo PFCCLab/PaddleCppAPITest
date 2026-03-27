@@ -59,7 +59,9 @@ TEST_F(DetachTest, DetachBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "DetachBasic ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -75,7 +77,9 @@ TEST_F(DetachTest, DetachInplace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DetachInplace ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 

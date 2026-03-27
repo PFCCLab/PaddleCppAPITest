@@ -47,11 +47,13 @@ TEST_F(ViewTest, ViewFlatten) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ViewFlatten ";
   write_view_result_to_file(&file, result);
   float* data = result.data_ptr<float>();
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(data[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -61,11 +63,13 @@ TEST_F(ViewTest, View3DTo2D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "View3DTo2D ";
   write_view_result_to_file(&file, result);
   float* data = result.data_ptr<float>();
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(data[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -75,7 +79,9 @@ TEST_F(ViewTest, ViewMergeLastDims) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewMergeLastDims ";
   write_view_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -85,11 +91,13 @@ TEST_F(ViewTest, ViewDifferentShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewDifferentShape ";
   write_view_result_to_file(&file, result);
   float* data = result.data_ptr<float>();
   for (int64_t i = 0; i < 24; ++i) {
     file << std::to_string(data[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -99,7 +107,9 @@ TEST_F(ViewTest, ViewAutoInfer) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewAutoInfer ";
   write_view_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -109,7 +119,9 @@ TEST_F(ViewTest, ViewAutoInferPartial) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewAutoInferPartial ";
   write_view_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -119,7 +131,9 @@ TEST_F(ViewTest, ViewMemberFunction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewMemberFunction ";
   write_view_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -129,9 +143,11 @@ TEST_F(ViewTest, ViewSharesStorage) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewSharesStorage ";
   // 验证 data_ptr 相同
   file << std::to_string(result.data_ptr() == tensor.data_ptr()) << " ";
   file << std::to_string(result.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -141,12 +157,14 @@ TEST_F(ViewTest, ViewDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewDtype ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   for (int64_t i = 0; i < result.dim(); ++i) {
     file << std::to_string(result.sizes()[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -156,9 +174,11 @@ TEST_F(ViewTest, ViewDtypeMember) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewDtypeMember ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -173,6 +193,7 @@ TEST_F(ViewTest, ViewDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewDouble ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -180,6 +201,7 @@ TEST_F(ViewTest, ViewDouble) {
   for (int64_t i = 0; i < 6; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -194,6 +216,7 @@ TEST_F(ViewTest, ViewInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewInt ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -201,6 +224,7 @@ TEST_F(ViewTest, ViewInt) {
   for (int64_t i = 0; i < 12; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -215,6 +239,7 @@ TEST_F(ViewTest, ViewLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewLong ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -222,6 +247,7 @@ TEST_F(ViewTest, ViewLong) {
   for (int64_t i = 0; i < 12; ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -236,10 +262,12 @@ TEST_F(ViewTest, ViewLargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewLargeShape ";
   write_view_result_to_file(&file, result);
   float* rdata = result.data_ptr<float>();
   file << std::to_string(rdata[0]) << " ";
   file << std::to_string(rdata[9999]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -249,7 +277,9 @@ TEST_F(ViewTest, ViewToHighDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ViewToHighDim ";
   write_view_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 

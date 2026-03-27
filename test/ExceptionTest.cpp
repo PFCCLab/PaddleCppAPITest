@@ -28,6 +28,7 @@ TEST_F(ExceptionTest, TorchCheckSuccess) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "TorchCheckSuccess ";
   bool passed = true;
   try {
     TORCH_CHECK(1 == 1, "This should not throw");
@@ -35,6 +36,7 @@ TEST_F(ExceptionTest, TorchCheckSuccess) {
     passed = false;
   }
   file << std::to_string(passed ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -43,6 +45,7 @@ TEST_F(ExceptionTest, TorchCheckFailure) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TorchCheckFailure ";
   bool caught = false;
   try {
     TORCH_CHECK(false, "Expected failure");
@@ -50,6 +53,7 @@ TEST_F(ExceptionTest, TorchCheckFailure) {
     caught = true;
   }
   file << std::to_string(caught ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -58,6 +62,7 @@ TEST_F(ExceptionTest, TorchInternalAssertSuccess) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TorchInternalAssertSuccess ";
   bool passed = true;
   try {
     TORCH_INTERNAL_ASSERT(2 > 1, "Should not throw");
@@ -65,6 +70,7 @@ TEST_F(ExceptionTest, TorchInternalAssertSuccess) {
     passed = false;
   }
   file << std::to_string(passed ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -73,6 +79,7 @@ TEST_F(ExceptionTest, TorchInternalAssertFailure) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TorchInternalAssertFailure ";
   bool caught = false;
   try {
     TORCH_INTERNAL_ASSERT(false, "Expected failure");
@@ -80,6 +87,7 @@ TEST_F(ExceptionTest, TorchInternalAssertFailure) {
     caught = true;
   }
   file << std::to_string(caught ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -88,6 +96,7 @@ TEST_F(ExceptionTest, TorchCheckEqSuccess) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TorchCheckEqSuccess ";
   bool passed = true;
   try {
     TORCH_CHECK_EQ(3, 3);
@@ -95,6 +104,7 @@ TEST_F(ExceptionTest, TorchCheckEqSuccess) {
     passed = false;
   }
   file << std::to_string(passed ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -106,6 +116,7 @@ TEST_F(ExceptionTest, TorchCheckEqFailure) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TorchCheckEqFailure ";
 #if USE_PADDLE_API
   bool caught = false;
   try {
@@ -120,6 +131,7 @@ TEST_F(ExceptionTest, TorchCheckEqFailure) {
   EXPECT_DEATH({ TORCH_CHECK_EQ(3, 4); }, ".*");
   file << "1 ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -131,6 +143,7 @@ TEST_F(ExceptionTest, TorchCheckNe) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TorchCheckNe ";
   bool passed = true;
   try {
     TORCH_CHECK_NE(3, 4);
@@ -152,6 +165,7 @@ TEST_F(ExceptionTest, TorchCheckNe) {
   EXPECT_DEATH({ TORCH_CHECK_NE(3, 3); }, ".*");
   file << "1 ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -160,6 +174,7 @@ TEST_F(ExceptionTest, TorchCheckComparisons) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TorchCheckComparisons ";
 
   bool lt_pass = true;
   try {
@@ -192,6 +207,7 @@ TEST_F(ExceptionTest, TorchCheckComparisons) {
     ge_pass = false;
   }
   file << std::to_string(ge_pass ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -200,6 +216,7 @@ TEST_F(ExceptionTest, C10ThrowError) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "C10ThrowError ";
 
   bool caught_not_impl = false;
   try {
@@ -216,6 +233,7 @@ TEST_F(ExceptionTest, C10ThrowError) {
     caught_error = true;
   }
   file << std::to_string(caught_error ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 

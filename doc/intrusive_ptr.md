@@ -1,160 +1,160 @@
-##### intrusive_ptr.h 头文件 API 兼容性
+## intrusive_ptr.h 头文件 API 兼容性
 
-✅ 表示已经支持
-🚧 表示正在支持
-❌ 表示不准备支持
-🔧 表示部分支持（有功能限制）
+对比文件：
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/util/intrusive_ptr.h`
+- `/home/may/pytorch/c10/util/intrusive_ptr.h`
 
-**按照功能分类排序**
+状态说明：
+- `✅` 已实现（接口存在且签名/语义基本一致）
+- `🔧` 部分兼容（接口存在，但签名或实现语义有差异）
+- `❌` 未实现（PyTorch 有，Paddle compat 头文件无）
 
 ---
 
-### 核心类型
+### 核心类型与标签
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|-----------|------------------|--------------|--------|------|
-| `intrusive_ptr_target` | ✅ | - [x] | P0 | 已实现：原子合并引用计数（refcount+weakcount 存于同一 uint64_t 原子变量） |
-| `intrusive_ptr<T, NullType>` | ✅ | - [x] | P0 | 已实现真正侵入式引用计数，不再基于 `std::shared_ptr` |
-| `weak_intrusive_ptr<T, NullType>` | ✅ | - [x] | P1 | 已实现弱引用；`lock()` 原子性提升强引用 |
-| `weak_intrusive_ptr_target` | ❌ | - [ ] | P2 | 未提供别名类型 |
+|-----------|------------------|------------|-------|------|
+| `intrusive_ptr_target` | ✅ | - [ ] | P0 | 已实现原子合并引用计数（`refcount + weakcount`） |
+| `intrusive_ptr<T, NullType>` | ✅ | - [ ] | P0 | 已实现侵入式强引用 |
+| `weak_intrusive_ptr<T, NullType>` | ✅ | - [ ] | P0 | 已实现侵入式弱引用 |
+| `weak_intrusive_ptr_target` | ❌ | - [ ] | P2 | PyTorch 提供类型别名，Paddle 未提供 |
+| `raw::DontIncreaseRefcount` | ✅ | - [ ] | P1 | Paddle 现已定义该标签类型 |
 
 ---
 
 ### intrusive_ptr 构造与赋值
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|-----------|------------------|--------------|--------|------|
-| `intrusive_ptr()` | ✅ | - [ ] | P0 | 支持 |
-| `intrusive_ptr(nullptr_t)` | 🔧 | - [ ] | P1 | Paddle 未显式提供该重载，但默认构造可替代 |
-| `intrusive_ptr(T*)` | ✅ | - [ ] | P0 | 支持 |
-| `intrusive_ptr(std::shared_ptr<T>)` | 🔧 | - [ ] | P1 | Paddle 特有；PyTorch 原生接口无该构造 |
-| 跨类型拷贝构造（`intrusive_ptr<U> -> intrusive_ptr<T>`） | ✅ | - [ ] | P1 | 支持可转换类型 |
-| 移动构造 / 移动赋值 | 🔧 | - [ ] | P1 | Paddle 依赖编译器生成；无显式 NullType 变体 |
-| 拷贝赋值 | ✅ | - [ ] | P1 | 支持 |
+|-----------|------------------|------------|-------|------|
+| `intrusive_ptr()` | ✅ | - [ ] | P0 | 一致 |
+| `intrusive_ptr(nullptr_t)` | ✅ | - [ ] | P0 | Paddle 已显式提供该构造 |
+| `intrusive_ptr(T*)` | ✅ | - [ ] | P0 | 一致 |
+| `intrusive_ptr(std::unique_ptr<T>)` | ❌ | - [ ] | P1 | PyTorch 支持，Paddle 未提供 |
+| `intrusive_ptr(T*, raw::DontIncreaseRefcount)` | ❌ | - [ ] | P1 | PyTorch 支持 tagged ctor，Paddle 未提供 |
+| 跨类型拷贝/移动构造（`intrusive_ptr<U> -> intrusive_ptr<T>`） | ✅ | - [ ] | P1 | Paddle 支持可转换类型模板构造 |
+| 拷贝赋值 / 移动赋值 | ✅ | - [ ] | P1 | 一致 |
 
 ---
 
 ### intrusive_ptr 观察器与基础操作
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|-----------|------------------|--------------|--------|------|
-| `get()` | ✅ | - [ ] | P0 | 支持 |
-| `operator*()` / `operator->()` | ✅ | - [ ] | P0 | 支持 |
-| `operator bool()` | ✅ | - [ ] | P1 | 支持（Paddle 为 `explicit`） |
-| `defined()` | ✅ | - [ ] | P0 | 支持 |
-| `use_count()` | 🔧 | - [ ] | P1 | Paddle 返回 `int64_t`；PyTorch 返回 `uint32_t` |
-| `weak_use_count()` | ❌ | - [ ] | P1 | 未支持 |
-| `unique()` | ❌ | - [ ] | P1 | 未支持 |
-| `is_uniquely_owned()` | ❌ | - [ ] | P1 | 未支持 |
-| `reset()` | ✅ | - [ ] | P0 | 支持 |
-| `swap(intrusive_ptr&)` | ❌ | - [ ] | P2 | 未提供成员函数 |
+|-----------|------------------|------------|-------|------|
+| `get()` | ✅ | - [ ] | P0 | 一致 |
+| `operator*()` / `operator->()` | ✅ | - [ ] | P0 | 一致 |
+| `operator bool()` | ✅ | - [ ] | P1 | 一致 |
+| `defined()` | ✅ | - [ ] | P0 | 一致 |
+| `use_count()` | ✅ | - [ ] | P0 | 两端均返回 `uint32_t` |
+| `weak_use_count()` | ❌ | - [ ] | P1 | PyTorch 提供，Paddle 未提供 |
+| `unique()` | ✅ | - [ ] | P1 | Paddle 已支持 |
+| `is_uniquely_owned()` | ❌ | - [ ] | P1 | PyTorch 提供，Paddle 未提供 |
+| `reset()` | ✅ | - [ ] | P0 | 一致 |
+| `swap(intrusive_ptr&)` | ✅ | - [ ] | P1 | Paddle 已提供成员 `swap` |
 
 ---
 
-### 所有权转移与不安全适配
+### 所有权转移与工厂接口
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|-----------|------------------|--------------|--------|------|
-| `release()` | ✅ | - [x] | P0 | 真正所有权转移：返回裸指针并将内部 `target_` 设为 null，`defined()` → false |
-| `reclaim(T*)` | ✅ | - [x] | P0 | 静态方法，采用原始指针而不增加引用计数 |
-| `reclaim_copy(T*)` | ❌ | - [ ] | P1 | 未支持 |
-| `unsafe_steal_from_new(T*)` | ❌ | - [ ] | P2 | 未支持 |
-| `unsafe_adapt_non_heap_allocated(T*, uint32_t)` | ❌ | - [ ] | P2 | 未支持 |
-| `unsafe_reclaim_from_nonowning(T*)` | ❌ | - [ ] | P2 | 未支持 |
+|-----------|------------------|------------|-------|------|
+| `release()` | 🔧 | - [ ] | P0 | 语义一致；Paddle 标记为 `[[deprecated]]`，PyTorch 未标记 |
+| `reclaim(T*)` | ✅ | - [ ] | P0 | 一致：采用裸指针且不增计数 |
+| `unsafe_adopt(T*)` | 🔧 | - [ ] | P2 | Paddle 提供兼容别名；PyTorch 无同名接口 |
+| `reclaim_copy(T*)` | ❌ | - [ ] | P1 | PyTorch 提供，Paddle 未提供 |
+| `intrusive_ptr::make(args...)` | ❌ | - [ ] | P1 | PyTorch 提供类内工厂，Paddle 未提供 |
+| `make_intrusive<T>(args...)` | ✅ | - [ ] | P0 | 一致 |
+| `unsafe_steal_from_new(T*)` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
+| `unsafe_adapt_non_heap_allocated(T*, uint32_t)` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
+| `unsafe_reclaim_from_nonowning(T*)` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
 
 ---
 
-### 工厂函数与辅助接口
+### 比较运算与容器支持
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|-----------|------------------|--------------|--------|------|
-| `intrusive_ptr::make(args...)` | ✅ | - [ ] | P1 | 支持 |
-| `make_intrusive<T>(args...)` | ✅ | - [x] | P0 | 支持；初始 strong refcount=1, weak refcount=1（与 PyTorch kUniqueRef 对齐） |
-| `get_shared()` | 🔧 | - [ ] | P2 | Paddle 特有（用于 shared_ptr 互操作） |
+|-----------|------------------|------------|-------|------|
+| `operator==/!= (intrusive_ptr, intrusive_ptr)` | ✅ | - [ ] | P1 | Paddle 通过成员运算符支持同语义比较 |
+| `operator==/!= (intrusive_ptr, nullptr)` | 🔧 | - [ ] | P2 | PyTorch 提供全局重载；Paddle 为成员重载 |
+| `operator< (intrusive_ptr, intrusive_ptr)` | ❌ | - [ ] | P2 | PyTorch 支持，Paddle 未提供 |
+| `swap(intrusive_ptr&, intrusive_ptr&)` | ❌ | - [ ] | P2 | PyTorch 提供全局 `swap`，Paddle 未提供 |
+| `std::hash<intrusive_ptr<...>>` | ❌ | - [ ] | P3 | PyTorch 支持，Paddle 未提供 |
 
 ---
 
-### 全局运算符与容器支持
+### weak_intrusive_ptr 接口
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|-----------|------------------|--------------|--------|------|
-| `operator==/!= (intrusive_ptr, intrusive_ptr)` | ✅ | - [ ] | P1 | 支持 |
-| `operator==/!= (intrusive_ptr, nullptr)` | ❌ | - [ ] | P2 | 未提供显式全局重载 |
-| `operator< (intrusive_ptr, intrusive_ptr)` | ❌ | - [ ] | P2 | 未支持 |
-| `swap(intrusive_ptr&, intrusive_ptr&)` | ❌ | - [ ] | P2 | 未支持 |
-| `std::hash<intrusive_ptr<...>>` | ❌ | - [ ] | P3 | 未支持 |
+|-----------|------------------|------------|-------|------|
+| `weak_intrusive_ptr(const intrusive_ptr&)` | ✅ | - [ ] | P1 | 一致 |
+| `lock()` | ✅ | - [ ] | P1 | 一致：可原子提升强引用 |
+| `use_count()` | ✅ | - [ ] | P1 | 一致 |
+| `weak_use_count()` | ❌ | - [ ] | P1 | PyTorch 提供，Paddle 未提供 |
+| `expired()` | ✅ | - [ ] | P1 | 一致 |
+| `reset()` | ✅ | - [ ] | P1 | 一致 |
+| `release()/reclaim()/reclaim_copy()` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
+| `operator< / operator== / operator!= / swap` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
 
 ---
 
-### weak_intrusive_ptr 与 raw 命名空间工具
+### raw 命名空间工具
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|-----------|------------------|--------------|--------|------|
-| `weak_intrusive_ptr` 全部接口（`lock/release/reclaim/...`） | ✅ | - [x] | P1 | 已实现，支持弱引用提升为强引用 |
-| `raw::intrusive_ptr::incref/decref` | ✅ | - [x] | P1 | 已支持：直接操作侵入式引用计数 |
-| `raw::weak_intrusive_ptr::incref/decref` | ✅ | - [x] | P1 | 已支持：直接操作弱引用计数 |
+|-----------|------------------|------------|-------|------|
+| `raw::intrusive_ptr::incref/decref` | ✅ | - [ ] | P1 | 已支持 |
+| `raw::intrusive_ptr::use_count/make_weak` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
+| `raw::weak_intrusive_ptr::incref/decref` | ✅ | - [ ] | P1 | 已支持 |
+| `raw::weak_intrusive_ptr::lock/use_count` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
 
 ---
 
 ### Traits 与元编程接口
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
-|-----------|------------------|--------------|--------|------|
-| `detail::TargetTraits` | ❌ | - [ ] | P3 | 未支持 |
-| `MaybeOwnedTraits<c10::intrusive_ptr<T>>` | ❌ | - [ ] | P2 | 未支持 |
-| `raw::DontIncreaseRefcount` | ❌ | - [ ] | P2 | 未支持 |
+|-----------|------------------|------------|-------|------|
+| `detail::TargetTraits` | ❌ | - [ ] | P3 | PyTorch 提供（含 PyObject 相关路径），Paddle 未提供 |
+| `MaybeOwnedTraits<c10::intrusive_ptr<T>>` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
 
 ---
 
 ### 兼容性统计
 
 | 状态 | 数量 |
-|------|------|
-| ✅ 已完全支持 | 25 |
-| 🚧 正在支持 | 0 |
-| 🔧 部分支持 | 4 |
-| ❌ 未支持 | 14 |
+|---|---|
+| ✅ 已实现 | 27 |
+| 🔧 部分兼容 | 3 |
+| ❌ 未实现 | 20 |
 
 ---
 
 ### 备注
 
-1. **对比文件**：
-   - Paddle: `/home/may/Paddle/paddle/phi/api/include/compat/c10/util/intrusive_ptr.h`
-   - PyTorch: `/home/may/pytorch/c10/util/intrusive_ptr.h`
+1. **优先级说明**：
+   - P0: 核心功能，必须支持
+   - P1: 常用功能，高优先级
+   - P2: 进阶功能，中优先级
+   - P3: 边缘功能，低优先级
 
-2. **核心结论**：
-   - Paddle 兼容层已实现真正的侵入式引用计数（intrusive reference counting），完全替代了早期的 `std::shared_ptr` 包装方案。
-   - `intrusive_ptr_target` 使用原子合并引用计数（64-bit 原子变量同时存储 refcount 和 weakcount）。
-   - `make_intrusive<T>(args...)` 通过正规构造函数创建对象，初始 strong refcount=1, weak refcount=1（`kUniqueRef`），与 PyTorch 语义一致。
-   - `reclaim()` 用于从裸指针重新构造 `intrusive_ptr` 而不增加引用计数（与 `release()` 配对使用）。
-   - `release()` 实现真正的所有权转移：内部指针清零并返回裸指针，`defined()` 返回 false。
-   - `weak_intrusive_ptr` 完整支持，包括 `lock()` 原子性提升强引用、`expired()` 检查对象状态。
-   - `raw::intrusive_ptr` 和 `raw::weak_intrusive_ptr` 命名空间提供底层引用计数操作接口。
+2. **对比范围说明**：
+   - 本文档基于头文件声明对比：
+     - `paddle/phi/api/include/compat/c10/util/intrusive_ptr.h`
+     - `/home/may/pytorch/c10/util/intrusive_ptr.h`
 
-3. **测试现状**：
-   - 在当前仓库中未检索到 `intrusive_ptr`/`weak_intrusive_ptr` 相关测试文件或直接调用用例，测试状态暂标记为 `- [ ]`。
+3. **主要差异说明**：
+   - Paddle 已具备 intrusive/weak intrusive 的核心生命周期能力，但弱引用高级接口（`weak_use_count/reclaim_copy` 等）覆盖仍低于 PyTorch。
+   - PyTorch 提供更完整的 unsafe 适配、全局运算符、`std::hash` 与 traits 体系；Paddle 当前聚焦核心可用路径。
+   - `release()` 语义一致，但 Paddle 已标记 deprecated，调用上建议优先使用 `reclaim()` 配套路径。
 
-4. **更新记录**：
-   - 2025-03-18: `release()` 方法已标记为 `[[deprecated]]`；添加了缺失的头文件 `<cstdint>` 和 `<type_traits>`
-   - 2026-03-19 (Round 1): 修复 PR #78070 review comments，`release()` 已保持 shared_ptr 引用以防止 use-after-free
-   - 2026-03-19 (Round 2): 完全重写为真正的侵入式指针实现
-     - 新增 `intrusive_ptr_target` 基类（原子合并引用计数）
-     - `release()` 真正实现所有权转移（内部指针清零，`defined()` → false）
-     - 新增 `reclaim()`、`weak_intrusive_ptr`、`raw::intrusive_ptr`/`raw::weak_intrusive_ptr` 完整支持
-   - 2026-03-20 (Round 4): 修复 `make_intrusive()` 初始引用计数 bug（PR #78070 ShigureNyako Round 4 review）
-     - 根本原因：`make_intrusive()` 使用 `reclaim()` 创建对象，`reclaim()` 不增加引用计数，导致新建对象 `use_count() = 0`
-     - 修复：`explicit intrusive_ptr(TTarget* raw)` 构造函数直接 store `kUniqueRef`（strong=1, weak=1），与 PyTorch 语义完全一致
-     - 修复：`make_intrusive()` 改为通过正规构造函数 `intrusive_ptr<T>(new T(...))` 创建对象
-     - 新增测试：`MakeIntrusiveInitialRefcountIsOne`、`CopyIntrusivePtrIncrementsRefcount`、`MoveIntrusivePtrKeepsRefcount`
+4. **测试现状**：
+   - 当前仓库 `test/` 下未检索到 intrusive_ptr/weak_intrusive_ptr 的直接测试用例，测试状态暂标记为 `- [ ]`。
 
 ---
 
 ### intrusive_ptr::release() 调用时序图
 
-> 本节描述 `release()` 方法的真正侵入式指针实现，语义与 PyTorch 原生一致。
+> 本节保留调用时序图，用于说明 `release()` 与 `reclaim()` 的所有权流转。
 
-#### 当前实现（真正侵入式引用计数）
+#### 当前实现（侵入式引用计数）
 
 ```mermaid
 sequenceDiagram
@@ -194,7 +194,7 @@ sequenceDiagram
 | 特性 | 当前实现 |
 |------|----------|
 | 所有权转移 | `release()` 完全转移，内部指针清零 |
-| 对象生命周期 | 引用计数不减少，由调用方负责 |
+| 对象生命周期 | 引用计数不减少，由调用方负责后续托管 |
 | 重新封装 | `reclaim(raw_ptr)` 采用裸指针而不增加计数 |
 | 内存安全 | 调用方必须正确管理返回的裸指针 |
-| API 状态 | 正常使用（非 deprecated） |
+| API 状态 | PyTorch 正常使用；Paddle 标记 `[[deprecated]]` |

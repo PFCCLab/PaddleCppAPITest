@@ -71,6 +71,7 @@ TEST_F(ListCompatTest, ListReserveAndCapacity) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ListReserveAndCapacity ";
 
   c10::List<int64_t> list({1, 2, 3});
   list_reserve_api_probe(&list, 16);
@@ -78,6 +79,7 @@ TEST_F(ListCompatTest, ListReserveAndCapacity) {
   file << std::to_string(list.size()) << " ";
   file << std::to_string(cap >= list.size()) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -85,6 +87,7 @@ TEST_F(ListCompatTest, ListPushBackAndEmplaceBack) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ListPushBackAndEmplaceBack ";
 
   c10::List<int64_t> list;
   int64_t lv = 7;
@@ -98,6 +101,7 @@ TEST_F(ListCompatTest, ListPushBackAndEmplaceBack) {
   file << std::to_string(static_cast<int64_t>(list[1])) << " ";
   file << std::to_string(static_cast<int64_t>(list[2])) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -105,6 +109,7 @@ TEST_F(ListCompatTest, ListPopBackAndClear) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ListPopBackAndClear ";
 
   c10::List<int64_t> list({10, 20, 30});
   list_pop_back_api_probe(&list);
@@ -113,6 +118,7 @@ TEST_F(ListCompatTest, ListPopBackAndClear) {
   file << std::to_string(list.size()) << " ";
   file << std::to_string(list.empty()) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -120,6 +126,7 @@ TEST_F(ListCompatTest, ListResizeVariants) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ListResizeVariants ";
 
   c10::List<int64_t> list({3, 4});
   list_resize_count_api_probe(&list, 5);
@@ -131,6 +138,7 @@ TEST_F(ListCompatTest, ListResizeVariants) {
   file << std::to_string(static_cast<int64_t>(list[5])) << " ";
   file << std::to_string(static_cast<int64_t>(list[6])) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 

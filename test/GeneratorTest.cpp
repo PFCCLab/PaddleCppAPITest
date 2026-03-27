@@ -6,6 +6,7 @@
 
 #include <ATen/core/Generator.h>
 #include <ATen/cuda/CUDAGeneratorImpl.h>
+#include <c10/cuda/CUDAFunctions.h>
 #include <gtest/gtest.h>
 
 #include <optional>
@@ -24,9 +25,35 @@ using paddle_api_test::ThreadSafeParam;
 class GeneratorTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    cuda_runtime_available_ = HasCudaRuntime();
+    if (!cuda_runtime_available_) {
+      return;
+    }
     test_gen_ = at::cuda::detail::createCUDAGenerator(0);
     test_gen_.set_current_seed(42);
   }
+
+  static bool HasCudaRuntime() {
+    try {
+      return c10::cuda::device_count() > 0;
+    } catch (const std::exception&) {
+      return false;
+    }
+  }
+
+  bool WriteCudaRuntimeUnavailable(FileManerger* file,
+                                   const char* test_name) const {
+    *file << test_name << " ";
+    if (!cuda_runtime_available_) {
+      *file << "cuda_runtime_unavailable ";
+      *file << "\n";
+      file->saveFile();
+      return true;
+    }
+    return false;
+  }
+
+  bool cuda_runtime_available_ = false;
   at::Generator test_gen_;
 };
 
@@ -51,7 +78,7 @@ TEST_F(GeneratorTest, SetAndGetSeed) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "SetAndGetSeed ";
+  if (WriteCudaRuntimeUnavailable(&file, "SetAndGetSeed")) return;
   test_gen_.set_current_seed(12345);
   file << std::to_string(test_gen_.current_seed()) << " ";
   file << "\n";
@@ -63,7 +90,7 @@ TEST_F(GeneratorTest, SetAndGetOffset) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "SetAndGetOffset ";
+  if (WriteCudaRuntimeUnavailable(&file, "SetAndGetOffset")) return;
   test_gen_.set_offset(100);
   file << std::to_string(test_gen_.get_offset()) << " ";
   file << "\n";
@@ -75,7 +102,7 @@ TEST_F(GeneratorTest, DeviceIsCUDA) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "DeviceIsCUDA ";
+  if (WriteCudaRuntimeUnavailable(&file, "DeviceIsCUDA")) return;
   file << test_gen_.device().str() << " ";
   file << "\n";
   file.saveFile();
@@ -86,7 +113,7 @@ TEST_F(GeneratorTest, CloneIndependence) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CloneIndependence ";
+  if (WriteCudaRuntimeUnavailable(&file, "CloneIndependence")) return;
   // SetUp 中已设置 seed = 42
   at::Generator cloned = test_gen_.clone();
   cloned.set_current_seed(999);
@@ -102,7 +129,7 @@ TEST_F(GeneratorTest, EqualityOperators) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "EqualityOperators ";
+  if (WriteCudaRuntimeUnavailable(&file, "EqualityOperators")) return;
   at::Generator other = at::cuda::detail::createCUDAGenerator(0);
   file << std::to_string(test_gen_ == test_gen_) << " ";  // 1
   file << std::to_string(test_gen_ != other) << " ";      // 1
@@ -119,7 +146,8 @@ TEST_F(GeneratorTest, GetDefaultCUDAGeneratorDefined) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "GetDefaultCUDAGeneratorDefined ";
+  if (WriteCudaRuntimeUnavailable(&file, "GetDefaultCUDAGeneratorDefined"))
+    return;
   const at::Generator& gen = at::cuda::detail::getDefaultCUDAGenerator(0);
   file << std::to_string(gen.defined()) << " ";
   file << "\n";
@@ -131,7 +159,8 @@ TEST_F(GeneratorTest, GetDefaultCUDAGeneratorDevice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "GetDefaultCUDAGeneratorDevice ";
+  if (WriteCudaRuntimeUnavailable(&file, "GetDefaultCUDAGeneratorDevice"))
+    return;
   const at::Generator& gen = at::cuda::detail::getDefaultCUDAGenerator(0);
   file << gen.device().str() << " ";
   file << "\n";
@@ -143,7 +172,8 @@ TEST_F(GeneratorTest, GetDefaultCUDAGeneratorSameInstance) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "GetDefaultCUDAGeneratorSameInstance ";
+  if (WriteCudaRuntimeUnavailable(&file, "GetDefaultCUDAGeneratorSameInstance"))
+    return;
   const at::Generator& gen1 = at::cuda::detail::getDefaultCUDAGenerator(0);
   const at::Generator& gen2 = at::cuda::detail::getDefaultCUDAGenerator(0);
   file << std::to_string(&gen1 == &gen2) << " ";
@@ -160,7 +190,8 @@ TEST_F(GeneratorTest, GetOrDefaultUsesProvidedGenerator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "GetOrDefaultUsesProvidedGenerator ";
+  if (WriteCudaRuntimeUnavailable(&file, "GetOrDefaultUsesProvidedGenerator"))
+    return;
   test_gen_.set_current_seed(55555);
   std::optional<at::Generator> opt_gen = test_gen_;
   const at::Generator& default_gen =
@@ -177,7 +208,8 @@ TEST_F(GeneratorTest, GetOrDefaultUsesDefaultWhenNullopt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "GetOrDefaultUsesDefaultWhenNullopt ";
+  if (WriteCudaRuntimeUnavailable(&file, "GetOrDefaultUsesDefaultWhenNullopt"))
+    return;
   std::optional<at::Generator> opt_gen = std::nullopt;
   at::Generator custom_default = at::cuda::detail::createCUDAGenerator(0);
   custom_default.set_current_seed(77777);
@@ -198,7 +230,7 @@ TEST_F(GeneratorTest, CUDAImplDeviceType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAImplDeviceType ";
+  if (WriteCudaRuntimeUnavailable(&file, "CUDAImplDeviceType")) return;
   file << std::to_string(at::CUDAGeneratorImpl::device_type() ==
                          c10::DeviceType::CUDA)
        << " ";
@@ -211,7 +243,7 @@ TEST_F(GeneratorTest, CUDAImplPhiloxOffset) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAImplPhiloxOffset ";
+  if (WriteCudaRuntimeUnavailable(&file, "CUDAImplPhiloxOffset")) return;
   at::CUDAGeneratorImpl* impl = test_gen_.get<at::CUDAGeneratorImpl>();
   impl->set_philox_offset_per_thread(256);
   file << std::to_string(impl->philox_offset_per_thread()) << " ";
@@ -224,7 +256,7 @@ TEST_F(GeneratorTest, CUDAImplPhiloxCudaState) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAImplPhiloxCudaState ";
+  if (WriteCudaRuntimeUnavailable(&file, "CUDAImplPhiloxCudaState")) return;
   at::CUDAGeneratorImpl* impl = test_gen_.get<at::CUDAGeneratorImpl>();
   impl->set_philox_offset_per_thread(0);
   impl->set_current_seed(12345);
@@ -240,7 +272,7 @@ TEST_F(GeneratorTest, CUDAImplPhiloxEngineInputs) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAImplPhiloxEngineInputs ";
+  if (WriteCudaRuntimeUnavailable(&file, "CUDAImplPhiloxEngineInputs")) return;
   at::CUDAGeneratorImpl* impl = test_gen_.get<at::CUDAGeneratorImpl>();
   impl->set_current_seed(99999);
   impl->set_philox_offset_per_thread(0);
@@ -259,7 +291,7 @@ TEST_F(GeneratorTest, CUDAImplClone) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAImplClone ";
+  if (WriteCudaRuntimeUnavailable(&file, "CUDAImplClone")) return;
   at::CUDAGeneratorImpl* impl = test_gen_.get<at::CUDAGeneratorImpl>();
   impl->set_current_seed(12345);
   impl->set_philox_offset_per_thread(100);

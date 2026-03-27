@@ -93,6 +93,7 @@ TEST_F(EventTest, EventPoolDefault) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "EventPoolDefault ";
 
 #ifdef PADDLE_WITH_CUDA
   c10::EventPool pool;
@@ -100,6 +101,7 @@ TEST_F(EventTest, EventPoolDefault) {
 #else
   file << "EventPool_default_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -108,6 +110,7 @@ TEST_F(EventTest, EventPoolCopy) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EventPoolCopy ";
 
 #ifdef PADDLE_WITH_CUDA
   c10::EventPool pool1;
@@ -116,6 +119,7 @@ TEST_F(EventTest, EventPoolCopy) {
 #else
   file << "EventPool_copy_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -124,6 +128,7 @@ TEST_F(EventTest, EventPoolMove) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EventPoolMove ";
 
 #ifdef PADDLE_WITH_CUDA
   c10::EventPool pool1;
@@ -132,6 +137,7 @@ TEST_F(EventTest, EventPoolMove) {
 #else
   file << "EventPool_move_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -140,6 +146,7 @@ TEST_F(EventTest, EventPoolInstance) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EventPoolInstance ";
 
 #ifdef PADDLE_WITH_CUDA
   auto& instance = c10::EventPool::Instance();
@@ -148,6 +155,7 @@ TEST_F(EventTest, EventPoolInstance) {
 #else
   file << "EventPool_Instance_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -156,6 +164,7 @@ TEST_F(EventTest, EventPoolCreateCudaEventFromPool) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EventPoolCreateCudaEventFromPool ";
 
 #ifdef PADDLE_WITH_CUDA
   auto& pool = c10::EventPool::Instance();
@@ -165,6 +174,7 @@ TEST_F(EventTest, EventPoolCreateCudaEventFromPool) {
 #else
   file << "CreateCudaEventFromPool_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -173,6 +183,7 @@ TEST_F(EventTest, EventDefault) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EventDefault ";
 
 #ifdef PADDLE_WITH_CUDA
   c10::Event event(c10::DeviceType::CPU);
@@ -181,6 +192,7 @@ TEST_F(EventTest, EventDefault) {
 #else
   file << "Event_default_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -189,6 +201,7 @@ TEST_F(EventTest, EventWithDeviceType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EventWithDeviceType ";
 
 #ifdef PADDLE_WITH_CUDA
   c10::Event event(c10::DeviceType::CUDA);
@@ -197,6 +210,7 @@ TEST_F(EventTest, EventWithDeviceType) {
 #else
   file << "Event_cuda_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -207,6 +221,7 @@ TEST_F(EventTest, EventRecord) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EventRecord ";
 
 #ifdef PADDLE_WITH_CUDA
   c10::Event event(c10::DeviceType::CPU);
@@ -216,6 +231,7 @@ TEST_F(EventTest, EventRecord) {
 #else
   file << "Event_record_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -224,6 +240,7 @@ TEST_F(EventTest, EventCudaEvent) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EventCudaEvent ";
 
 #ifdef PADDLE_WITH_CUDA
   c10::Event event(c10::DeviceType::CUDA);
@@ -233,6 +250,7 @@ TEST_F(EventTest, EventCudaEvent) {
 #else
   file << "Event_cuda_event_skipped_no_cuda ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 

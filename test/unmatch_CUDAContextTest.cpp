@@ -31,6 +31,7 @@ TEST_F(CUDAContextTest, GetDeviceProperties) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "GetDeviceProperties ";
 
 #if USE_PADDLE_API != 1
   // PyTorch API: at::cuda::getDeviceProperties(c10::DeviceIndex device)
@@ -47,7 +48,7 @@ TEST_F(CUDAContextTest, GetDeviceProperties) {
       file << "null ";
     }
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
 #else
 // [DIFF] 问题行：Paddle 分支额外依赖 PADDLE_WITH_CUDA，
@@ -67,12 +68,13 @@ TEST_F(CUDAContextTest, GetDeviceProperties) {
       file << "null ";
     }
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
 #else
   file << "api_not_available ";
 #endif
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -83,6 +85,7 @@ TEST_F(CUDAContextTest, GetCurrentDeviceProperties) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetCurrentDeviceProperties ";
 
 #if USE_PADDLE_API != 1
   // PyTorch API: at::cuda::getCurrentDeviceProperties
@@ -97,7 +100,7 @@ TEST_F(CUDAContextTest, GetCurrentDeviceProperties) {
       file << "null ";
     }
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
 #else
 #ifdef PADDLE_WITH_CUDA
@@ -113,12 +116,13 @@ TEST_F(CUDAContextTest, GetCurrentDeviceProperties) {
       file << "null ";
     }
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
 #else
   file << "api_not_available ";
 #endif
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -128,6 +132,7 @@ TEST_F(CUDAContextTest, GetCurrentCUDAStream) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetCurrentCUDAStream ";
 
 #if USE_PADDLE_API != 1
   // at::cuda::getCurrentCUDAStream
@@ -147,6 +152,7 @@ TEST_F(CUDAContextTest, GetCurrentCUDAStream) {
     file << "stream_not_available ";
   }
 #endif
+  file << "\n";
   file.saveFile();
 }
 

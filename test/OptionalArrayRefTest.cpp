@@ -27,8 +27,10 @@ TEST_F(OptionalArrayRefTest, DefaultConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "DefaultConstruction ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr.has_value() ? arr->size() : -1) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -38,7 +40,9 @@ TEST_F(OptionalArrayRefTest, NulloptConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NulloptConstruction ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -48,10 +52,12 @@ TEST_F(OptionalArrayRefTest, SingleElement) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SingleElement ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
   file << std::to_string(arr->front()) << " ";
   file << std::to_string(arr->back()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -62,11 +68,13 @@ TEST_F(OptionalArrayRefTest, FromVector) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromVector ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
   for (size_t i = 0; i < arr->size(); ++i) {
     file << std::to_string((*arr)[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -76,11 +84,13 @@ TEST_F(OptionalArrayRefTest, FromInitializerList) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromInitializerList ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
   for (const auto& v : *arr) {
     file << std::to_string(v) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -94,9 +104,10 @@ TEST_F(OptionalArrayRefTest, FromOptionalArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromOptionalArrayRef ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  file << std::to_string(arr->front()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -107,11 +118,13 @@ TEST_F(OptionalArrayRefTest, PointerLength) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PointerLength ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
   for (size_t i = 0; i < arr->size(); ++i) {
     file << std::to_string(arr->at(i)) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -122,10 +135,12 @@ TEST_F(OptionalArrayRefTest, AssignmentOperator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "AssignmentOperator ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   arr = std::vector<int64_t>{1, 2, 3};
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -136,8 +151,10 @@ TEST_F(OptionalArrayRefTest, BoolOperator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "BoolOperator ";
   file << std::to_string(static_cast<bool>(empty_arr) ? 1 : 0) << " ";
   file << std::to_string(static_cast<bool>(valid_arr) ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -147,10 +164,12 @@ TEST_F(OptionalArrayRefTest, ValueMethod) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ValueMethod ";
   auto& ref = arr.value();
   file << std::to_string(ref.size()) << " ";
   file << std::to_string(ref.front()) << " ";
   file << std::to_string(ref.back()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -160,10 +179,12 @@ TEST_F(OptionalArrayRefTest, ValueMethodConstLValue) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ValueMethodConstLValue ";
   const auto& ref = arr.value();
   file << std::to_string(ref.size()) << " ";
   file << std::to_string(ref.front()) << " ";
   file << std::to_string(ref.back()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -173,10 +194,12 @@ TEST_F(OptionalArrayRefTest, ValueMethodRValue) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ValueMethodRValue ";
   auto&& ref = std::move(arr).value();
   file << std::to_string(ref.size()) << " ";
   file << std::to_string(ref.front()) << " ";
   file << std::to_string(ref.back()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -186,10 +209,12 @@ TEST_F(OptionalArrayRefTest, ValueMethodConstRValue) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ValueMethodConstRValue ";
   auto&& ref = std::move(arr).value();
   file << std::to_string(ref.size()) << " ";
   file << std::to_string(ref.front()) << " ";
   file << std::to_string(ref.back()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -202,6 +227,7 @@ TEST_F(OptionalArrayRefTest, ValueOrMethod) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ValueOrMethod ";
 
   auto empty_result = empty_arr.value_or(default_vec);
   file << std::to_string(empty_result.size()) << " ";
@@ -214,6 +240,7 @@ TEST_F(OptionalArrayRefTest, ValueOrMethod) {
   for (size_t i = 0; i < valid_result.size(); ++i) {
     file << std::to_string(valid_result[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -223,9 +250,11 @@ TEST_F(OptionalArrayRefTest, ResetMethod) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ResetMethod ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   arr.reset();
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -236,11 +265,13 @@ TEST_F(OptionalArrayRefTest, SwapMethod) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SwapMethod ";
   file << std::to_string(arr1->size()) << " " << std::to_string(arr2->size())
        << " ";
   arr1.swap(arr2);
   file << std::to_string(arr1->size()) << " " << std::to_string(arr2->size())
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -255,12 +286,11 @@ TEST_F(OptionalArrayRefTest, EmplaceMethod) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmplaceMethod ";
   arr.emplace(std::initializer_list<int64_t>{1, 2, 3, 4});
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
+  file << "\n";
   file.saveFile();
 }
 
@@ -270,9 +300,11 @@ TEST_F(OptionalArrayRefTest, EmplaceMethodNoArgs) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmplaceMethodNoArgs ";
   auto& ref = arr.emplace();
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(ref.size()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -283,11 +315,13 @@ TEST_F(OptionalArrayRefTest, SliceMethod) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceMethod ";
   auto sliced = arr->slice(1, 3);  // [1, 2, 3]
   file << std::to_string(sliced.size()) << " ";
   for (size_t i = 0; i < sliced.size(); ++i) {
     file << std::to_string(sliced[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -301,6 +335,7 @@ TEST_F(OptionalArrayRefTest, EqualityOperator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EqualityOperator ";
   // Compare OptionalArrayRef with OptionalArrayRef manually
   file << std::to_string((arr1.has_value() == arr2.has_value() &&
                           (!arr1.has_value() || *arr1 == *arr2))
@@ -314,6 +349,7 @@ TEST_F(OptionalArrayRefTest, EqualityOperator) {
        << " ";
   file << std::to_string(arr1 == direct_ref ? 1 : 0) << " ";
   file << std::to_string(direct_ref == arr1 ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -323,11 +359,13 @@ TEST_F(OptionalArrayRefTest, OptionalIntArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "OptionalIntArrayRef ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
   for (size_t i = 0; i < arr->size(); ++i) {
     file << std::to_string((*arr)[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -337,11 +375,13 @@ TEST_F(OptionalArrayRefTest, FloatOptionalArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FloatOptionalArrayRef ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
   for (const auto& v : *arr) {
     file << std::to_string(v) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -354,9 +394,11 @@ TEST_F(OptionalArrayRefTest, CopyConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CopyConstruction ";
   file << std::to_string(arr2.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr2->size()) << " ";
   file << std::to_string(arr2->front()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -369,9 +411,11 @@ TEST_F(OptionalArrayRefTest, MoveConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MoveConstruction ";
   file << std::to_string(arr2.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr2->size()) << " ";
   file << std::to_string(arr2->front()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -382,9 +426,11 @@ TEST_F(OptionalArrayRefTest, EmptyArray) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmptyArray ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->empty() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -398,11 +444,10 @@ TEST_F(OptionalArrayRefTest, InPlaceConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "InPlaceConstruction ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
+  file << "\n";
   file.saveFile();
 }
 

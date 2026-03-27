@@ -67,7 +67,9 @@ TEST_F(SparseTensorTest, SparseCOOBasic2D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "SparseCOOBasic2D ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -82,7 +84,9 @@ TEST_F(SparseTensorTest, SparseCOO3D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCOO3D ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -98,7 +102,9 @@ TEST_F(SparseTensorTest, SparseCOOWithOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCOOWithOptions ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -114,7 +120,9 @@ TEST_F(SparseTensorTest, SparseCOOInferSize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCOOInferSize ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -131,7 +139,9 @@ TEST_F(SparseTensorTest, SparseCOOWithExpandedOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCOOWithExpandedOptions ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -146,7 +156,9 @@ TEST_F(SparseTensorTest, SparseCOODouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCOODouble ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -160,7 +172,9 @@ TEST_F(SparseTensorTest, SparseCOOSingleNonzero) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCOOSingleNonzero ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -184,7 +198,9 @@ TEST_F(SparseTensorTest, SparseCOOLargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCOOLargeShape ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -208,7 +224,9 @@ TEST_F(SparseTensorTest, SparseCSRBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCSRBasic ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -226,7 +244,9 @@ TEST_F(SparseTensorTest, SparseCSR4x5) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCSR4x5 ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -244,7 +264,9 @@ TEST_F(SparseTensorTest, SparseCSRWithExpandedOptions) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCSRWithExpandedOptions ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -261,7 +283,9 @@ TEST_F(SparseTensorTest, SparseCSRDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCSRDouble ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 
@@ -279,7 +303,9 @@ TEST_F(SparseTensorTest, SparseCSRLargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SparseCSRLargeShape ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 

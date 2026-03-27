@@ -63,7 +63,9 @@ TEST_F(StdTest, StdDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "StdDim ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -79,7 +81,9 @@ TEST_F(StdTest, StdUnbiased) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "StdUnbiased ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -95,7 +99,9 @@ TEST_F(StdTest, StdDimUnbiasedKeepdim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "StdDimUnbiasedKeepdim ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -112,7 +118,9 @@ TEST_F(StdTest, StdDimCorrectionKeepdim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "StdDimCorrectionKeepdim ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -122,13 +130,15 @@ TEST_F(StdTest, StdException) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "StdException ";
   try {
     at::Tensor result =
         t1.std(at::IntArrayRef({1}), true, true);  // dim out of bounds
     write_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
+  file << "\n";
   file.saveFile();
 }
 

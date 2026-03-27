@@ -26,12 +26,14 @@ TEST_F(PythonCompatTest, PyObjectToDtypeTypeCheck) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "PyObjectToDtypeTypeCheck ";
 
   using ResultType = decltype(torch::python::detail::py_object_to_dtype(
       std::declval<py::object>()));
   constexpr bool returns_dtype = std::is_same<ResultType, torch::Dtype>::value;
 
   file << std::to_string(returns_dtype ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 

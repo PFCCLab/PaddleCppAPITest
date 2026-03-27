@@ -24,6 +24,7 @@ TEST(TensorBodyTest, CoalesceTest) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.createFile();
+  file << "CoalesceTest ";
 
   // Create an uncoalesced sparse tensor (duplicate indices)
   at::Tensor indices =
@@ -42,6 +43,7 @@ TEST(TensorBodyTest, CoalesceTest) {
   auto coal_values = coalesced._values();
   file << std::to_string(coal_values.size(0)) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 

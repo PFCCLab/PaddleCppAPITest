@@ -53,6 +53,7 @@ TEST_F(TorchCudaTest, DeviceCount) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "DeviceCount ";
 
   int64_t count;
   try {
@@ -65,6 +66,7 @@ TEST_F(TorchCudaTest, DeviceCount) {
 
   file << std::to_string(count) << " ";
   file << std::to_string(count >= 0 ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -77,7 +79,9 @@ TEST_F(TorchCudaTest, IsAvailable) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsAvailable ";
   (void)available;
+  file << "\n";
   file.saveFile();
 }
 
@@ -91,11 +95,13 @@ TEST_F(TorchCudaTest, ConsistencyCheck) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ConsistencyCheck ";
   // 如果 available 则 count > 0, 反之亦然
   bool consistent = (available && count > 0) || (!available && count == 0);
   (void)count;
   (void)available;
   (void)consistent;
+  file << "\n";
   file.saveFile();
 }
 
@@ -109,8 +115,10 @@ TEST_F(TorchCudaTest, AtCudaNamespace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "AtCudaNamespace ";
   (void)count;
   (void)available;
+  file << "\n";
   file.saveFile();
 }
 
@@ -124,6 +132,7 @@ TEST_F(TorchCudaTest, Synchronize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Synchronize ";
   bool passed = true;
   try {
     torch::cuda::synchronize();
@@ -131,6 +140,7 @@ TEST_F(TorchCudaTest, Synchronize) {
     passed = false;
   }
   (void)passed;
+  file << "\n";
   file.saveFile();
 }
 

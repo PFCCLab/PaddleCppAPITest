@@ -58,8 +58,10 @@ TEST_F(ArrayRefTest, DefaultConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "DefaultConstruction ";
   file << std::to_string(arr.empty() ? 1 : 0) << " ";
   file << std::to_string(arr.size()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -70,10 +72,12 @@ TEST_F(ArrayRefTest, SingleElement) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SingleElement ";
   file << std::to_string(arr.size()) << " ";
   file << std::to_string(arr[0]) << " ";
   file << std::to_string(arr.front()) << " ";
   file << std::to_string(arr.back()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -84,10 +88,12 @@ TEST_F(ArrayRefTest, PointerLength) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "PointerLength ";
   file << std::to_string(arr.size()) << " ";
   for (size_t i = 0; i < arr.size(); ++i) {
     file << std::to_string(arr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -98,10 +104,12 @@ TEST_F(ArrayRefTest, BeginEnd) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "BeginEnd ";
   file << std::to_string(arr.size()) << " ";
   for (auto it = arr.begin(); it != arr.end(); ++it) {
     file << std::to_string(*it) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -113,11 +121,13 @@ TEST_F(ArrayRefTest, IteratorMethods) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IteratorMethods ";
   file << std::to_string(arrayref_begin_api_probe(arr) ? 1 : 0) << " ";
   file << std::to_string(arrayref_end_api_probe(arr)) << " ";
   for (auto it = arr.begin(); it != arr.end(); ++it) {
     file << std::to_string(*it) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -129,11 +139,13 @@ TEST_F(ArrayRefTest, ConstIteratorMethods) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ConstIteratorMethods ";
   file << std::to_string(arrayref_cbegin_api_probe(arr) ? 1 : 0) << " ";
   file << std::to_string(arrayref_cend_api_probe(arr)) << " ";
   for (auto it = arr.cbegin(); it != arr.cend(); ++it) {
     file << std::to_string(*it) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -148,6 +160,7 @@ TEST_F(ArrayRefTest, AllMatchAndEmpty) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "AllMatchAndEmpty ";
   file << std::to_string(arrayref_empty_api_probe(empty_arr) ? 1 : 0) << " ";
   file << std::to_string(arrayref_empty_api_probe(even_arr) ? 1 : 0) << " ";
   file << std::to_string(
@@ -168,6 +181,7 @@ TEST_F(ArrayRefTest, AllMatchAndEmpty) {
                   ? 1
                   : 0)
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -178,9 +192,11 @@ TEST_F(ArrayRefTest, FromVector) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromVector ";
   file << std::to_string(arr.size()) << " ";
   file << std::to_string(arr.front()) << " ";
   file << std::to_string(arr.back()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -191,10 +207,12 @@ TEST_F(ArrayRefTest, FromStdArray) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromStdArray ";
   file << std::to_string(arr.size()) << " ";
   for (size_t i = 0; i < arr.size(); ++i) {
     file << std::to_string(arr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -205,10 +223,12 @@ TEST_F(ArrayRefTest, FromCArray) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromCArray ";
   file << std::to_string(arr.size()) << " ";
   for (size_t i = 0; i < arr.size(); ++i) {
     file << std::to_string(arr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -218,10 +238,12 @@ TEST_F(ArrayRefTest, FromInitializerList) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromInitializerList ";
   file << std::to_string(arr.size()) << " ";
   for (size_t i = 0; i < arr.size(); ++i) {
     file << std::to_string(arr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -236,6 +258,7 @@ TEST_F(ArrayRefTest, Slice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Slice ";
   file << std::to_string(sliced1.size()) << " ";
   for (size_t i = 0; i < sliced1.size(); ++i) {
     file << std::to_string(sliced1[i]) << " ";
@@ -244,6 +267,7 @@ TEST_F(ArrayRefTest, Slice) {
   for (size_t i = 0; i < sliced2.size(); ++i) {
     file << std::to_string(sliced2[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -260,11 +284,13 @@ TEST_F(ArrayRefTest, Equals) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Equals ";
   file << std::to_string(arr1.equals(arr2) ? 1 : 0) << " ";
   file << std::to_string(arr1.equals(arr3) ? 1 : 0) << " ";
   // 运算符重载
   file << std::to_string(arr1 == arr2 ? 1 : 0) << " ";
   file << std::to_string(arr1 != arr3 ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -276,9 +302,11 @@ TEST_F(ArrayRefTest, At) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "At ";
   file << std::to_string(arr.at(0)) << " ";
   file << std::to_string(arr.at(1)) << " ";
   file << std::to_string(arr.at(2)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -291,10 +319,12 @@ TEST_F(ArrayRefTest, Vec) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Vec ";
   file << std::to_string(vec.size()) << " ";
   for (const auto& v : vec) {
     file << std::to_string(v) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -306,9 +336,11 @@ TEST_F(ArrayRefTest, ReverseIterator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ReverseIterator ";
   for (auto it = arr.rbegin(); it != arr.rend(); ++it) {
     file << std::to_string(*it) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -320,10 +352,12 @@ TEST_F(ArrayRefTest, FloatArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FloatArrayRef ";
   file << std::to_string(arr.size()) << " ";
   for (size_t i = 0; i < arr.size(); ++i) {
     file << std::to_string(arr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -335,10 +369,12 @@ TEST_F(ArrayRefTest, IntArrayRef) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IntArrayRef ";
   file << std::to_string(arr.size()) << " ";
   for (size_t i = 0; i < arr.size(); ++i) {
     file << std::to_string(arr[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -350,8 +386,10 @@ TEST_F(ArrayRefTest, VectorArrayRefComparison) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "VectorArrayRefComparison ";
   file << std::to_string(vec == arr ? 1 : 0) << " ";
   file << std::to_string(arr == vec ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 

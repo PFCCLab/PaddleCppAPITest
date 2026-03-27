@@ -59,7 +59,9 @@ TEST_F(SelectTest, SelectBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "SelectBasic ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -77,12 +79,12 @@ TEST_F(SelectTest, SelectSymint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SelectSymint ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
-// [DIFF] Paddle select with negative dim causes double free or corruption
-// SIGABRT
 TEST_F(SelectTest, SelectNegativeDim) {
   at::Tensor t1 = at::zeros({3, 3}, at::kFloat);
   float* data = t1.data_ptr<float>();
@@ -93,12 +95,10 @@ TEST_F(SelectTest, SelectNegativeDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-#if USE_PADDLE_API
-  file << "known_crash_on_negative_dim ";
-#else
+  file << "SelectNegativeDim ";
   at::Tensor result = t1.select(-1, 0);
   write_result_to_file(&file, result);
-#endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -108,12 +108,14 @@ TEST_F(SelectTest, SelectException) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SelectException ";
   try {
     at::Tensor result = t1.select(0, 5);  // out of bounds
     write_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
+  file << "\n";
   file.saveFile();
 }
 

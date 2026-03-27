@@ -48,8 +48,10 @@ TEST_F(DefaultDtypeTest, GetDefaultDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "GetDefaultDtype ";
   auto dtype = c10::get_default_dtype();
   file << std::to_string(dtype_to_int(dtype)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -58,8 +60,10 @@ TEST_F(DefaultDtypeTest, GetDefaultDtypeAsScalarType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetDefaultDtypeAsScalarType ";
   auto dtype = c10::get_default_dtype_as_scalartype();
   file << std::to_string(static_cast<int>(dtype)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -68,11 +72,13 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SetDefaultDtypeDouble ";
   at::Tensor t =
       at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::Double));
   c10::set_default_dtype(t.dtype());
   auto dtype = c10::get_default_dtype_as_scalartype();
   file << std::to_string(static_cast<int>(dtype)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -81,11 +87,13 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeHalf) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SetDefaultDtypeHalf ";
   at::Tensor t =
       at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::Half));
   c10::set_default_dtype(t.dtype());
   auto dtype = c10::get_default_dtype_as_scalartype();
   file << std::to_string(static_cast<int>(dtype)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -95,11 +103,13 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeBFloat16) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SetDefaultDtypeBFloat16 ";
   at::Tensor t =
       at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::BFloat16));
   c10::set_default_dtype(t.dtype());
   auto dtype = c10::get_default_dtype_as_scalartype();
   file << std::to_string(static_cast<int>(dtype)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -108,6 +118,7 @@ TEST_F(DefaultDtypeTest, SetAndRestore) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SetAndRestore ";
   auto before = c10::get_default_dtype_as_scalartype();
   at::Tensor t1 =
       at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::Double));
@@ -121,6 +132,7 @@ TEST_F(DefaultDtypeTest, SetAndRestore) {
   file << std::to_string(static_cast<int>(after)) << " ";
   // before 应等于 after
   file << std::to_string(before == after ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -129,8 +141,10 @@ TEST_F(DefaultDtypeTest, GetDefaultComplexDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetDefaultComplexDtype ";
   auto dtype = c10::get_default_complex_dtype();
   file << std::to_string(dtype_to_int(dtype)) << " ";
+  file << "\n";
   file.saveFile();
 }
 

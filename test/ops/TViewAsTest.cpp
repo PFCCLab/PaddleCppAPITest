@@ -17,6 +17,7 @@ TEST(TensorBodyTest, TTest) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.createFile();
+  file << "TTest ";
   file << std::to_string(t2.size(0)) << " ";
   file << std::to_string(t2.size(1)) << " ";
 
@@ -24,6 +25,7 @@ TEST(TensorBodyTest, TTest) {
   t3.t_();
   file << std::to_string(t3.size(0)) << " ";
   file << std::to_string(t3.size(1)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -37,8 +39,10 @@ TEST(TensorBodyTest, ViewAsTest) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.openAppend();
+  file << "ViewAsTest ";
   file << std::to_string(t3.size(0)) << " ";
   file << std::to_string(t3.size(1)) << " ";
+  file << "\n";
   file.saveFile();
 }
 

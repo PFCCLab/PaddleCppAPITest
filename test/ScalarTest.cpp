@@ -25,8 +25,10 @@ TEST_F(ScalarTest, FromFloat) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "FromFloat ";
   file << std::to_string(s.to<float>()) << " ";
   file << std::to_string(s.to<double>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -36,7 +38,9 @@ TEST_F(ScalarTest, FromDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromDouble ";
   file << std::to_string(s.to<double>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -46,9 +50,11 @@ TEST_F(ScalarTest, FromInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromInt ";
   file << std::to_string(s.to<int>()) << " ";
   file << std::to_string(s.to<int64_t>()) << " ";
   file << std::to_string(s.to<float>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -58,7 +64,9 @@ TEST_F(ScalarTest, FromInt64) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromInt64 ";
   file << std::to_string(s.to<int64_t>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -69,8 +77,10 @@ TEST_F(ScalarTest, FromBool) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FromBool ";
   file << std::to_string(s_true.to<bool>() ? 1 : 0) << " ";
   file << std::to_string(s_false.to<bool>() ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -81,8 +91,10 @@ TEST_F(ScalarTest, NegativeValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NegativeValues ";
   file << std::to_string(s_neg_int.to<int>()) << " ";
   file << std::to_string(s_neg_float.to<float>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -93,8 +105,10 @@ TEST_F(ScalarTest, ZeroValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ZeroValues ";
   file << std::to_string(s_zero_int.to<int>()) << " ";
   file << std::to_string(s_zero_float.to<float>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -107,9 +121,11 @@ TEST_F(ScalarTest, ExtremeValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ExtremeValues ";
   file << std::to_string(s_max_int.to<int>()) << " ";
   file << std::to_string(s_min_int.to<int>()) << " ";
   file << std::to_string(s_max_float.to<float>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -120,8 +136,10 @@ TEST_F(ScalarTest, NamespaceAliases) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NamespaceAliases ";
   file << std::to_string(s1.to<int>()) << " ";
   file << std::to_string(s2.to<int>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 

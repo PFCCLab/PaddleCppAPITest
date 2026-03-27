@@ -40,8 +40,10 @@ TEST_F(TensorTest, ConstructFromPaddleTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ConstructFromPaddleTensor ";
   file << std::to_string(tensor.dim()) << " ";
   file << std::to_string(tensor.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -50,10 +52,12 @@ TEST_F(TensorTest, DataPtr) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DataPtr ";
   void* ptr = tensor.data_ptr();
   file << std::to_string(ptr != nullptr) << " ";
   float* float_ptr = tensor.data_ptr<float>();
   file << std::to_string(float_ptr != nullptr) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -62,8 +66,10 @@ TEST_F(TensorTest, Strides) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Strides ";
   c10::IntArrayRef strides = tensor.strides();
   file << std::to_string(strides.size()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -72,11 +78,13 @@ TEST_F(TensorTest, Sizes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Sizes ";
   c10::IntArrayRef sizes = tensor.sizes();
   file << std::to_string(sizes.size()) << " ";
   file << std::to_string(sizes[0]) << " ";
   file << std::to_string(sizes[1]) << " ";
   file << std::to_string(sizes[2]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -85,8 +93,10 @@ TEST_F(TensorTest, ToType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToType ";
   Tensor double_tensor = tensor.toType(c10::ScalarType::Double);
   file << std::to_string(static_cast<int>(double_tensor.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -95,7 +105,9 @@ TEST_F(TensorTest, Numel) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Numel ";
   file << std::to_string(tensor.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -104,8 +116,10 @@ TEST_F(TensorTest, Device) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Device ";
   c10::Device device = tensor.device();
   file << std::to_string(static_cast<int>(device.type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -114,8 +128,10 @@ TEST_F(TensorTest, GetDevice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "GetDevice ";
   c10::DeviceIndex device_idx = tensor.get_device();
   file << std::to_string(device_idx) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -124,8 +140,10 @@ TEST_F(TensorTest, DimAndNdimension) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DimAndNdimension ";
   file << std::to_string(tensor.dim()) << " ";
   file << std::to_string(tensor.ndimension()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -134,8 +152,10 @@ TEST_F(TensorTest, Contiguous) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Contiguous ";
   at::Tensor cont_tensor = tensor.contiguous();
   file << std::to_string(cont_tensor.is_contiguous()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -144,7 +164,9 @@ TEST_F(TensorTest, IsContiguous) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsContiguous ";
   file << std::to_string(tensor.is_contiguous()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -153,8 +175,10 @@ TEST_F(TensorTest, ScalarType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ScalarType ";
   c10::ScalarType stype = tensor.scalar_type();
   file << std::to_string(static_cast<int>(stype)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -163,9 +187,11 @@ TEST_F(TensorTest, Fill) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Fill ";
   tensor.fill_(5.0);
   float* data = tensor.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -174,9 +200,11 @@ TEST_F(TensorTest, Zero) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Zero ";
   tensor.zero_();
   float* data = tensor.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -185,7 +213,9 @@ TEST_F(TensorTest, IsCpu) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsCpu ";
   file << std::to_string(tensor.is_cpu()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -204,7 +234,9 @@ TEST_F(TensorTest, IsCuda) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsCuda ";
   file << std::to_string(tensor.is_cuda()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -239,10 +271,12 @@ TEST_F(TensorTest, Reshape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Reshape ";
   at::Tensor reshaped = tensor.reshape({6, 4});
   file << std::to_string(reshaped.sizes()[0]) << " ";
   file << std::to_string(reshaped.sizes()[1]) << " ";
   file << std::to_string(reshaped.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -251,9 +285,11 @@ TEST_F(TensorTest, Transpose) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Transpose ";
   at::Tensor transposed = tensor.transpose(0, 2);
   file << std::to_string(transposed.sizes()[0]) << " ";
   file << std::to_string(transposed.sizes()[2]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -273,6 +309,7 @@ TEST_F(TensorTest, CudaResult) {
   // [DIFF] 用例级差异：cuda() 在无 CUDA 或后端实现差异下返回/异常语义不同。
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "CudaResult ";
   try {
     at::Tensor cuda_tensor = tensor.cuda();
     file << "1 ";
@@ -285,6 +322,7 @@ TEST_F(TensorTest, CudaResult) {
   } catch (...) {
     file << "0 ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -294,9 +332,11 @@ TEST_F(TensorTest, RecordStreamResult) {
   // 参数类型与可用性在两端不一致，当前仅做占位输出。
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "RecordStreamResult ";
   // 覆盖率识别标记：不同兼容层对 stream 参数类型不一致。
   // cuda_tensor.record_stream(stream);
   file << "0 ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -304,6 +344,7 @@ TEST_F(TensorTest, RecordStreamResult) {
 TEST_F(TensorTest, RegisterHookNoGradResult) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "RegisterHookNoGradResult ";
   try {
     auto handle =
         tensor.register_hook([](const at::Tensor& grad) { return grad; });
@@ -312,6 +353,7 @@ TEST_F(TensorTest, RegisterHookNoGradResult) {
   } catch (const std::exception&) {
     file << "1 ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -319,6 +361,7 @@ TEST_F(TensorTest, RegisterHookNoGradResult) {
 TEST_F(TensorTest, IsPinnedResult) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "IsPinnedResult ";
   file << std::to_string(tensor.is_pinned() ? 1 : 0) << " ";
   int pinned_after_cuda = 0;
   try {
@@ -329,6 +372,7 @@ TEST_F(TensorTest, IsPinnedResult) {
     pinned_after_cuda = 0;
   }
   file << std::to_string(pinned_after_cuda) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -336,6 +380,7 @@ TEST_F(TensorTest, IsPinnedResult) {
 TEST_F(TensorTest, PinMemoryResult) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "PinMemoryResult ";
   int gpu_pin_ok = 0;
   try {
     at::Tensor cuda_tensor = tensor.cuda();
@@ -345,6 +390,7 @@ TEST_F(TensorTest, PinMemoryResult) {
     gpu_pin_ok = 0;
   }
   file << std::to_string(gpu_pin_ok) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -352,7 +398,8 @@ TEST_F(TensorTest, PinMemoryResult) {
 TEST_F(TensorTest, SymSize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "SymSize ";
   // 获取符号化的单个维度大小
   c10::SymInt sym_size_0 = tensor.sym_size(0);
   c10::SymInt sym_size_1 = tensor.sym_size(1);
@@ -373,6 +420,7 @@ TEST_F(TensorTest, SymSize) {
 #else
   file << std::to_string(sym_size_neg1.guard_int(__FILE__, __LINE__)) << " ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -380,7 +428,8 @@ TEST_F(TensorTest, SymSize) {
 TEST_F(TensorTest, SymStride) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "SymStride ";
   // 获取符号化的单个维度步长
   c10::SymInt sym_stride_0 = tensor.sym_stride(0);
   c10::SymInt sym_stride_1 = tensor.sym_stride(1);
@@ -401,6 +450,7 @@ TEST_F(TensorTest, SymStride) {
 #else
   file << std::to_string(sym_stride_neg1.guard_int(__FILE__, __LINE__)) << " ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -408,7 +458,8 @@ TEST_F(TensorTest, SymStride) {
 TEST_F(TensorTest, SymSizes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "SymSizes ";
   // 获取符号化的所有维度大小
   c10::SymIntArrayRef sym_sizes = tensor.sym_sizes();
   file << std::to_string(sym_sizes.size()) << " ";
@@ -419,6 +470,7 @@ TEST_F(TensorTest, SymSizes) {
     file << std::to_string(sym_sizes[i].guard_int(__FILE__, __LINE__)) << " ";
 #endif
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -426,7 +478,8 @@ TEST_F(TensorTest, SymSizes) {
 TEST_F(TensorTest, SymStrides) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "SymStrides ";
   // 获取符号化的所有维度步长
   c10::SymIntArrayRef sym_strides = tensor.sym_strides();
   file << std::to_string(sym_strides.size()) << " ";
@@ -437,6 +490,7 @@ TEST_F(TensorTest, SymStrides) {
     file << std::to_string(sym_strides[i].guard_int(__FILE__, __LINE__)) << " ";
 #endif
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -444,7 +498,8 @@ TEST_F(TensorTest, SymStrides) {
 TEST_F(TensorTest, SymNumel) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "SymNumel ";
   // 获取符号化的元素总数
   c10::SymInt sym_numel = tensor.sym_numel();
 #if USE_PADDLE_API
@@ -453,6 +508,7 @@ TEST_F(TensorTest, SymNumel) {
   file << std::to_string(sym_numel.guard_int(__FILE__, __LINE__)) << " ";
 #endif
   file << std::to_string(tensor.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -461,6 +517,7 @@ TEST_F(TensorTest, Any) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Any ";
   at::Tensor test_tensor = at::ones({2, 2}, at::kFloat);
   test_tensor.fill_(0.0);
   test_tensor.data_ptr<float>()[0] = 1.0;
@@ -468,6 +525,7 @@ TEST_F(TensorTest, Any) {
   file << std::to_string(any_result) << " ";
   auto any_dim_result = test_tensor.any(0);
   file << std::to_string(any_dim_result.sizes()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -476,11 +534,13 @@ TEST_F(TensorTest, Chunk) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Chunk ";
   at::Tensor test_tensor = at::ones({4, 4}, at::kFloat);
   std::vector<at::Tensor> chunks = test_tensor.chunk(2, 0);
   file << std::to_string(chunks.size()) << " ";
   file << std::to_string(chunks[0].sizes()[0]) << " ";
   file << std::to_string(chunks[1].sizes()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -489,8 +549,10 @@ TEST_F(TensorTest, Rename) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Rename ";
   at::Tensor renamed = tensor.rename(std::nullopt);
   file << std::to_string(renamed.sizes().size()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -499,10 +561,12 @@ TEST_F(TensorTest, NewEmpty) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NewEmpty ";
   at::Tensor empty_tensor = tensor.new_empty({3, 4});
   file << std::to_string(empty_tensor.sizes()[0]) << " ";
   file << std::to_string(empty_tensor.sizes()[1]) << " ";
   file << std::to_string(empty_tensor.dtype() == tensor.dtype()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -511,10 +575,12 @@ TEST_F(TensorTest, NewFull) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NewFull ";
   at::Tensor full_tensor = tensor.new_full({2, 3}, 7.5);
   file << std::to_string(full_tensor.sizes()[0]) << " ";
   file << std::to_string(full_tensor.sizes()[1]) << " ";
   file << std::to_string(full_tensor.data_ptr<float>()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -523,10 +589,12 @@ TEST_F(TensorTest, NewZeros) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NewZeros ";
   at::Tensor zeros_tensor = tensor.new_zeros({2, 3});
   file << std::to_string(zeros_tensor.sizes()[0]) << " ";
   file << std::to_string(zeros_tensor.sizes()[1]) << " ";
   file << std::to_string(zeros_tensor.data_ptr<float>()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -535,10 +603,12 @@ TEST_F(TensorTest, NewOnes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NewOnes ";
   at::Tensor ones_tensor = tensor.new_ones({2, 3});
   file << std::to_string(ones_tensor.sizes()[0]) << " ";
   file << std::to_string(ones_tensor.sizes()[1]) << " ";
   file << std::to_string(ones_tensor.data_ptr<float>()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -549,11 +619,13 @@ TEST_F(TensorTest, Resize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Resize ";
   try {
     tensor.resize_({4, 5});
   } catch (const std::exception& e) {
     (void)e;
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -561,9 +633,11 @@ TEST_F(TensorTest, Resize) {
 TEST_F(TensorTest, CpuMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "CpuMethod ";
   at::Tensor cpu_tensor = tensor.cpu();
   file << std::to_string(cpu_tensor.is_cpu() ? 1 : 0) << " ";
   file << std::to_string(cpu_tensor.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -571,9 +645,11 @@ TEST_F(TensorTest, CpuMethod) {
 TEST_F(TensorTest, ToBackend) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ToBackend ";
   at::Tensor cpu_tensor = tensor.toBackend(c10::Backend::CPU);
   file << std::to_string(cpu_tensor.is_cpu() ? 1 : 0) << " ";
   file << std::to_string(cpu_tensor.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -581,8 +657,10 @@ TEST_F(TensorTest, ToBackend) {
 TEST_F(TensorTest, DataTemplate) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "DataTemplate ";
   void* ptr = tensor.data_ptr<float>();
   file << std::to_string(ptr != nullptr) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -590,9 +668,11 @@ TEST_F(TensorTest, DataTemplate) {
 TEST_F(TensorTest, ToTensorOptions) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ToTensorOptions ";
   at::TensorOptions options = at::TensorOptions().dtype(at::kDouble);
   at::Tensor converted = tensor.to(options);
   file << std::to_string(static_cast<int>(converted.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -600,8 +680,10 @@ TEST_F(TensorTest, ToTensorOptions) {
 TEST_F(TensorTest, ToScalarType) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ToScalarType ";
   at::Tensor converted = tensor.to(at::kDouble);
   file << std::to_string(static_cast<int>(converted.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -610,7 +692,9 @@ TEST_F(TensorTest, MetaMethod) {
   // [DIFF] 用例级差异：meta() 在两端能力面不同，此处按失败路径记录差异。
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "MetaMethod ";
   file << "0 ";  // meta() not supported, should throw
+  file << "\n";
   file.saveFile();
 }
 
@@ -618,6 +702,7 @@ TEST_F(TensorTest, MetaMethod) {
 TEST_F(TensorTest, ItemScalar) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ItemScalar ";
   // 创建1元素tensor
   at::Tensor scalar_tensor = at::ones({1}, at::kFloat);
   try {
@@ -627,6 +712,7 @@ TEST_F(TensorTest, ItemScalar) {
   } catch (...) {
     file << "0 ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -634,6 +720,7 @@ TEST_F(TensorTest, ItemScalar) {
 TEST_F(TensorTest, ItemTemplate) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ItemTemplate ";
   at::Tensor scalar_tensor = at::ones({1}, at::kFloat);
   try {
     float val = scalar_tensor.item<float>();
@@ -642,6 +729,7 @@ TEST_F(TensorTest, ItemTemplate) {
   } catch (...) {
     file << "0 ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -650,10 +738,12 @@ TEST_F(TensorTest, Expand) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Expand ";
   at::Tensor small = at::ones({1, 3}, at::kFloat);
   at::Tensor expanded = small.expand({4, 3});
   file << std::to_string(expanded.sizes()[0]) << " ";
   file << std::to_string(expanded.sizes()[1]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -662,12 +752,14 @@ TEST_F(TensorTest, ExpandAs) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ExpandAs ";
   // 只有维度等于1时才能扩展，这是libtorch的语义
   at::Tensor small = at::ones({1, 3}, at::kFloat);
   at::Tensor target = at::ones({4, 3}, at::kFloat);
   at::Tensor expanded = small.expand_as(target);
   file << std::to_string(expanded.sizes()[0]) << " ";
   file << std::to_string(expanded.sizes()[1]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -675,11 +767,13 @@ TEST_F(TensorTest, ExpandAs) {
 TEST_F(TensorTest, ClampScalarMinMax) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampScalarMinMax ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor clamped = input.clamp(1.0, 3.0);
   file << std::to_string(clamped.dim()) << " ";
   float* data = clamped.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -687,11 +781,13 @@ TEST_F(TensorTest, ClampScalarMinMax) {
 TEST_F(TensorTest, ClampTensorMinMax) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampTensorMinMax ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor min_tensor = at::ones({1}, at::kFloat).fill_(1.0f);
   at::Tensor max_tensor = at::ones({1}, at::kFloat).fill_(3.0f);
   at::Tensor clamped = input.clamp(min_tensor, max_tensor);
   file << std::to_string(clamped.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -699,10 +795,12 @@ TEST_F(TensorTest, ClampTensorMinMax) {
 TEST_F(TensorTest, ClampInplaceScalar) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampInplaceScalar ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   input.clamp_(1.0, 3.0);
   float* data = input.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -710,11 +808,13 @@ TEST_F(TensorTest, ClampInplaceScalar) {
 TEST_F(TensorTest, ClampInplaceTensor) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampInplaceTensor ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor min_tensor = at::ones({1}, at::kFloat).fill_(1.0f);
   at::Tensor max_tensor = at::ones({1}, at::kFloat).fill_(3.0f);
   input.clamp_(min_tensor, max_tensor);
   file << std::to_string(input.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -722,10 +822,12 @@ TEST_F(TensorTest, ClampInplaceTensor) {
 TEST_F(TensorTest, ClampMaxScalar) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampMaxScalar ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor clamped = input.clamp_max(3.0);
   float* data = clamped.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -733,10 +835,12 @@ TEST_F(TensorTest, ClampMaxScalar) {
 TEST_F(TensorTest, ClampMaxTensor) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampMaxTensor ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor max_tensor = at::ones({1}, at::kFloat).fill_(3.0f);
   at::Tensor clamped = input.clamp_max(max_tensor);
   file << std::to_string(clamped.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -744,10 +848,12 @@ TEST_F(TensorTest, ClampMaxTensor) {
 TEST_F(TensorTest, ClampMaxInplace) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampMaxInplace ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   input.clamp_max_(3.0);
   float* data = input.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -755,10 +861,12 @@ TEST_F(TensorTest, ClampMaxInplace) {
 TEST_F(TensorTest, ClampMaxInplaceTensor) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampMaxInplaceTensor ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(5.0f);
   at::Tensor max_tensor = at::ones({1}, at::kFloat).fill_(3.0f);
   input.clamp_max_(max_tensor);
   file << std::to_string(input.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -766,10 +874,12 @@ TEST_F(TensorTest, ClampMaxInplaceTensor) {
 TEST_F(TensorTest, ClampMinScalar) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampMinScalar ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   at::Tensor clamped = input.clamp_min(2.0);
   float* data = clamped.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -777,10 +887,12 @@ TEST_F(TensorTest, ClampMinScalar) {
 TEST_F(TensorTest, ClampMinTensor) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampMinTensor ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   at::Tensor min_tensor = at::ones({1}, at::kFloat).fill_(2.0f);
   at::Tensor clamped = input.clamp_min(min_tensor);
   file << std::to_string(clamped.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -788,10 +900,12 @@ TEST_F(TensorTest, ClampMinTensor) {
 TEST_F(TensorTest, ClampMinInplace) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampMinInplace ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.clamp_min_(2.0);
   float* data = input.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -799,10 +913,12 @@ TEST_F(TensorTest, ClampMinInplace) {
 TEST_F(TensorTest, ClampMinInplaceTensor) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ClampMinInplaceTensor ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   at::Tensor min_tensor = at::ones({1}, at::kFloat).fill_(2.0f);
   input.clamp_min_(min_tensor);
   file << std::to_string(input.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -810,10 +926,12 @@ TEST_F(TensorTest, ClampMinInplaceTensor) {
 TEST_F(TensorTest, AsStrided) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "AsStrided ";
   at::Tensor strided = tensor.as_strided({3, 4, 2}, {2, 1, 6});
   file << std::to_string(strided.sizes()[0]) << " ";
   file << std::to_string(strided.sizes()[1]) << " ";
   file << std::to_string(strided.sizes()[2]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -821,10 +939,12 @@ TEST_F(TensorTest, AsStrided) {
 TEST_F(TensorTest, AsStridedInplace) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "AsStridedInplace ";
   tensor.as_strided_({3, 4, 2}, {2, 1, 6});
   file << std::to_string(tensor.sizes()[0]) << " ";
   file << std::to_string(tensor.sizes()[1]) << " ";
   file << std::to_string(tensor.sizes()[2]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -832,10 +952,12 @@ TEST_F(TensorTest, AsStridedInplace) {
 TEST_F(TensorTest, AsStridedScatter) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "AsStridedScatter ";
   at::Tensor src = at::ones({3, 4, 2}, at::kFloat).fill_(2.0f);
   at::Tensor result = tensor.as_strided_scatter(src, {3, 4, 2}, {2, 1, 6});
   file << std::to_string(result.sizes()[0]) << " ";
   file << std::to_string(result.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -843,11 +965,13 @@ TEST_F(TensorTest, AsStridedScatter) {
 TEST_F(TensorTest, StdDim) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "StdDim ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(2.0f);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
   at::Tensor result = input.std(1);
   file << std::to_string(result.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -855,11 +979,13 @@ TEST_F(TensorTest, StdDim) {
 TEST_F(TensorTest, StdAll) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "StdAll ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
   at::Tensor result = input.std(true);
   file << std::to_string(result.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -867,12 +993,14 @@ TEST_F(TensorTest, StdAll) {
 TEST_F(TensorTest, StdDims) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "StdDims ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
   at::Tensor result = input.std({1}, true, true);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -880,11 +1008,13 @@ TEST_F(TensorTest, StdDims) {
 TEST_F(TensorTest, StdCorrection) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "StdCorrection ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
   at::Tensor result = input.std({1}, 1.0, true);
   file << std::to_string(result.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -892,11 +1022,13 @@ TEST_F(TensorTest, StdCorrection) {
 TEST_F(TensorTest, VarDim) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "VarDim ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
   at::Tensor result = input.var(1);
   file << std::to_string(result.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -904,11 +1036,13 @@ TEST_F(TensorTest, VarDim) {
 TEST_F(TensorTest, VarAll) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "VarAll ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
   at::Tensor result = input.var(true);
   file << std::to_string(result.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -916,12 +1050,14 @@ TEST_F(TensorTest, VarAll) {
 TEST_F(TensorTest, VarDims) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "VarDims ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
   at::Tensor result = input.var({1}, true, true);
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -929,11 +1065,13 @@ TEST_F(TensorTest, VarDims) {
 TEST_F(TensorTest, VarCorrection) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "VarCorrection ";
   at::Tensor input = at::ones({2, 3}, at::kFloat);
   input.fill_(1.0f);
   input.data_ptr<float>()[1] = 3.0f;
   at::Tensor result = input.var({1}, 1.0, true);
   file << std::to_string(result.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -941,9 +1079,11 @@ TEST_F(TensorTest, VarCorrection) {
 TEST_F(TensorTest, TensorData) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "TensorData ";
   at::Tensor result = tensor.tensor_data();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -951,9 +1091,11 @@ TEST_F(TensorTest, TensorData) {
 TEST_F(TensorTest, VariableData) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "VariableData ";
   at::Tensor result = tensor.variable_data();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -961,6 +1103,7 @@ TEST_F(TensorTest, VariableData) {
 TEST_F(TensorTest, IndexSelect) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "IndexSelect ";
   at::Tensor input = at::ones({3, 4}, at::kFloat);
   input.fill_(1.0f);
   int64_t index_data[] = {0, 2};
@@ -968,6 +1111,7 @@ TEST_F(TensorTest, IndexSelect) {
   at::Tensor result = input.index_select(0, index);
   file << std::to_string(result.sizes()[0]) << " ";
   file << std::to_string(result.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -975,9 +1119,11 @@ TEST_F(TensorTest, IndexSelect) {
 TEST_F(TensorTest, DtypeMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "DtypeMethod ";
   // dtype() 在 TensorBody 中返回 TypeMeta，使用 scalar_type() 获取 ScalarType
   c10::ScalarType dt = tensor.scalar_type();
   file << std::to_string(static_cast<int>(dt)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -985,9 +1131,11 @@ TEST_F(TensorTest, DtypeMethod) {
 TEST_F(TensorTest, CopyMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "CopyMethod ";
   at::Tensor src = at::ones({2, 3, 4}, at::kFloat).fill_(2.0f);
   tensor.copy_(src);
   file << std::to_string(tensor.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -995,10 +1143,12 @@ TEST_F(TensorTest, CopyMethod) {
 TEST_F(TensorTest, BitwiseRightShift) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "BitwiseRightShift ";
   at::Tensor input = at::ones({2, 3}, at::kInt).fill_(8);
   at::Tensor result = input.bitwise_right_shift(2);
   int* data = result.data_ptr<int>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1006,11 +1156,13 @@ TEST_F(TensorTest, BitwiseRightShift) {
 TEST_F(TensorTest, FloorDivide) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "FloorDivide ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(7.0f);
   at::Scalar divisor = 3.0f;
   input.floor_divide_(divisor);
   float* data = input.data_ptr<float>();
   file << std::to_string(static_cast<int>(data[0])) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1018,8 +1170,10 @@ TEST_F(TensorTest, FloorDivide) {
 TEST_F(TensorTest, NbytesMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "NbytesMethod ";
   size_t nbytes = tensor.nbytes();
   file << std::to_string(nbytes) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1027,8 +1181,10 @@ TEST_F(TensorTest, NbytesMethod) {
 TEST_F(TensorTest, ItemsizeMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ItemsizeMethod ";
   size_t itemsize = tensor.itemsize();
   file << std::to_string(itemsize) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1036,8 +1192,10 @@ TEST_F(TensorTest, ItemsizeMethod) {
 TEST_F(TensorTest, ElementSizeMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ElementSizeMethod ";
   int64_t elem_size = tensor.element_size();
   file << std::to_string(elem_size) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1045,9 +1203,11 @@ TEST_F(TensorTest, ElementSizeMethod) {
 TEST_F(TensorTest, CloneMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "CloneMethod ";
   at::Tensor cloned = tensor.clone();
   file << std::to_string(cloned.dim()) << " ";
   file << std::to_string(cloned.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1055,10 +1215,12 @@ TEST_F(TensorTest, CloneMethod) {
 TEST_F(TensorTest, AbsMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "AbsMethod ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
   at::Tensor result = input.abs();
   float* data = result.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1066,10 +1228,12 @@ TEST_F(TensorTest, AbsMethod) {
 TEST_F(TensorTest, AbsInplace) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "AbsInplace ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
   input.abs_();
   float* data = input.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1077,10 +1241,12 @@ TEST_F(TensorTest, AbsInplace) {
 TEST_F(TensorTest, AbsoluteMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "AbsoluteMethod ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
   at::Tensor result = input.absolute();
   float* data = result.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1088,10 +1254,12 @@ TEST_F(TensorTest, AbsoluteMethod) {
 TEST_F(TensorTest, AbsoluteInplace) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "AbsoluteInplace ";
   at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
   input.absolute_();
   float* data = input.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1099,9 +1267,11 @@ TEST_F(TensorTest, AbsoluteInplace) {
 TEST_F(TensorTest, OperatorIndex) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "OperatorIndex ";
   at::Tensor result = tensor[0];
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.sizes()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1109,6 +1279,7 @@ TEST_F(TensorTest, OperatorIndex) {
 TEST_F(TensorTest, ToBackendExpect) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ToBackendExpect ";
 
   at::Tensor cpu_tensor = tensor.toBackend(c10::Backend::CPU);
   file << std::to_string(cpu_tensor.is_cpu() ? 1 : 0) << " ";
@@ -1121,6 +1292,7 @@ TEST_F(TensorTest, ToBackendExpect) {
   file << std::to_string(cpu_tensor2.numel()) << " ";
 
   file << std::to_string(cpu_tensor.data_ptr<float>()[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1128,6 +1300,7 @@ TEST_F(TensorTest, ToBackendExpect) {
 TEST_F(TensorTest, Item) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "Item ";
 
   at::Tensor single_tensor = at::ones({1}, at::kFloat).fill_(3.14f);
   try {
@@ -1176,6 +1349,7 @@ TEST_F(TensorTest, Item) {
     file << "1 ";
   }
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -1183,6 +1357,7 @@ TEST_F(TensorTest, Item) {
 TEST_F(TensorTest, Data) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "Data ";
 
   void* float_data = tensor.data_ptr<float>();
   file << std::to_string(float_data != nullptr ? 1 : 0) << " ";
@@ -1196,6 +1371,7 @@ TEST_F(TensorTest, Data) {
 
   int* data_as_int = static_cast<int*>(int_data);
   file << std::to_string(data_as_int[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1203,6 +1379,7 @@ TEST_F(TensorTest, Data) {
 TEST_F(TensorTest, Meta) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "Meta ";
 
   try {
     (void)tensor.meta();
@@ -1210,6 +1387,7 @@ TEST_F(TensorTest, Meta) {
   } catch (const std::exception&) {
     file << "1 ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -1217,6 +1395,7 @@ TEST_F(TensorTest, Meta) {
 TEST_F(TensorTest, ToWithOptions) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ToWithOptions ";
 
   at::Tensor double_tensor = tensor.to(at::TensorOptions().dtype(at::kDouble));
   file << std::to_string(static_cast<int>(double_tensor.scalar_type())) << " ";
@@ -1226,6 +1405,7 @@ TEST_F(TensorTest, ToWithOptions) {
       tensor.to(at::TensorOptions().dtype(at::kFloat), false, true);
   file << std::to_string(static_cast<int>(copied_tensor.scalar_type())) << " ";
   file << std::to_string(copied_tensor.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1233,6 +1413,7 @@ TEST_F(TensorTest, ToWithOptions) {
 TEST_F(TensorTest, ToWithScalarType) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ToWithScalarType ";
 
   at::Tensor double_tensor = tensor.to(at::kDouble);
   file << std::to_string(static_cast<int>(double_tensor.scalar_type())) << " ";
@@ -1249,6 +1430,7 @@ TEST_F(TensorTest, ToWithScalarType) {
   int_tensor.fill_(5.7);
   int* int_data = int_tensor.data_ptr<int>();
   file << std::to_string(int_data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1256,6 +1438,7 @@ TEST_F(TensorTest, ToWithScalarType) {
 TEST_F(TensorTest, ToBackendBehavior) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "ToBackendBehavior ";
 
   at::Tensor cpu_tensor1 = tensor.toBackend(c10::Backend::CPU);
   at::Tensor cpu_tensor2 = cpu_tensor1.toBackend(c10::Backend::CPU);
@@ -1266,6 +1449,7 @@ TEST_F(TensorTest, ToBackendBehavior) {
   file << std::to_string(cpu_tensor2.data_ptr<float>()[0]) << " ";
   file << std::to_string(cpu_tensor1.numel()) << " ";
   file << std::to_string(cpu_tensor2.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1273,6 +1457,7 @@ TEST_F(TensorTest, ToBackendBehavior) {
 TEST_F(TensorTest, CpuBehavior) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
+  file << "CpuBehavior ";
 
   at::Tensor cpu_tensor1 = tensor.cpu();
 
@@ -1285,6 +1470,7 @@ TEST_F(TensorTest, CpuBehavior) {
   file << std::to_string(cpu_tensor1.numel()) << " ";
   file << std::to_string(cpu_tensor2.numel()) << " ";
   file << std::to_string(cpu_tensor1.dim()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1292,8 +1478,10 @@ TEST_F(TensorTest, CpuBehavior) {
 TEST_F(TensorTest, Defined) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "Defined ";
   file << std::to_string(tensor.defined()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -1301,9 +1489,11 @@ TEST_F(TensorTest, Defined) {
 TEST_F(TensorTest, Reset) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "Reset ";
   tensor.reset();
   file << std::to_string(tensor.defined()) << " ";
+  file << "\n";
   file.saveFile();
 }
 

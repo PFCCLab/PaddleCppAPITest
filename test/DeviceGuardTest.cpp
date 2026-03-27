@@ -27,6 +27,7 @@ TEST(DeviceGuardTest, DeviceOfTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "DeviceOfTensor ";
 
   // 1. CPU Tensor
   at::Tensor t_cpu = at::ones({2, 3}, at::kFloat);
@@ -38,6 +39,7 @@ TEST(DeviceGuardTest, DeviceOfTensor) {
   std::optional<at::Device> dev_empty = at::device_of(t_empty);
   write_device_result_to_file(&file, dev_empty);
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -45,6 +47,7 @@ TEST(DeviceGuardTest, DeviceOfOptionalTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "DeviceOfOptionalTensor ";
 
   // 1. nullopt
   std::optional<at::Tensor> opt_t_null = std::nullopt;
@@ -56,6 +59,7 @@ TEST(DeviceGuardTest, DeviceOfOptionalTensor) {
   std::optional<at::Device> dev_value = at::device_of(opt_t_value);
   write_device_result_to_file(&file, dev_value);
 
+  file << "\n";
   file.saveFile();
 }
 

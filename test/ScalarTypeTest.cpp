@@ -35,6 +35,7 @@ TEST_F(ScalarTypeTest, IsComplex) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "IsComplex ";
 
   // Float tensor should not be complex
   file << std::to_string(tensor.is_complex()) << " ";
@@ -47,6 +48,7 @@ TEST_F(ScalarTypeTest, IsComplex) {
   at::Tensor complex_double_tensor =
       at::ones({2, 3}, at::TensorOptions().dtype(at::kComplexDouble));
   file << std::to_string(complex_double_tensor.is_complex()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -55,6 +57,7 @@ TEST_F(ScalarTypeTest, IsFloatingPoint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsFloatingPoint ";
 
   // Float tensor should be floating point
   file << std::to_string(tensor.is_floating_point()) << " ";
@@ -72,6 +75,7 @@ TEST_F(ScalarTypeTest, IsFloatingPoint) {
   at::Tensor long_tensor =
       at::ones({2, 3}, at::TensorOptions().dtype(at::kLong));
   file << std::to_string(long_tensor.is_floating_point()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -80,6 +84,7 @@ TEST_F(ScalarTypeTest, IsSigned) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsSigned ";
 
   // Float tensor should be signed
   file << std::to_string(tensor.is_signed()) << " ";
@@ -102,6 +107,7 @@ TEST_F(ScalarTypeTest, IsSigned) {
   at::Tensor bool_tensor =
       at::ones({2, 3}, at::TensorOptions().dtype(at::kBool));
   file << std::to_string(bool_tensor.is_signed()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -111,6 +117,7 @@ TEST_F(ScalarTypeTest, ToString) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToString ";
 
   // Test toString for various ScalarTypes
   file << c10::toString(c10::ScalarType::Byte) << " ";
@@ -131,6 +138,7 @@ TEST_F(ScalarTypeTest, ToString) {
   file << c10::toString(c10::ScalarType::UInt16) << " ";
   file << c10::toString(c10::ScalarType::UInt32) << " ";
   file << c10::toString(c10::ScalarType::UInt64) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -139,6 +147,7 @@ TEST_F(ScalarTypeTest, ElementSize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ElementSize ";
 
   // Test elementSize for various ScalarTypes
   file << std::to_string(c10::elementSize(c10::ScalarType::Byte)) << " ";   // 1
@@ -172,6 +181,7 @@ TEST_F(ScalarTypeTest, ElementSize) {
   file << std::to_string(c10::elementSize(c10::ScalarType::UInt64))
        << " ";  // 8
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -180,6 +190,7 @@ TEST_F(ScalarTypeTest, IsIntegralType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsIntegralType ";
 
   // Test integral types (without bool)
   file << std::to_string(c10::isIntegralType(c10::ScalarType::Byte, false))
@@ -210,6 +221,7 @@ TEST_F(ScalarTypeTest, IsIntegralType) {
   // Test with includeBool = true
   file << std::to_string(c10::isIntegralType(c10::ScalarType::Bool, true))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -220,6 +232,7 @@ TEST_F(ScalarTypeTest, IsFloat8Type) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsFloat8Type ";
 
   // Test Float8 types
   file << std::to_string(c10::isFloat8Type(c10::ScalarType::Float8_e5m2))
@@ -236,6 +249,7 @@ TEST_F(ScalarTypeTest, IsFloat8Type) {
   file << std::to_string(c10::isFloat8Type(c10::ScalarType::Double)) << " ";
   file << std::to_string(c10::isFloat8Type(c10::ScalarType::Half)) << " ";
   file << std::to_string(c10::isFloat8Type(c10::ScalarType::Int)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -244,6 +258,7 @@ TEST_F(ScalarTypeTest, IsReducedFloatingType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsReducedFloatingType ";
 
   // Test reduced floating types
   file << std::to_string(c10::isReducedFloatingType(c10::ScalarType::Half))
@@ -265,6 +280,7 @@ TEST_F(ScalarTypeTest, IsReducedFloatingType) {
        << " ";
   file << std::to_string(c10::isReducedFloatingType(c10::ScalarType::Bool))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -273,6 +289,7 @@ TEST_F(ScalarTypeTest, IsFloatingType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsFloatingType ";
 
   // Test floating types
   file << std::to_string(c10::isFloatingType(c10::ScalarType::Float)) << " ";
@@ -286,6 +303,7 @@ TEST_F(ScalarTypeTest, IsFloatingType) {
   file << std::to_string(c10::isFloatingType(c10::ScalarType::Int)) << " ";
   file << std::to_string(c10::isFloatingType(c10::ScalarType::Long)) << " ";
   file << std::to_string(c10::isFloatingType(c10::ScalarType::Bool)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -294,6 +312,7 @@ TEST_F(ScalarTypeTest, IsComplexType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsComplexType ";
 
   // Test complex types
   file << std::to_string(c10::isComplexType(c10::ScalarType::ComplexHalf))
@@ -308,6 +327,7 @@ TEST_F(ScalarTypeTest, IsComplexType) {
   file << std::to_string(c10::isComplexType(c10::ScalarType::Double)) << " ";
   file << std::to_string(c10::isComplexType(c10::ScalarType::Int)) << " ";
   file << std::to_string(c10::isComplexType(c10::ScalarType::Bool)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -316,6 +336,7 @@ TEST_F(ScalarTypeTest, IsQIntType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsQIntType ";
 
   // Test quantized int types
   file << std::to_string(c10::isQIntType(c10::ScalarType::QInt8)) << " ";
@@ -328,6 +349,7 @@ TEST_F(ScalarTypeTest, IsQIntType) {
   file << std::to_string(c10::isQIntType(c10::ScalarType::Int)) << " ";
   file << std::to_string(c10::isQIntType(c10::ScalarType::Float)) << " ";
   file << std::to_string(c10::isQIntType(c10::ScalarType::Byte)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -336,6 +358,7 @@ TEST_F(ScalarTypeTest, IsBitsType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsBitsType ";
 
   // Test bits types
   file << std::to_string(c10::isBitsType(c10::ScalarType::Bits1x8)) << " ";
@@ -348,6 +371,7 @@ TEST_F(ScalarTypeTest, IsBitsType) {
   file << std::to_string(c10::isBitsType(c10::ScalarType::Int)) << " ";
   file << std::to_string(c10::isBitsType(c10::ScalarType::Float)) << " ";
   file << std::to_string(c10::isBitsType(c10::ScalarType::Byte)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -356,6 +380,7 @@ TEST_F(ScalarTypeTest, IsBarebonesUnsignedType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsBarebonesUnsignedType ";
 
   // Test barebones unsigned types
   file << std::to_string(c10::isBarebonesUnsignedType(c10::ScalarType::UInt1))
@@ -386,6 +411,7 @@ TEST_F(ScalarTypeTest, IsBarebonesUnsignedType) {
        << " ";
   file << std::to_string(c10::isBarebonesUnsignedType(c10::ScalarType::Byte))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -394,6 +420,7 @@ TEST_F(ScalarTypeTest, ToQIntType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToQIntType ";
 
   // Test conversion to QInt types
   file << c10::toString(c10::toQIntType(c10::ScalarType::Byte)) << " ";
@@ -404,6 +431,7 @@ TEST_F(ScalarTypeTest, ToQIntType) {
   file << c10::toString(c10::toQIntType(c10::ScalarType::Float)) << " ";
   file << c10::toString(c10::toQIntType(c10::ScalarType::Double)) << " ";
   file << c10::toString(c10::toQIntType(c10::ScalarType::Long)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -412,6 +440,7 @@ TEST_F(ScalarTypeTest, ToUnderlying) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToUnderlying ";
 
   // Test conversion to underlying types
   file << c10::toString(c10::toUnderlying(c10::ScalarType::QUInt8)) << " ";
@@ -423,6 +452,7 @@ TEST_F(ScalarTypeTest, ToUnderlying) {
   // Test non-quantized types (should return same type)
   file << c10::toString(c10::toUnderlying(c10::ScalarType::Float)) << " ";
   file << c10::toString(c10::toUnderlying(c10::ScalarType::Int)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -431,6 +461,7 @@ TEST_F(ScalarTypeTest, IsSignedType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsSignedType ";
 
   // Test signed types
   file << std::to_string(c10::isSignedType(c10::ScalarType::Char)) << " ";
@@ -454,6 +485,7 @@ TEST_F(ScalarTypeTest, IsSignedType) {
 
   // Test bool (unsigned)
   file << std::to_string(c10::isSignedType(c10::ScalarType::Bool)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -462,6 +494,7 @@ TEST_F(ScalarTypeTest, IsUnderlying) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsUnderlying ";
 
   // Test isUnderlying
   file << std::to_string(
@@ -479,6 +512,7 @@ TEST_F(ScalarTypeTest, IsUnderlying) {
   file << std::to_string(c10::isUnderlying(c10::ScalarType::Float,
                                            c10::ScalarType::QUInt8))
        << " ";  // false
+  file << "\n";
   file.saveFile();
 }
 
@@ -487,6 +521,7 @@ TEST_F(ScalarTypeTest, ToRealValueType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToRealValueType ";
 
   // Test conversion from complex to real types
   file << c10::toString(c10::toRealValueType(c10::ScalarType::ComplexHalf))
@@ -500,6 +535,7 @@ TEST_F(ScalarTypeTest, ToRealValueType) {
   file << c10::toString(c10::toRealValueType(c10::ScalarType::Float)) << " ";
   file << c10::toString(c10::toRealValueType(c10::ScalarType::Double)) << " ";
   file << c10::toString(c10::toRealValueType(c10::ScalarType::Int)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -508,6 +544,7 @@ TEST_F(ScalarTypeTest, ToComplexType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToComplexType ";
 
   // Test conversion to complex types
   file << c10::toString(c10::toComplexType(c10::ScalarType::Half)) << " ";
@@ -522,6 +559,7 @@ TEST_F(ScalarTypeTest, ToComplexType) {
        << " ";
   file << c10::toString(c10::toComplexType(c10::ScalarType::ComplexDouble))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -530,6 +568,7 @@ TEST_F(ScalarTypeTest, CanCast) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "CanCast ";
 
   // Test valid casts
   file << std::to_string(
@@ -566,6 +605,7 @@ TEST_F(ScalarTypeTest, CanCast) {
               c10::canCast(c10::ScalarType::Float, c10::ScalarType::Bool))
        << " ";  // false
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -574,8 +614,10 @@ TEST_F(ScalarTypeTest, NumScalarTypes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NumScalarTypes ";
 
   file << std::to_string(c10::NumScalarTypes) << " ";
+  file << "\n";
   file.saveFile();
 }
 

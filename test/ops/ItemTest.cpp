@@ -39,9 +39,11 @@ TEST_F(ItemTest, ItemFloatScalar) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ItemFloatScalar ";
 
   at::Scalar s = scalar_float.item();
   file << std::to_string(s.to<float>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -49,10 +51,12 @@ TEST_F(ItemTest, ItemFloatScalar) {
 TEST_F(ItemTest, ItemTemplateFloat) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ItemTemplateFloat ";
 
   float val = scalar_float.item<float>();
   file << std::to_string(val) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -60,10 +64,12 @@ TEST_F(ItemTest, ItemTemplateFloat) {
 TEST_F(ItemTest, ItemTemplateInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ItemTemplateInt ";
 
   int val = scalar_int.item<int>();
   file << std::to_string(val) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -71,11 +77,13 @@ TEST_F(ItemTest, ItemTemplateInt) {
 TEST_F(ItemTest, ItemTemplateDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ItemTemplateDouble ";
 
   double val = scalar_double.item<double>();
   // 保留 9 位有效数字
   file << std::to_string(val) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -83,12 +91,14 @@ TEST_F(ItemTest, ItemTemplateDouble) {
 TEST_F(ItemTest, ItemTemplateInt64) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ItemTemplateInt64 ";
 
   at::Tensor t = at::zeros({}, at::kLong);
   t.fill_(static_cast<int64_t>(1234567890));
   int64_t val = t.item<int64_t>();
   file << std::to_string(val) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -96,12 +106,14 @@ TEST_F(ItemTest, ItemTemplateInt64) {
 TEST_F(ItemTest, ItemFromSingleElementTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ItemFromSingleElementTensor ";
 
   at::Tensor t = at::zeros({1}, at::kFloat);
   t.fill_(7.5f);
   float val = t.item<float>();
   file << std::to_string(val) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -109,10 +121,12 @@ TEST_F(ItemTest, ItemFromSingleElementTensor) {
 TEST_F(ItemTest, ItemCrossTypeCast) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ItemCrossTypeCast ";
 
   float val = scalar_double.item<float>();
   file << std::to_string(val) << " ";
+  file << "\n";
   file.saveFile();
 }
 

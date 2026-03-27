@@ -59,7 +59,9 @@ TEST_F(ReciprocalTest, MethodReciprocalBasic) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "MethodReciprocalBasic ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -75,7 +77,9 @@ TEST_F(ReciprocalTest, MethodReciprocalInplace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MethodReciprocalInplace ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -88,7 +92,9 @@ TEST_F(ReciprocalTest, ScalarReciprocal) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ScalarReciprocal ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -100,7 +106,9 @@ TEST_F(ReciprocalTest, ZeroExtentsReciprocal) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ZeroExtentsReciprocal ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
 }
 
@@ -112,12 +120,14 @@ TEST_F(ReciprocalTest, ExceptionZeroReciprocal) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ExceptionZeroReciprocal ";
   try {
     at::Tensor result = t1.reciprocal();
     write_result_to_file(&file, result);
   } catch (const std::exception& e) {
-    file << "exception: " << e.what();
+    file << "exception ";
   }
+  file << "\n";
   file.saveFile();
 }
 

@@ -178,9 +178,6 @@ TEST_F(ArangeTest, Float32Dtype) {
   file.openAppend();
   file << "Float32Dtype ";
   at::Tensor result = at::arange(4, at::TensorOptions().dtype(at::kFloat));
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";

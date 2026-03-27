@@ -24,6 +24,7 @@ TEST_F(ScalarTypeFunctionsTest, ElementSize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ElementSize ";
 
   // Test elementSize for various ScalarTypes
   file << std::to_string(c10::elementSize(c10::ScalarType::Float)) << " ";
@@ -40,6 +41,7 @@ TEST_F(ScalarTypeFunctionsTest, ElementSize) {
        << " ";
   file << std::to_string(c10::elementSize(c10::ScalarType::ComplexDouble))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -48,6 +50,7 @@ TEST_F(ScalarTypeFunctionsTest, IsIntegralType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsIntegralType ";
 
   // Test isIntegralType with includeBool = false
   file << std::to_string(c10::isIntegralType(c10::ScalarType::Int, false))
@@ -68,6 +71,7 @@ TEST_F(ScalarTypeFunctionsTest, IsIntegralType) {
        << " ";
   file << std::to_string(c10::isIntegralType(c10::ScalarType::Float, true))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -76,9 +80,11 @@ TEST_F(ScalarTypeFunctionsTest, IsFloat8Type) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsFloat8Type ";
 
   // Test isFloat8Type - may not be available in all versions
   file << "float8_test ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -87,6 +93,7 @@ TEST_F(ScalarTypeFunctionsTest, IsReducedFloatingType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsReducedFloatingType ";
 
   // Test isReducedFloatingType
   file << std::to_string(c10::isReducedFloatingType(c10::ScalarType::Half))
@@ -97,6 +104,7 @@ TEST_F(ScalarTypeFunctionsTest, IsReducedFloatingType) {
        << " ";
   file << std::to_string(c10::isReducedFloatingType(c10::ScalarType::Double))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -105,6 +113,7 @@ TEST_F(ScalarTypeFunctionsTest, IsFloatingType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsFloatingType ";
 
   // Test isFloatingType
   file << std::to_string(c10::isFloatingType(c10::ScalarType::Float)) << " ";
@@ -114,6 +123,7 @@ TEST_F(ScalarTypeFunctionsTest, IsFloatingType) {
   file << std::to_string(c10::isFloatingType(c10::ScalarType::Int)) << " ";
   file << std::to_string(c10::isFloatingType(c10::ScalarType::Long)) << " ";
   file << std::to_string(c10::isFloatingType(c10::ScalarType::Bool)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -122,6 +132,7 @@ TEST_F(ScalarTypeFunctionsTest, IsComplexType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IsComplexType ";
 
   // Test isComplexType
   file << std::to_string(c10::isComplexType(c10::ScalarType::ComplexFloat))
@@ -131,6 +142,7 @@ TEST_F(ScalarTypeFunctionsTest, IsComplexType) {
   file << std::to_string(c10::isComplexType(c10::ScalarType::Float)) << " ";
   file << std::to_string(c10::isComplexType(c10::ScalarType::Double)) << " ";
   file << std::to_string(c10::isComplexType(c10::ScalarType::Int)) << " ";
+  file << "\n";
   file.saveFile();
 }
 

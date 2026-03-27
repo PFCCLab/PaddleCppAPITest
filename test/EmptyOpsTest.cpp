@@ -29,6 +29,7 @@ TEST_F(EmptyOpsTest, Empty) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "Empty ";
 
   // Test empty with IntArrayRef size
   at::Tensor t = at::empty({2, 3, 4}, at::kFloat);
@@ -38,6 +39,7 @@ TEST_F(EmptyOpsTest, Empty) {
   file << std::to_string(t.size(1)) << " ";
   file << std::to_string(t.size(2)) << " ";
   file << std::to_string(static_cast<int>(t.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -46,11 +48,13 @@ TEST_F(EmptyOpsTest, EmptyDifferentDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmptyDifferentDtype ";
 
   at::Tensor t = at::empty({3, 4}, at::kInt);
   file << std::to_string(t.dim()) << " ";
   file << std::to_string(t.numel()) << " ";
   file << std::to_string(static_cast<int>(t.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -59,11 +63,13 @@ TEST_F(EmptyOpsTest, EmptyWithScalarType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmptyWithScalarType ";
 
   // Using at::kFloat equivalent to c10::ScalarType::Float
   at::Tensor t = at::empty({2, 3}, at::TensorOptions().dtype(at::kFloat));
   file << std::to_string(t.dim()) << " ";
   file << std::to_string(static_cast<int>(t.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -72,6 +78,7 @@ TEST_F(EmptyOpsTest, EmptyCUDA) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmptyCUDA ";
 
   // Try to create empty CUDA tensor
   try {
@@ -81,6 +88,7 @@ TEST_F(EmptyOpsTest, EmptyCUDA) {
   } catch (...) {
     file << "cuda_not_available ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -89,6 +97,7 @@ TEST_F(EmptyOpsTest, FullSymint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FullSymint ";
 
   // full_symint with SymIntArrayRef
   at::Tensor t = at::full_symint({2, 3}, 5.0f, at::kFloat);
@@ -96,6 +105,7 @@ TEST_F(EmptyOpsTest, FullSymint) {
   file << std::to_string(t.numel()) << " ";
   file << std::to_string(t.data_ptr<float>()[0]) << " ";
   file << std::to_string(t.data_ptr<float>()[5]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -104,6 +114,7 @@ TEST_F(EmptyOpsTest, FullSymintInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "FullSymintInt ";
 
   // full_symint with array size
   at::Tensor t = at::full_symint({10}, 3, at::kInt);
@@ -111,6 +122,7 @@ TEST_F(EmptyOpsTest, FullSymintInt) {
   file << std::to_string(t.numel()) << " ";
   file << std::to_string(t.data_ptr<int>()[0]) << " ";
   file << std::to_string(t.data_ptr<int>()[9]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -119,6 +131,7 @@ TEST_F(EmptyOpsTest, OnesSymint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "OnesSymint ";
 
   // ones_symint with array
   at::Tensor t = at::ones_symint({5}, at::kFloat);
@@ -126,6 +139,7 @@ TEST_F(EmptyOpsTest, OnesSymint) {
   file << std::to_string(t.numel()) << " ";
   file << std::to_string(t.data_ptr<float>()[0]) << " ";
   file << std::to_string(t.data_ptr<float>()[4]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -134,6 +148,7 @@ TEST_F(EmptyOpsTest, OnesSymintShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "OnesSymintShape ";
 
   // ones_symint with c10::SymIntArrayRef
   at::Tensor t = at::ones_symint({2, 3, 4}, at::kFloat);
@@ -141,6 +156,7 @@ TEST_F(EmptyOpsTest, OnesSymintShape) {
   file << std::to_string(t.numel()) << " ";
   file << std::to_string(t.data_ptr<float>()[0]) << " ";
   file << std::to_string(t.data_ptr<float>()[23]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -149,6 +165,7 @@ TEST_F(EmptyOpsTest, ZerosSymint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ZerosSymint ";
 
   // zeros_symint with array
   at::Tensor t = at::zeros_symint({5}, at::kFloat);
@@ -156,6 +173,7 @@ TEST_F(EmptyOpsTest, ZerosSymint) {
   file << std::to_string(t.numel()) << " ";
   file << std::to_string(t.data_ptr<float>()[0]) << " ";
   file << std::to_string(t.data_ptr<float>()[4]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -164,6 +182,7 @@ TEST_F(EmptyOpsTest, ZerosSymintShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ZerosSymintShape ";
 
   // zeros_symint with c10::SymIntArrayRef
   at::Tensor t = at::zeros_symint({2, 3}, at::kFloat);
@@ -171,6 +190,7 @@ TEST_F(EmptyOpsTest, ZerosSymintShape) {
   file << std::to_string(t.numel()) << " ";
   file << std::to_string(t.data_ptr<float>()[0]) << " ";
   file << std::to_string(t.data_ptr<float>()[5]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -179,6 +199,7 @@ TEST_F(EmptyOpsTest, ReshapeSymint) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ReshapeSymint ";
 
   // Create a tensor and reshape
   at::Tensor t = at::arange(12, at::kInt);
@@ -186,6 +207,7 @@ TEST_F(EmptyOpsTest, ReshapeSymint) {
   file << std::to_string(reshaped.dim()) << " ";
   file << std::to_string(reshaped.size(0)) << " ";
   file << std::to_string(reshaped.size(1)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -194,11 +216,13 @@ TEST_F(EmptyOpsTest, ReshapeSymintInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ReshapeSymintInt ";
 
   at::Tensor t = at::arange(24, at::kInt);
   at::Tensor reshaped = at::reshape_symint(t, {24});
   file << std::to_string(reshaped.dim()) << " ";
   file << std::to_string(reshaped.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -207,6 +231,7 @@ TEST_F(EmptyOpsTest, EmptySizes) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EmptySizes ";
 
   // Scalar (0-d)
   at::Tensor t0 = at::empty({}, at::kFloat);
@@ -224,6 +249,7 @@ TEST_F(EmptyOpsTest, EmptySizes) {
   // Large
   at::Tensor t3 = at::empty({100, 100}, at::kFloat);
   file << "large " << std::to_string(t3.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 

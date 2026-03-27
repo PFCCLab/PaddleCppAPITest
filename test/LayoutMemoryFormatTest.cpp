@@ -28,6 +28,7 @@ TEST_F(LayoutMemoryFormatTest, LayoutEnumValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "LayoutEnumValues ";
   file << std::to_string(static_cast<int>(c10::kStrided)) << " ";
   file << std::to_string(static_cast<int>(c10::kSparse)) << " ";
   file << std::to_string(static_cast<int>(c10::kSparseCsr)) << " ";
@@ -36,6 +37,7 @@ TEST_F(LayoutMemoryFormatTest, LayoutEnumValues) {
   file << std::to_string(static_cast<int>(c10::kSparseBsr)) << " ";
   file << std::to_string(static_cast<int>(c10::kSparseBsc)) << " ";
   file << std::to_string(static_cast<int>(c10::kJagged)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -56,9 +58,11 @@ TEST_F(LayoutMemoryFormatTest, LayoutOutputStream) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "LayoutOutputStream ";
   file << strided_str << " ";
   file << sparse_str << " ";
   file << sparse_csr_str << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -67,9 +71,11 @@ TEST_F(LayoutMemoryFormatTest, LayoutAtNamespace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "LayoutAtNamespace ";
   file << std::to_string(static_cast<int>(at::kStrided)) << " ";
   file << std::to_string(static_cast<int>(at::kSparse)) << " ";
   file << std::to_string(static_cast<int>(at::kSparseCsr)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -78,9 +84,11 @@ TEST_F(LayoutMemoryFormatTest, LayoutTorchNamespace) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "LayoutTorchNamespace ";
   file << std::to_string(static_cast<int>(c10::kStrided)) << " ";
   file << std::to_string(static_cast<int>(c10::kSparse)) << " ";
   file << std::to_string(static_cast<int>(c10::kSparseCsr)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -89,9 +97,11 @@ TEST_F(LayoutMemoryFormatTest, LayoutComparison) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "LayoutComparison ";
   file << std::to_string(c10::kStrided == at::kStrided ? 1 : 0) << " ";
   file << std::to_string(c10::kSparse == at::kSparse ? 1 : 0) << " ";
   file << std::to_string(c10::kStrided == c10::kSparse ? 1 : 0) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -102,6 +112,7 @@ TEST_F(LayoutMemoryFormatTest, MemoryFormatEnumValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MemoryFormatEnumValues ";
   file << std::to_string(static_cast<int>(c10::MemoryFormat::Contiguous))
        << " ";
   file << std::to_string(static_cast<int>(c10::MemoryFormat::Preserve)) << " ";
@@ -109,6 +120,7 @@ TEST_F(LayoutMemoryFormatTest, MemoryFormatEnumValues) {
        << " ";
   file << std::to_string(static_cast<int>(c10::MemoryFormat::ChannelsLast3d))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -119,8 +131,10 @@ TEST_F(LayoutMemoryFormatTest, MemoryFormatNamespaces) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MemoryFormatNamespaces ";
   file << std::to_string(static_cast<int>(mf1)) << " ";
   file << std::to_string(static_cast<int>(mf2)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -129,6 +143,7 @@ TEST_F(LayoutMemoryFormatTest, MemoryFormatComparison) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MemoryFormatComparison ";
   file << std::to_string(c10::MemoryFormat::Contiguous ==
                                  c10::MemoryFormat::Contiguous
                              ? 1
@@ -139,6 +154,7 @@ TEST_F(LayoutMemoryFormatTest, MemoryFormatComparison) {
                              ? 1
                              : 0)
        << " ";
+  file << "\n";
   file.saveFile();
 }
 

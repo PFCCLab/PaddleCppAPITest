@@ -57,6 +57,7 @@ TEST_F(IndexTest, SliceConstruction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "SliceConstruction ";
 #if USE_PADDLE_API
   file << std::to_string(s1.start()) << " ";
   file << std::to_string(s1.stop()) << " ";
@@ -72,6 +73,7 @@ TEST_F(IndexTest, SliceConstruction) {
   file << std::to_string(s2.stop().expect_int()) << " ";
   file << std::to_string(s2.step().expect_int()) << " ";
 #endif
+  file << "\n";
   file.saveFile();
 }
 
@@ -82,10 +84,12 @@ TEST_F(IndexTest, IndexSingleSlice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IndexSingleSlice ";
   write_index_result_to_file(&file, result);
   at::Tensor c = result.contiguous();
   float* data = c.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -96,12 +100,14 @@ TEST_F(IndexTest, IndexMultiSlice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IndexMultiSlice ";
   write_index_result_to_file(&file, result);
   at::Tensor c = result.contiguous();
   float* data = c.data_ptr<float>();
   for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(data[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -112,11 +118,13 @@ TEST_F(IndexTest, IndexMemberFunction) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IndexMemberFunction ";
   write_index_result_to_file(&file, result);
   at::Tensor c = result.contiguous();
   float* data = c.data_ptr<float>();
   file << std::to_string(data[0]) << " ";
   file << std::to_string(data[c.numel() - 1]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -132,12 +140,14 @@ TEST_F(IndexTest, Index2D) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "Index2D ";
   write_index_result_to_file(&file, result);
   at::Tensor c = result.contiguous();
   float* rdata = c.data_ptr<float>();
   for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -153,6 +163,7 @@ TEST_F(IndexTest, IndexDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IndexDouble ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -166,6 +177,7 @@ TEST_F(IndexTest, IndexDouble) {
   for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -181,6 +193,7 @@ TEST_F(IndexTest, IndexInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IndexInt ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -194,6 +207,7 @@ TEST_F(IndexTest, IndexInt) {
   for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -209,6 +223,7 @@ TEST_F(IndexTest, IndexLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IndexLong ";
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
@@ -222,6 +237,7 @@ TEST_F(IndexTest, IndexLong) {
   for (int64_t i = 0; i < c.numel(); ++i) {
     file << std::to_string(rdata[i]) << " ";
   }
+  file << "\n";
   file.saveFile();
 }
 
@@ -237,18 +253,21 @@ TEST_F(IndexTest, IndexLargeShape) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "IndexLargeShape ";
   write_index_result_to_file(&file, result);
   at::Tensor c = result.contiguous();
   float* rdata = c.data_ptr<float>();
   file << std::to_string(rdata[0]) << " ";
   file << std::to_string(rdata[c.numel() - 1]) << " ";
+  file << "\n";
   file.saveFile();
 }
 
 TEST_F(IndexTest, SliceIndexKeepsStride) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "SliceIndexKeepsStride ";
 
   at::Tensor base = at::arange(0, 24, at::TensorOptions().dtype(at::kFloat))
                         .reshape({2, 3, 4});
@@ -276,6 +295,7 @@ TEST_F(IndexTest, SliceIndexKeepsStride) {
 
   file << std::to_string(result_data[0]) << " ";
   file << std::to_string(result_data[1]) << " ";
+  file << "\n";
   file.saveFile();
 }
 

@@ -29,7 +29,9 @@ TEST_F(AccumulateTypeTest, SumIntegersContainer) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "SumIntegersContainer ";
   file << std::to_string(result) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -41,7 +43,9 @@ TEST_F(AccumulateTypeTest, SumIntegersIterator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SumIntegersIterator ";
   file << std::to_string(result) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -53,7 +57,9 @@ TEST_F(AccumulateTypeTest, SumIntegersEmpty) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SumIntegersEmpty ";
   file << std::to_string(result) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -65,7 +71,9 @@ TEST_F(AccumulateTypeTest, MultiplyIntegersContainer) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MultiplyIntegersContainer ";
   file << std::to_string(result) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -77,7 +85,9 @@ TEST_F(AccumulateTypeTest, MultiplyIntegersIterator) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MultiplyIntegersIterator ";
   file << std::to_string(result) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -89,7 +99,9 @@ TEST_F(AccumulateTypeTest, MultiplyIntegersEmpty) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MultiplyIntegersEmpty ";
   file << std::to_string(result) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -101,7 +113,9 @@ TEST_F(AccumulateTypeTest, MultiplyIntegersWithZero) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "MultiplyIntegersWithZero ";
   file << std::to_string(result) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -117,11 +131,13 @@ TEST_F(AccumulateTypeTest, NumElementsFromDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NumElementsFromDim ";
   file << std::to_string(c10::numelements_from_dim(0, dims)) << " ";
   file << std::to_string(c10::numelements_from_dim(1, dims)) << " ";
   file << std::to_string(c10::numelements_from_dim(2, dims)) << " ";
   file << std::to_string(c10::numelements_from_dim(3, dims)) << " ";
   file << std::to_string(c10::numelements_from_dim(5, dims)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -137,11 +153,13 @@ TEST_F(AccumulateTypeTest, NumElementsToDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NumElementsToDim ";
   file << std::to_string(c10::numelements_to_dim(0, dims)) << " ";
   file << std::to_string(c10::numelements_to_dim(1, dims)) << " ";
   file << std::to_string(c10::numelements_to_dim(2, dims)) << " ";
   file << std::to_string(c10::numelements_to_dim(3, dims)) << " ";
   file << std::to_string(c10::numelements_to_dim(4, dims)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -154,10 +172,12 @@ TEST_F(AccumulateTypeTest, NumElementsBetweenDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "NumElementsBetweenDim ";
   file << std::to_string(c10::numelements_between_dim(0, 2, dims)) << " ";
   file << std::to_string(c10::numelements_between_dim(1, 3, dims)) << " ";
   // 交换顺序应得同样结果
   file << std::to_string(c10::numelements_between_dim(3, 1, dims)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -170,8 +190,10 @@ TEST_F(AccumulateTypeTest, LargeValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "LargeValues ";
   file << std::to_string(sum_result) << " ";
   file << std::to_string(mul_result) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -180,6 +202,7 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeCPUDevice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToAccumulateTypeCPUDevice ";
 
   // CPU accumulate types
   file << "BFloat16->"
@@ -218,6 +241,7 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeCPUDevice) {
        << std::to_string(static_cast<int>(at::toAccumulateType(
               c10::ScalarType::Bool, c10::DeviceType::CPU)))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -226,6 +250,7 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeCUDADevice) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToAccumulateTypeCUDADevice ";
 
   // CUDA accumulate types
   file << "BFloat16->"
@@ -264,6 +289,7 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeCUDADevice) {
        << std::to_string(static_cast<int>(at::toAccumulateType(
               c10::ScalarType::Bool, c10::DeviceType::CUDA)))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -272,6 +298,7 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeBoolFalse) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToAccumulateTypeBoolFalse ";
 
   // is_cuda = false (equivalent to CPU)
   file << "Float->"
@@ -286,6 +313,7 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeBoolFalse) {
        << std::to_string(static_cast<int>(
               at::toAccumulateType(c10::ScalarType::Int, false)))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -294,6 +322,7 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeBoolTrue) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "ToAccumulateTypeBoolTrue ";
 
   // is_cuda = true (equivalent to CUDA)
   file << "Float->"
@@ -308,6 +337,7 @@ TEST_F(AccumulateTypeTest, ToAccumulateTypeBoolTrue) {
        << std::to_string(static_cast<int>(
               at::toAccumulateType(c10::ScalarType::Int, true)))
        << " ";
+  file << "\n";
   file.saveFile();
 }
 

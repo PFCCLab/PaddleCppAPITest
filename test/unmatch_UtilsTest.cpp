@@ -33,6 +33,7 @@ TEST(UtilsTest, TensorCPU) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "TensorCPU ";
 
   // 1. float array
   std::vector<float> data = {1.0f, 2.0f, 3.0f, 4.0f};
@@ -49,6 +50,7 @@ TEST(UtilsTest, TensorCPU) {
       at::detail::tensor_cpu(empty_arr, at::TensorOptions(at::kFloat));
   write_op_result_to_file(&file, t2);
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -58,6 +60,7 @@ TEST(UtilsTest, TensorBackend) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorBackend ";
 
   // 1. float array
   std::vector<float> data = {5.0f};
@@ -67,6 +70,7 @@ TEST(UtilsTest, TensorBackend) {
       at::detail::tensor_backend(arr, at::TensorOptions(at::kFloat));
   write_op_result_to_file(&file, t1);
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -76,6 +80,7 @@ TEST(UtilsTest, TensorComplexCPU) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorComplexCPU ";
 
 #if USE_PADDLE_API
   std::vector<c10::complex<double>> data = {{1.0, 2.0}, {3.0, 4.0}};
@@ -95,6 +100,7 @@ TEST(UtilsTest, TensorComplexCPU) {
   file << "1 2 1.000000 2.000000 3.000000 4.000000 ";
 #endif
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -104,6 +110,7 @@ TEST(UtilsTest, TensorComplexBackend) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorComplexBackend ";
 
 #if USE_PADDLE_API
   std::vector<c10::complex<double>> data = {{5.0, 6.0}};
@@ -123,6 +130,7 @@ TEST(UtilsTest, TensorComplexBackend) {
   file << "1 1 5.000000 6.000000 ";
 #endif
 
+  file << "\n";
   file.saveFile();
 }
 

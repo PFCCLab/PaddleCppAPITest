@@ -24,6 +24,7 @@ TEST(TensorBodyTest, AllTest) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.createFile();
+  file << "AllTest ";
 
   at::Tensor t1 = tensor_from_vector_1d<int>({1, 1, 1}, at::kInt).to(at::kBool);
   at::Tensor t2 = tensor_from_vector_1d<int>({1, 0, 1}, at::kInt).to(at::kBool);
@@ -38,6 +39,7 @@ TEST(TensorBodyTest, AllTest) {
   file << std::to_string(t3_all_dim0.size(0)) << " ";
   file << std::to_string(t3_all_dim0[0].item<bool>() ? 1 : 0) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 
@@ -45,6 +47,7 @@ TEST(TensorBodyTest, AllCloseTest) {
   auto file_name = g_custom_param.get();
   paddle_api_test::FileManerger file(file_name);
   file.openAppend();
+  file << "AllCloseTest ";
 
   at::Tensor t1 = tensor_from_vector_1d<float>({1.0f, 2.0f, 3.0f}, at::kFloat);
   at::Tensor t2 =
@@ -54,6 +57,7 @@ TEST(TensorBodyTest, AllCloseTest) {
   file << std::to_string(t1.allclose(t2) ? 1 : 0) << " ";
   file << std::to_string(t1.allclose(t2, 1e-4) ? 1 : 0) << " ";
 
+  file << "\n";
   file.saveFile();
 }
 

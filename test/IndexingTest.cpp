@@ -33,6 +33,7 @@ TEST_F(IndexingTest, EllipsisIndexType) {
   at::indexing::EllipsisIndexType ellipsis;
   (void)ellipsis;  // suppress unused variable warning
   file << "EllipsisIndexType ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -42,10 +43,12 @@ TEST_F(IndexingTest, EllipsisIndexTypeWithBatchSize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "EllipsisIndexTypeWithBatchSize ";
 
   at::indexing::EllipsisIndexType ellipsis;
   (void)ellipsis;  // suppress unused variable warning
   file << "EllipsisIndexType_batch ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -54,10 +57,12 @@ TEST_F(IndexingTest, SliceDefault) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceDefault ";
 
   at::indexing::Slice slice;
   (void)slice;  // suppress unused variable warning
   file << "Slice_default ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -66,11 +71,13 @@ TEST_F(IndexingTest, SliceWithValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceWithValues ";
 
   // Slice with start, end, step
   at::indexing::Slice slice(1, 10, 2);
   (void)slice;  // suppress unused variable warning
   file << "Slice_values ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -80,6 +87,7 @@ TEST_F(IndexingTest, TensorIndexing) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexing ";
 
   // Create a test tensor
   at::Tensor t = at::arange(12, at::kInt).view({3, 4});
@@ -96,6 +104,7 @@ TEST_F(IndexingTest, TensorIndexing) {
 #endif
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -105,6 +114,7 @@ TEST_F(IndexingTest, SliceIndexing) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SliceIndexing ";
 
   at::Tensor t = at::arange(12, at::kInt).view({3, 4});
 
@@ -121,6 +131,7 @@ TEST_F(IndexingTest, SliceIndexing) {
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.size(0)) << " ";
   file << std::to_string(result.size(1)) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -129,6 +140,7 @@ TEST_F(IndexingTest, TensorIndexNone) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexNone ";
 
   at::indexing::TensorIndex idx(at::indexing::None);
   file << std::to_string(idx.is_none()) << " ";
@@ -137,6 +149,7 @@ TEST_F(IndexingTest, TensorIndexNone) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -145,6 +158,7 @@ TEST_F(IndexingTest, TensorIndexEllipsis) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexEllipsis ";
 
   at::indexing::TensorIndex idx(at::indexing::Ellipsis);
   file << std::to_string(idx.is_none()) << " ";
@@ -153,6 +167,7 @@ TEST_F(IndexingTest, TensorIndexEllipsis) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -161,6 +176,7 @@ TEST_F(IndexingTest, TensorIndexEllipsisString) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexEllipsisString ";
 
   at::indexing::TensorIndex idx("...");
   file << std::to_string(idx.is_none()) << " ";
@@ -169,6 +185,7 @@ TEST_F(IndexingTest, TensorIndexEllipsisString) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -197,6 +214,7 @@ TEST_F(IndexingTest, TensorIndexIntegerPos) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexIntegerPos ";
 
   at::indexing::TensorIndex idx(static_cast<int64_t>(5));
   auto int_val = idx.integer();
@@ -207,6 +225,7 @@ TEST_F(IndexingTest, TensorIndexIntegerPos) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -215,6 +234,7 @@ TEST_F(IndexingTest, TensorIndexIntegerNeg) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexIntegerNeg ";
 
   at::indexing::TensorIndex idx(static_cast<int64_t>(-3));
   auto int_val = idx.integer();
@@ -225,6 +245,7 @@ TEST_F(IndexingTest, TensorIndexIntegerNeg) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -233,6 +254,7 @@ TEST_F(IndexingTest, TensorIndexIntegerZero) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexIntegerZero ";
 
   at::indexing::TensorIndex idx(static_cast<int64_t>(0));
   auto int_val = idx.integer();
@@ -243,6 +265,7 @@ TEST_F(IndexingTest, TensorIndexIntegerZero) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -251,6 +274,7 @@ TEST_F(IndexingTest, TensorIndexBooleanTrue) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexBooleanTrue ";
 
   at::indexing::TensorIndex idx(true);
   file << std::to_string(idx.is_none()) << " ";
@@ -260,6 +284,7 @@ TEST_F(IndexingTest, TensorIndexBooleanTrue) {
   file << std::to_string(idx.boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -268,6 +293,7 @@ TEST_F(IndexingTest, TensorIndexBooleanFalse) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexBooleanFalse ";
 
   at::indexing::TensorIndex idx(false);
   file << std::to_string(idx.is_none()) << " ";
@@ -277,6 +303,7 @@ TEST_F(IndexingTest, TensorIndexBooleanFalse) {
   file << std::to_string(idx.boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -285,6 +312,7 @@ TEST_F(IndexingTest, TensorIndexSliceDefault) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexSliceDefault ";
 
   at::indexing::Slice slice;
   at::indexing::TensorIndex idx(slice);
@@ -294,6 +322,7 @@ TEST_F(IndexingTest, TensorIndexSliceDefault) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -302,6 +331,7 @@ TEST_F(IndexingTest, TensorIndexSliceWithValues) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexSliceWithValues ";
 
   at::indexing::TensorIndex idx(at::indexing::Slice(1, 10, 2));
   file << std::to_string(idx.is_none()) << " ";
@@ -310,6 +340,7 @@ TEST_F(IndexingTest, TensorIndexSliceWithValues) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -318,6 +349,7 @@ TEST_F(IndexingTest, TensorIndexSliceNegative) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexSliceNegative ";
 
   at::indexing::TensorIndex idx(at::indexing::Slice(-5, -1, 2));
   file << std::to_string(idx.is_none()) << " ";
@@ -326,6 +358,7 @@ TEST_F(IndexingTest, TensorIndexSliceNegative) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -334,6 +367,7 @@ TEST_F(IndexingTest, TensorIndexTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "TensorIndexTensor ";
 
   at::Tensor tensor_idx = at::arange(3, at::kInt);
   at::indexing::TensorIndex idx(tensor_idx);
@@ -343,6 +377,7 @@ TEST_F(IndexingTest, TensorIndexTensor) {
   file << std::to_string(idx.is_boolean()) << " ";
   file << std::to_string(idx.is_slice()) << " ";
   file << std::to_string(idx.is_tensor()) << " ";
+  file << "\n";
   file.saveFile();
 }
 

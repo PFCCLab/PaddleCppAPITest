@@ -43,12 +43,14 @@ TEST_F(ToTest, ToTensorOptionsDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
+  file << "ToTensorOptionsDtype ";
 
   at::TensorOptions opts = at::TensorOptions().dtype(at::kDouble);
   at::Tensor result = tensor_float.to(opts);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(result[0][0].item<double>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -56,11 +58,13 @@ TEST_F(ToTest, ToTensorOptionsDtype) {
 TEST_F(ToTest, ToTensorOptionsEmpty) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToTensorOptionsEmpty ";
 
   at::Tensor result = tensor_float.to(at::TensorOptions{});
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -68,7 +72,8 @@ TEST_F(ToTest, ToTensorOptionsEmpty) {
 TEST_F(ToTest, ToTensorOptionsForceCopy) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToTensorOptionsForceCopy ";
 
   at::TensorOptions opts = at::TensorOptions().dtype(at::kFloat);
   at::Tensor result = tensor_float.to(opts,
@@ -78,6 +83,7 @@ TEST_F(ToTest, ToTensorOptionsForceCopy) {
   result.fill_(0.f);
   file << std::to_string(tensor_float[0][0].item<float>()) << " ";  // 仍为 1
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -89,7 +95,8 @@ TEST_F(ToTest, ToTensorOptionsForceCopy) {
 TEST_F(ToTest, ToFullOptional) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToFullOptional ";
 
   at::Tensor result = tensor_float.to(
       /*dtype=*/std::make_optional(at::kDouble),
@@ -101,6 +108,7 @@ TEST_F(ToTest, ToFullOptional) {
       /*memory_format=*/std::nullopt);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -111,7 +119,8 @@ TEST_F(ToTest, ToFullOptional) {
 TEST_F(ToTest, ToDeviceAndDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToDeviceAndDtype ";
 
   at::Device cpu_dev(at::kCPU);
   at::Tensor result = tensor_float.to(cpu_dev,
@@ -121,6 +130,7 @@ TEST_F(ToTest, ToDeviceAndDtype) {
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(result[0][0].item<int>()) << " ";  // 1
+  file << "\n";
   file.saveFile();
 }
 
@@ -132,12 +142,14 @@ TEST_F(ToTest, ToDeviceAndDtype) {
 TEST_F(ToTest, ToScalarTypeFloatToDouble) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToScalarTypeFloatToDouble ";
 
   at::Tensor result = tensor_float.to(at::kDouble);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(result[0][0].item<double>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -145,12 +157,14 @@ TEST_F(ToTest, ToScalarTypeFloatToDouble) {
 TEST_F(ToTest, ToScalarTypeFloatToInt) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToScalarTypeFloatToInt ";
 
   at::Tensor result = tensor_float.to(at::kInt);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result[0][0].item<int>()) << " ";
   file << std::to_string(result[0][1].item<int>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -158,11 +172,13 @@ TEST_F(ToTest, ToScalarTypeFloatToInt) {
 TEST_F(ToTest, ToScalarTypeFloatToLong) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToScalarTypeFloatToLong ";
 
   at::Tensor result = tensor_float.to(at::kLong);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result[0][0].item<int64_t>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -170,7 +186,8 @@ TEST_F(ToTest, ToScalarTypeFloatToLong) {
 TEST_F(ToTest, ToScalarTypeSameTypeCopy) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToScalarTypeSameTypeCopy ";
 
   at::Tensor result =
       tensor_float.to(at::kFloat, /*non_blocking=*/false, /*copy=*/true);
@@ -178,6 +195,7 @@ TEST_F(ToTest, ToScalarTypeSameTypeCopy) {
   // 拷贝后互不影响
   file << std::to_string(tensor_float[0][0].item<float>()) << " ";  // 1
   file << std::to_string(result[0][0].item<float>()) << " ";        // 0
+  file << "\n";
   file.saveFile();
 }
 
@@ -189,7 +207,8 @@ TEST_F(ToTest, ToScalarTypeSameTypeCopy) {
 TEST_F(ToTest, ToOtherTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToOtherTensor ";
 
   // other 是 double 类型
   at::Tensor other = at::zeros({1}, at::kDouble);
@@ -197,6 +216,7 @@ TEST_F(ToTest, ToOtherTensor) {
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result.numel()) << " ";
   file << std::to_string(result[0][0].item<double>()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
@@ -204,12 +224,14 @@ TEST_F(ToTest, ToOtherTensor) {
 TEST_F(ToTest, ToOtherSameType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
+  file.openAppend();
+  file << "ToOtherSameType ";
 
   at::Tensor other = at::zeros({1}, at::kFloat);
   at::Tensor result = tensor_float.to(other);
   file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
   file << std::to_string(result.numel()) << " ";
+  file << "\n";
   file.saveFile();
 }
 
