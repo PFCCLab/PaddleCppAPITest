@@ -2,6 +2,7 @@
 #include <ATen/ops/zeros.h>
 #include <c10/core/DefaultDtype.h>
 #include <c10/core/ScalarType.h>
+#include <c10/core/ScalarTypeToTypeMeta.h>
 #include <c10/core/TensorOptions.h>
 #include <gtest/gtest.h>
 
@@ -27,6 +28,14 @@ static int dtype_to_int(const DType& dtype) {
   }
 }
 
+static void set_default_dtype_compat(c10::ScalarType dtype) {
+#if USE_PADDLE_API
+  c10::set_default_dtype(dtype);
+#else
+  c10::set_default_dtype(c10::scalarTypeToTypeMeta(dtype));
+#endif
+}
+
 class DefaultDtypeTest : public ::testing::Test {
  protected:
   // Save and restore the global default dtype so tests are isolated.
@@ -34,11 +43,7 @@ class DefaultDtypeTest : public ::testing::Test {
     original_dtype_ = c10::get_default_dtype_as_scalartype();
   }
 
-  void TearDown() override {
-    // Use tensor to restore the original dtype
-    at::Tensor t = at::zeros({1}, at::TensorOptions().dtype(original_dtype_));
-    c10::set_default_dtype(t.dtype());
-  }
+  void TearDown() override { set_default_dtype_compat(original_dtype_); }
 
   c10::ScalarType original_dtype_;
 };
@@ -73,9 +78,7 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeDouble) {
   FileManerger file(file_name);
   file.openAppend();
   file << "SetDefaultDtypeDouble ";
-  at::Tensor t =
-      at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::Double));
-  c10::set_default_dtype(t.dtype());
+  set_default_dtype_compat(c10::ScalarType::Double);
   auto dtype = c10::get_default_dtype_as_scalartype();
   file << std::to_string(static_cast<int>(dtype)) << " ";
   file << "\n";
@@ -88,9 +91,7 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeHalf) {
   FileManerger file(file_name);
   file.openAppend();
   file << "SetDefaultDtypeHalf ";
-  at::Tensor t =
-      at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::Half));
-  c10::set_default_dtype(t.dtype());
+  set_default_dtype_compat(c10::ScalarType::Half);
   auto dtype = c10::get_default_dtype_as_scalartype();
   file << std::to_string(static_cast<int>(dtype)) << " ";
   file << "\n";
@@ -104,9 +105,7 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeBFloat16) {
   FileManerger file(file_name);
   file.openAppend();
   file << "SetDefaultDtypeBFloat16 ";
-  at::Tensor t =
-      at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::BFloat16));
-  c10::set_default_dtype(t.dtype());
+  set_default_dtype_compat(c10::ScalarType::BFloat16);
   auto dtype = c10::get_default_dtype_as_scalartype();
   file << std::to_string(static_cast<int>(dtype)) << " ";
   file << "\n";
@@ -120,12 +119,9 @@ TEST_F(DefaultDtypeTest, SetAndRestore) {
   file.openAppend();
   file << "SetAndRestore ";
   auto before = c10::get_default_dtype_as_scalartype();
-  at::Tensor t1 =
-      at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::Double));
-  c10::set_default_dtype(t1.dtype());
+  set_default_dtype_compat(c10::ScalarType::Double);
   auto during = c10::get_default_dtype_as_scalartype();
-  at::Tensor t2 = at::zeros({1}, at::TensorOptions().dtype(before));
-  c10::set_default_dtype(t2.dtype());
+  set_default_dtype_compat(before);
   auto after = c10::get_default_dtype_as_scalartype();
   file << std::to_string(static_cast<int>(before)) << " ";
   file << std::to_string(static_cast<int>(during)) << " ";
