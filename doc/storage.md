@@ -153,5 +153,5 @@
    - `MaybeOwnedTraits` / `ExclusivelyOwnedTraits` 关键签名目前已对齐到 PyTorch 头文件口径。
 
 4. **测试现状**：
-   - `test/StorageTest.cpp` 已覆盖主要访问/计数/traits API。
+   - `test/c10/core/StorageTest.cpp` 已覆盖主要访问/计数/traits API。
    - 缺失接口（`SymInt`、legacy、weak impl、external pointer share）暂无直接测试。

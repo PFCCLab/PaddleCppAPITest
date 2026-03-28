@@ -137,5 +137,5 @@
    - `mutable_get()` 为当前最直接的 DataPtr API 缺失项。
 
 4. **测试现状**：
-   - `test/AllocatorCompatTest.cpp` 已覆盖 `DataPtr` 的构造、移动、clear、比较、alias 等主路径。
+   - `test/c10/core/AllocatorCompatTest.cpp` 已覆盖 `DataPtr` 的构造、移动、clear、比较、alias 等主路径。
    - `Allocator` 注册与 profiling 相关缺失接口暂无直接测试。

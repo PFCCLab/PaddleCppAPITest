@@ -132,7 +132,7 @@
    - Paddle 的 `check_generator<T>` 未做 `T::device_type()` 与 `gen->device().type()` 的一致性校验。
 
 3. **测试依据**：
-   - 参考 `test/GeneratorTest.cpp` 中已覆盖用例：`defined`、seed/offset、`device`、`clone`、`get_generator_or_default` 等。
+   - 参考 `test/ATen/cuda/GeneratorTest.cpp` 中已覆盖用例：`defined`、seed/offset、`device`、`clone`、`get_generator_or_default` 等。
    - 标记为 🔧 或 `- [ ]` 的项多数为头文件接口存在但缺少直接单测。
 
 4. **更新记录**：

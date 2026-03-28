@@ -65,13 +65,10 @@ enable_testing()
 include_directories(${COMMON_INCLUDES})
 include(cmake/build.cmake)
 
-file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp
-     ${PROJECT_SOURCE_DIR}/test/ops/*.cpp)
-# 排除已unmatch开头的文件
-file(GLOB UNMATCH_FILES ${PROJECT_SOURCE_DIR}/test/unmatch*.cpp
-     ${PROJECT_SOURCE_DIR}/test/ops/unmatch*.cpp)
-
-list(REMOVE_ITEM TEST_SRC_FILES ${UNMATCH_FILES})
+file(GLOB_RECURSE TEST_SRC_FILES CONFIGURE_DEPENDS
+     ${PROJECT_SOURCE_DIR}/test/*.cpp)
+# 排除各级子目录下以 unmatch_ 开头的测试文件
+list(FILTER TEST_SRC_FILES EXCLUDE REGEX "/unmatch_[^/]+\\.cpp$")
 
 file(GLOB_RECURSE TEST_BASE_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 set(PADDLE_TARGET_FOLDER ${CMAKE_BINARY_DIR}/paddle)

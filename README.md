@@ -80,7 +80,7 @@ cd .. && ./test/result_cmp.sh build
 
 ### 适用场景
 
-- 新增 ATen 算子的兼容性测试（如 `test/ops/AbsTest.cpp`）
+- 新增 ATen 算子的兼容性测试（如 `test/ATen/ops/AbsTest.cpp`）
 - 排查 Paddle 与 PyTorch 在特定算子上的行为差异
 - 扩展现有测试的 shape / dtype 覆盖范围
 
