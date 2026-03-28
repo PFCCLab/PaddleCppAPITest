@@ -41,8 +41,8 @@
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |---|---|---|---|---|
 | `id() const noexcept` | ✅ | - [ ] | P0 | 实现一致性：`✅`；语义：一致；实现：都返回 `data().id_`。 |
-| `isScalarType() const noexcept` | 🔧 | - [ ] | P0 | 实现一致性：`🔧`；语义：部分一致；实现：Torch 使用 `index_ < NumScalarTypes`，Paddle 使用 `index_ < ScalarType::Undefined`。 |
-| `isScalarType(ScalarType) const noexcept` | ✅ | - [ ] | P0 | 实现一致性：`✅`；语义：一致；实现：都比较 `index_ == scalar_type`。 |
+| `isScalarType() const noexcept` | ✅ | - [x] | P0 | 实现一致性：`✅`；语义：已对齐；实现：修复后使用 `index_ <= ScalarType::Undefined`，与上游一致。 |
+| `isScalarType(ScalarType) const noexcept` | ✅ | - [x] | P0 | 实现一致性：`✅`；语义：一致；实现：都比较 `index_ == scalar_type`。 |
 | `itemsize() const noexcept` | 🔧 | - [ ] | P0 | 实现一致性：`🔧`；语义：部分一致；实现：Torch 对标量走 `scalarTypeItemSizes` 快速路径，Paddle 统一返回 `data().itemsize_`。 |
 | `newFn() const noexcept` | ✅ | - [ ] | P1 | 实现一致性：`✅`；语义：一致；实现：都转发 `data().new_`。 |
 | `placementNew() const noexcept` | ✅ | - [ ] | P1 | 实现一致性：`✅`；语义：一致；实现：都转发 `data().placementNew_`。 |
@@ -62,7 +62,7 @@
 | `template <class T> static std::string_view TypeName() noexcept` | 🔧 | - [ ] | P1 | 实现一致性：`🔧`；语义：部分一致；实现：Torch 用 `get_fully_qualified_type_name<T>()`，Paddle 用 `typeid(T).name()`。 |
 | `template <class T> static constexpr size_t ItemSize() noexcept` | ✅ | - [ ] | P1 | 实现一致性：`✅`；语义：一致；实现：都返回 `sizeof(T)`。 |
 | `template <typename T> static TypeMeta Make()` | ✅ | - [ ] | P0 | 实现一致性：`🔧`；语义：一致；实现：都通过 `_typeMetaData<T>()` 构造，Torch 额外带编译器 warning 抑制。 |
-| `static TypeMeta fromScalarType(ScalarType)` | 🔧 | - [ ] | P0 | 实现一致性：`🔧`；语义：部分一致；实现：Torch 断言 `index < NumScalarTypes`，Paddle 断言 `index <= Undefined`。 |
+| `static TypeMeta fromScalarType(ScalarType)` | ✅ | - [x] | P0 | 实现一致性：`✅`；语义：已对齐；实现：都断言 `index <= Undefined`（Paddle 修复后与 Torch 的 `index < NumScalarTypes` 语义一致）。 |
 | `ScalarType toScalarType() const` | 🔧 | - [ ] | P0 | 实现一致性：`🔧`；语义：部分一致；实现：标量路径一致；非标量路径 Torch 调 `error_unsupported_typemeta`，Paddle 直接抛 `InvalidArgument`。 |
 | `template <class T> static uint16_t addTypeMetaData()` | 🔧 | - [ ] | P0 | 实现一致性：`🔧`；语义：基本一致；实现：注册流程一致，但 Torch 对 `__CUDACC__` 有特殊分支，Paddle 无。 |
 
@@ -96,14 +96,15 @@
 
 | 状态 | 数量 |
 |---|---|
-| ✅ 已实现 | 28 |
-| 🔧 部分兼容 | 8 |
+| ✅ 已实现 | 29 |
+| 🔧 部分兼容 | 7 |
 | ❌ 未实现 | 0 |
 
 ---
 
 ### 结论
 
-1. `TypeMeta` 主体接口已较完整兼容。
-2. 需要重点关注的函数级差异集中在：`isScalarType()`、`itemsize()`、`TypeName<T>()`、`fromScalarType()`、`toScalarType()`、`addTypeMetaData<T>()`。
-3. 建议将上述 6 个函数作为 P0/P1 回归重点。
+1. `TypeMeta` 主体接口已完整兼容。
+2. `isScalarType()` 语义已修复，与 PyTorch 上游对齐：现在包含 `ScalarType::Undefined`，使用 `index_ <= ScalarType::Undefined` 判断。
+3. 需要重点关注的函数级差异集中在：`itemsize()`、`TypeName<T>()`、`fromScalarType()`、`toScalarType()`、`addTypeMetaData<T>()`。
+4. 建议将上述 5 个函数作为 P0/P1 回归重点。
