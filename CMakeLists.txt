@@ -98,6 +98,9 @@ set(TORCH_DIR
 set(TORCH_LIBRARIES "")
 file(GLOB_RECURSE TORCH_LIBRARIES "${TORCH_DIR}/lib/*.so"
      "${TORCH_DIR}/lib/*.a")
+if(CUDAToolkit_FOUND)
+  list(APPEND TORCH_LIBRARIES CUDA::cudart)
+endif()
 
 find_package(CUDAToolkit QUIET)
 set(TORCH_INCLUDE_DIR "${TORCH_DIR}/include"

@@ -120,10 +120,9 @@ cudaStream_t handle = reinterpret_cast<cudaStream_t>(static_cast<intptr_t>(id));
 
 ## 向后兼容接口（待移除）
 
-以下接口为过渡期兼容性保留，标有 `TODO` 注释，待下游（DeepEP/PaddleFleet）完成迁移后移除：
+以下接口为过渡期兼容性保留，标有 `TODO` 注释，待下游完成迁移后移除：
 
 | 接口 | 位置 | 原因 |
 |------|------|------|
-| `CUDAStream::raw_stream()` | `CUDAStream.h` | DeepEP 旧接口，等价于 `stream()` |
 | `Tensor::record_stream(cudaStream_t)` | `ATen/ops/record_stream.h` | DeepEP 旧接口，等价于接受 `at::Stream` 版本 |
 | `Event::raw_event()` | `c10/core/Event.h` | 同上 |

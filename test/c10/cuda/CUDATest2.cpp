@@ -1,13 +1,16 @@
 #include <ATen/ATen.h>
-#ifndef USE_PADDLE_API
+#include <ATen/cuda/CUDAContext.h>
+#include <ATen/cuda/PhiloxCudaState.h>
 #include <c10/cuda/CUDAFunctions.h>
 #include <c10/cuda/CUDAGuard.h>
 #include <c10/cuda/CUDAStream.h>
-#include <c10/cuda/PhiloxCudaState.h>
-#endif
 #include <gtest/gtest.h>
 
+#include <functional>
+#include <optional>
+#include <sstream>
 #include <string>
+#include <tuple>
 
 #include "src/file_manager.h"
 
@@ -24,35 +27,40 @@ class CUDATest2 : public ::testing::Test {
   void SetUp() override {}
 };
 
-// [DIFF] 文件级说明：该文件大部分用例依赖 c10::cuda::* 具体实现，
-// 当前主要在 Torch 路径可稳定编译/运行，Paddle 路径能力面不对齐。
-
-// device_synchronize
 TEST_F(CUDATest2, DeviceSynchronize) {
-  // [DIFF] 用例级差异：该用例仅写占位结果，未执行等价 API，
-  // 反映两端在同步语义上的可比性不足。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
   file << "DeviceSynchronize ";
 
-  // c10::cuda::device_synchronize()
-  // Only test if CUDA is available
-  file << "device_synchronize_test ";
+  if (!at::cuda::is_available()) {
+    file << "skip ";
+    file << "\n";
+    file.saveFile();
+    return;
+  }
+
+  try {
+    c10::cuda::device_synchronize();
+    file << "1 ";
+  } catch (const std::exception& e) {
+    file << "exception " << e.what() << " ";
+  }
   file << "\n";
   file.saveFile();
 }
 
-// stream_synchronize
 TEST_F(CUDATest2, StreamSynchronize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
   file << "StreamSynchronize ";
 
-#ifndef USE_PADDLE_API
   if (!at::cuda::is_available()) {
-    GTEST_SKIP() << "CUDA not available";
+    file << "skip ";
+    file << "\n";
+    file.saveFile();
+    return;
   }
 
   try {
@@ -62,245 +70,177 @@ TEST_F(CUDATest2, StreamSynchronize) {
   } catch (const std::exception& e) {
     file << "exception " << e.what() << " ";
   }
-#else
-  // Paddle 兼容头当前 stream
-  // 类型定义与该测试编译单元存在依赖差异，先保留占位输出。
-  file << "stream_sync_placeholder ";
-#endif
   file << "\n";
   file.saveFile();
 }
 
-#ifndef USE_PADDLE_API
-// [DIFF] 问题行：以下测试块仅在 !USE_PADDLE_API 下编译，
-// 说明 CUDAGuard/CUDAStream/Philox 在 Paddle 侧接口不完整或行为不一致。
-// CUDAGuard tests
-TEST_F(CUDATest2, CUDAGuardDefault) {
+TEST_F(CUDATest2, CUDAGuardDeviceCtor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAGuardDefault ";
+  file << "CUDAGuardDeviceCtor ";
 
-  // Default constructor
-  c10::cuda::CUDAGuard guard;
-  file << "CUDAGuard_default ";
-  file << "\n";
-  file.saveFile();
-}
+  if (!at::cuda::is_available()) {
+    file << "skip ";
+    file << "\n";
+    file.saveFile();
+    return;
+  }
 
-TEST_F(CUDATest2, CUDAGuardDeviceIndex) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "CUDAGuardDeviceIndex ";
-
-  // Constructor with DeviceIndex
-  c10::cuda::CUDAGuard guard(0);
-  file << "CUDAGuard_device_index ";
-  file << "\n";
-  file.saveFile();
-}
-
-TEST_F(CUDATest2, CUDAGuardDevice) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "CUDAGuardDevice ";
-
-  // Constructor with c10::Device
   c10::cuda::CUDAGuard guard(c10::Device(c10::DeviceType::CUDA, 0));
-  file << "CUDAGuard_device ";
+  auto original = guard.original_device();
+  auto current = guard.current_device();
+  file << static_cast<int>(original.index()) << " ";
+  file << static_cast<int>(current.index()) << " ";
+  file << current.is_cuda() << " ";
   file << "\n";
   file.saveFile();
 }
 
-TEST_F(CUDATest2, CUDAGuardSetDevice) {
+TEST_F(CUDATest2, CUDAGuardLifecycle) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAGuardSetDevice ";
+  file << "CUDAGuardLifecycle ";
 
-  c10::cuda::CUDAGuard guard;
+  if (!at::cuda::is_available()) {
+    file << "skip ";
+    file << "\n";
+    file.saveFile();
+    return;
+  }
+
+  c10::cuda::CUDAGuard guard(0);
+  auto original = guard.original_device();
   guard.set_device(c10::Device(c10::DeviceType::CUDA, 0));
-  file << "CUDAGuard_set_device ";
-  file << "\n";
-  file.saveFile();
-}
-
-TEST_F(CUDATest2, CUDAGuardResetDevice) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "CUDAGuardResetDevice ";
-
-  c10::cuda::CUDAGuard guard;
-  guard.reset_device();
-  file << "CUDAGuard_reset_device ";
-  file << "\n";
-  file.saveFile();
-}
-
-TEST_F(CUDATest2, CUDAGuardSetIndex) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "CUDAGuardSetIndex ";
-
-  c10::cuda::CUDAGuard guard;
+  guard.reset_device(c10::Device(c10::DeviceType::CUDA, 0));
   guard.set_index(0);
-  file << "CUDAGuard_set_index ";
+  auto current = guard.current_device();
+  file << static_cast<int>(original.index()) << " ";
+  file << static_cast<int>(current.index()) << " ";
+  file << current.is_cuda() << " ";
   file << "\n";
   file.saveFile();
 }
 
-TEST_F(CUDATest2, CUDAGuardCurrentDevice) {
+TEST_F(CUDATest2, OptionalCUDAGuardLifecycle) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAGuardCurrentDevice ";
+  file << "OptionalCUDAGuardLifecycle ";
 
-  c10::cuda::CUDAGuard guard;
-  auto device = guard.current_device();
-  file << "CUDAGuard_current_device ";
-  file << "\n";
-  file.saveFile();
-}
-
-// OptionalCUDAGuard tests
-TEST_F(CUDATest2, OptionalCUDAGuardDefault) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "OptionalCUDAGuardDefault ";
+  if (!at::cuda::is_available()) {
+    file << "skip ";
+    file << "\n";
+    file.saveFile();
+    return;
+  }
 
   c10::cuda::OptionalCUDAGuard guard;
-  file << "OptionalCUDAGuard_default ";
+  file << guard.current_device().has_value() << " ";
+  guard.set_device(c10::Device(c10::DeviceType::CUDA, 0));
+  auto original = guard.original_device();
+  auto current = guard.current_device();
+  file << original.has_value() << " ";
+  file << current.has_value() << " ";
+  file << static_cast<int>(current->index()) << " ";
+  guard.reset();
+  file << guard.original_device().has_value() << " ";
+  file << guard.current_device().has_value() << " ";
   file << "\n";
   file.saveFile();
 }
 
-// CUDAStream tests
-TEST_F(CUDATest2, CUDAStreamDefault) {
+TEST_F(CUDATest2, CUDAStreamRoundTrip) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAStreamDefault ";
+  file << "CUDAStreamRoundTrip ";
 
-  c10::cuda::CUDAStream stream;
-  file << "CUDAStream_default ";
+  if (!at::cuda::is_available()) {
+    file << "skip ";
+    file << "\n";
+    file.saveFile();
+    return;
+  }
+
+  auto current = c10::cuda::getCurrentCUDAStream(c10::DeviceIndex(-1));
+  c10::cuda::CUDAStream unchecked(c10::cuda::CUDAStream::UNCHECKED,
+                                  current.unwrap());
+  auto packed = current.pack3();
+  auto unpacked = c10::cuda::CUDAStream::unpack3(
+      packed.stream_id, packed.device_index, packed.device_type);
+  auto external = c10::cuda::getStreamFromExternal(current.stream(),
+                                                   current.device_index());
+  auto priority_range = c10::cuda::CUDAStream::priority_range();
+  std::ostringstream oss;
+  oss << current;
+  auto stream_hash = std::hash<c10::cuda::CUDAStream>{}(current);
+  auto unwrap_hash = std::hash<c10::Stream>{}(current.unwrap());
+
+  file << static_cast<int>(current.device_index()) << " ";
+  file << static_cast<int>(current.device_type()) << " ";
+  file << (unchecked == current) << " ";
+  file << (current == unpacked) << " ";
+  file << (current == external) << " ";
+  file << (current.stream() == static_cast<cudaStream_t>(current)) << " ";
+  file << current.query() << " ";
+  file << current.priority() << " ";
+  file << std::get<0>(priority_range) << " ";
+  file << std::get<1>(priority_range) << " ";
+  file << (!oss.str().empty()) << " ";
+  file << (stream_hash == unwrap_hash) << " ";
+  current.synchronize();
   file << "\n";
   file.saveFile();
 }
 
-TEST_F(CUDATest2, CUDAStreamFromStream) {
+TEST_F(CUDATest2, CUDAStreamPoolAndCurrent) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAStreamFromStream ";
+  file << "CUDAStreamPoolAndCurrent ";
 
-  // Create from gpuStream_t
-  c10::cuda::CUDAStream stream(c10::cuda::CUDAStream::DEFAULT);
-  file << "CUDAStream_from_stream ";
+  if (!at::cuda::is_available()) {
+    file << "skip ";
+    file << "\n";
+    file.saveFile();
+    return;
+  }
+
+  auto original = c10::cuda::getCurrentCUDAStream(0);
+  auto pooled = c10::cuda::getStreamFromPool(false, 0);
+  c10::cuda::setCurrentCUDAStream(pooled);
+  auto current = c10::cuda::getCurrentCUDAStream(0);
+  c10::cuda::setCurrentCUDAStream(original);
+  auto restored = c10::cuda::getCurrentCUDAStream(0);
+  file << (pooled == current) << " ";
+  file << (original != pooled) << " ";
+  file << (restored == original) << " ";
   file << "\n";
   file.saveFile();
 }
 
-TEST_F(CUDATest2, CUDAStreamId) {
+TEST_F(CUDATest2, PhiloxCudaStateConstructors) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  file << "CUDAStreamId ";
+  file << "PhiloxCudaStateConstructors ";
 
-  c10::cuda::CUDAStream stream;
-  auto id = stream.id();
-  file << "CUDAStream_id ";
+  at::PhiloxCudaState default_state;
+  at::PhiloxCudaState plain_state(12345, 67890);
+  int64_t seed = 7;
+  int64_t offset_extragraph = 9;
+  at::PhiloxCudaState captured_state(&seed, &offset_extragraph, 11);
+
+  file << default_state.captured_ << " ";
+  file << plain_state.seed_.val << " ";
+  file << plain_state.offset_.val << " ";
+  file << captured_state.captured_ << " ";
+  file << captured_state.offset_intragraph_ << " ";
   file << "\n";
   file.saveFile();
 }
-
-TEST_F(CUDATest2, CUDAStreamDeviceType) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "CUDAStreamDeviceType ";
-
-  c10::cuda::CUDAStream stream;
-  auto device_type = stream.device_type();
-  file << "CUDAStream_device_type ";
-  file << "\n";
-  file.saveFile();
-}
-
-TEST_F(CUDATest2, CUDAStreamStream) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "CUDAStreamStream ";
-
-  c10::cuda::CUDAStream stream;
-  auto cuda_stream = stream.stream();
-  file << "CUDAStream_stream ";
-  file << "\n";
-  file.saveFile();
-}
-
-TEST_F(CUDATest2, CUDAStreamRawStream) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "CUDAStreamRawStream ";
-
-  c10::cuda::CUDAStream stream;
-  auto raw = stream.raw_stream();
-  file << "CUDAStream_raw_stream ";
-  file << "\n";
-  file.saveFile();
-}
-
-TEST_F(CUDATest2, GetCurrentCUDAStream) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "GetCurrentCUDAStream ";
-
-  auto stream = c10::cuda::getCurrentCUDAStream(c10::DeviceIndex(-1));
-  file << "getCurrentCUDAStream ";
-  file << "\n";
-  file.saveFile();
-}
-
-#endif
-
-#ifndef USE_PADDLE_API
-// PhiloxCudaState tests
-TEST_F(CUDATest2, PhiloxCudaStateDefault) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "PhiloxCudaStateDefault ";
-
-  c10::cuda::PhiloxCudaState state;
-  file << "PhiloxCudaState_default ";
-  file << "\n";
-  file.saveFile();
-}
-
-TEST_F(CUDATest2, PhiloxCudaStateWithParams) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "PhiloxCudaStateWithParams ";
-
-  int64_t seed = 12345;
-  int64_t offset_extra = 0;
-  uint64_t offset = 0;
-  c10::cuda::PhiloxCudaState state(&seed, &offset_extra, offset);
-  file << "PhiloxCudaState_params ";
-  file << "\n";
-  file.saveFile();
-}
-
-#endif
 
 }  // namespace test
 }  // namespace at

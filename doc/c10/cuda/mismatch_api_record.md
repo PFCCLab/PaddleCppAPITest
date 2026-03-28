@@ -1,63 +1,42 @@
-# CUDA 工具类（CUDAGuard / CUDAStream / PhiloxCudaState：接口形态有差异）
+# CUDA 工具类（CUDAGuard / CUDAStream / PhiloxCudaState：接口已对齐）
 
-> Paddle 头文件：`c10/cuda/CUDAGuard.h`、`c10/cuda/CUDAStream.h`、`c10/cuda/PhiloxCudaState.h`
+> Paddle 头文件：`c10/cuda/CUDAGuard.h`、`c10/cuda/CUDAStream.h`、`ATen/cuda/PhiloxCudaState.h`
 > 测试文件：`test/c10/cuda/CUDATest2.cpp`
 
-## 差异点列表
+## 本轮对齐内容
 
-当前差异并非“文件缺失”，而是**接口形态与测试写法不一致**，导致对应测试被 `#ifndef USE_PADDLE_API` 整块保护跳过：
-
-| 相关类/结构 | 头文件 | 现状 |
-|-------------|--------|------|
-| `c10::cuda::CUDAGuard` | `c10/cuda/CUDAGuard.h` | 可用，构造/成员形态与 Torch 有差异 |
-| `c10::cuda::OptionalCUDAGuard` | `c10/cuda/CUDAGuard.h` | 可用 |
-| `c10::cuda::CUDAStream` | `c10/cuda/CUDAStream.h` | 可用，默认构造与常量形态有差异 |
-| `c10::cuda::getCurrentCUDAStream()` | `c10/cuda/CUDAStream.h` | 可用 |
-| `PhiloxCudaState` | `c10/cuda/PhiloxCudaState.h` | 可用，但命名空间与 Torch 测试写法不同 |
+- `c10::cuda::CUDAGuard` 补齐了 `original_device()`，并把 `current_device()` 语义改成“最近一次由 guard 设置的设备”。
+- `c10::cuda::OptionalCUDAGuard` 补齐了 `original_device()` 和 `reset()`，生命周期与 PyTorch 对齐。
+- `c10::cuda::CUDAStream` 补齐了 `UNCHECKED`、`query()`、`synchronize()`、`priority()`、`priority_range()`、`pack3()`、`unpack3()`、`getStreamFromExternal()`、`operator<<` 和 `std::hash`。
+- `PhiloxCudaState` 保持与 PyTorch 一致的 canonical 路径：只从 `ATen/cuda/PhiloxCudaState.h` 暴露，不在 `c10/cuda` 下新增同名 shim。
 
 ---
 
-## Diff 测试用例位置
+## 测试侧修正
 
-测试文件：`test/c10/cuda/CUDATest2.cpp`
+之前 `test/c10/cuda/CUDATest2.cpp` 使用了 `#ifndef USE_PADDLE_API`。但工程里 `USE_PADDLE_API` 在 Torch / Paddle 两个目标上都会被定义，只是值分别为 `0` 和 `1`，所以这批测试实际上在两边都被预处理排除了。
 
-### 测试用例原文
+本轮改动将该文件改成两边共同编译、共同执行，并直接覆盖以下接口：
 
-```cpp
-// Paddle 路径仅占位，Torch 路径执行真实同步
-TEST_F(CUDATest2, StreamSynchronize) {
-#ifndef USE_PADDLE_API
-  auto stream = c10::cuda::getCurrentCUDAStream();
-  c10::cuda::stream_synchronize(stream.stream());
-#else
-  file << "stream_sync_placeholder ";
-#endif
-}
-
-// 大量 CUDA 工具类用例仅在 Torch 路径编译
-#ifndef USE_PADDLE_API
-TEST_F(CUDATest2, CUDAGuardDefault) { /* ... */ }
-TEST_F(CUDATest2, CUDAStreamDefault) { /* ... */ }
-TEST_F(CUDATest2, PhiloxCudaStateDefault) { /* ... */ }
-#endif
-```
+- `device_synchronize()`
+- `stream_synchronize()`
+- `CUDAGuard(DeviceIndex / Device)`
+- `CUDAGuard::original_device()` / `current_device()` / `set_device()` / `reset_device()` / `set_index()`
+- `OptionalCUDAGuard::original_device()` / `current_device()` / `reset()`
+- `CUDAStream::UNCHECKED`
+- `CUDAStream::query()` / `synchronize()` / `priority()` / `priority_range()`
+- `CUDAStream::pack3()` / `unpack3()`
+- `getCurrentCUDAStream()` / `getStreamFromPool()` / `setCurrentCUDAStream()` / `getStreamFromExternal()`
+- `operator<<(ostream&, CUDAStream)` / `std::hash<CUDAStream>`
+- `ATen/cuda/PhiloxCudaState.h` 下的 `PhiloxCudaState` 默认构造、普通构造和 graph-capture 构造
 
 ---
 
-## 输出对比
+## 结论
 
-| 测试用例 | Paddle 输出 | Torch 输出 |
-|---------|------------|------------|
-| CUDAGuardDefault | 未执行（`#ifndef USE_PADDLE_API` 下被编译排除） | 已执行 |
-| CUDAStreamDefault | 未执行（`#ifndef USE_PADDLE_API` 下被编译排除） | 已执行 |
-| PhiloxCudaStateDefault | 未执行（`#ifndef USE_PADDLE_API` 下被编译排除） | 已执行 |
+这组差异的根因不是“Paddle 头文件完全缺失”，而是两部分叠加：
 
----
+- 兼容层确实缺少一批 PyTorch 已有的 `CUDAGuard` / `CUDAStream` 成员与辅助接口；
+- 测试文件的宏判断写错，导致这批 CUDA 工具类用例长期没有在任一构建目标里生效。
 
-## 初步问题分析
-
-Paddle compat 已提供上述 CUDA 相关头文件与主要类/函数。当前差异的根因是：
-- `test/c10/cuda/CUDATest2.cpp` 中相关用例整体被 `#ifndef USE_PADDLE_API` 排除，Paddle 路径缺少同等覆盖；
-- 兼容层接口形态与 Torch 侧测试写法不完全一致（例如构造方式、命名空间与成员能力）。
-
----
+接口补齐后，`CUDATest2.cpp` 已经改为真实覆盖这些 API，不再依赖占位输出。
