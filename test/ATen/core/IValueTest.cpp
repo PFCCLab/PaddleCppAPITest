@@ -17,10 +17,6 @@
 
 #include "src/file_manager.h"
 
-namespace c10 {
-struct IValue;
-}
-
 namespace torch {
 class IValue;
 template <typename T>
@@ -901,6 +897,8 @@ TEST_F(IValueTest, ReprAndTypeStringMethods) {
   std::string int_type = iv_type_string(iv_int);
   std::string list_type = iv_type_string(iv_list);
   std::string tuple_type = iv_type_string(iv_tuple);
+  std::string int_tag = iv_int.tagKind();
+  std::string string_tag = iv_string.tagKind();
 
   std::string int_repr = iv_to_repr(iv_int);
   std::string string_repr = iv_to_repr(iv_string);
@@ -930,6 +928,9 @@ TEST_F(IValueTest, ReprAndTypeStringMethods) {
   file << std::to_string(contains_token_ci(int_type, "int") ? 1 : 0) << " ";
   file << std::to_string(contains_token_ci(list_type, "list") ? 1 : 0) << " ";
   file << std::to_string(contains_token_ci(tuple_type, "tuple") ? 1 : 0) << " ";
+  file << std::to_string(contains_token_ci(int_tag, "int") ? 1 : 0) << " ";
+  file << std::to_string(contains_token_ci(string_tag, "string") ? 1 : 0)
+       << " ";
   file << std::to_string(contains_token_ci(int_repr, "123") ? 1 : 0) << " ";
   file << std::to_string(contains_token_ci(string_repr, "repr_value") ? 1 : 0)
        << " ";

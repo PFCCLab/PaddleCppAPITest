@@ -21,9 +21,6 @@ class LibraryTest : public ::testing::Test {
   void SetUp() override {}
 };
 
-// [DIFF] 文件级说明：torch::Library / IValue
-// 在两端架构差异较大（命名空间、方法名、注册体系）。
-
 // 测试 torch::Library::Kind 枚举
 TEST_F(LibraryTest, LibraryKindEnum) {
   auto file_name = g_custom_param.get();
@@ -41,26 +38,11 @@ TEST_F(LibraryTest, LibraryKindEnum) {
 
 // 测试 IValue 基本构造
 TEST_F(LibraryTest, IValueBasicConstruction) {
-  // [DIFF] 用例级差异：Paddle 用 torch::IValue + snake_case；Torch 用
-  // c10::IValue + camelCase。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
   file << "IValueBasicConstruction ";
 
-#if USE_PADDLE_API
-  // [DIFF] 问题行：Paddle 路径类型与方法名与 Torch
-  // 路径不兼容，无法共用同一实现。 Paddle 兼容层使用 torch::IValue，方法名是
-  // snake_case
-  torch::IValue ival_int(42);
-  torch::IValue ival_double(3.14);
-  torch::IValue ival_string(std::string("test"));
-
-  file << std::to_string(ival_int.is_int() ? 1 : 0) << " ";
-  file << std::to_string(ival_double.is_double() ? 1 : 0) << " ";
-  file << std::to_string(ival_string.is_string() ? 1 : 0) << " ";
-#else
-  // libtorch 使用 c10::IValue，方法名是 camelCase
   c10::IValue ival_int(42);
   c10::IValue ival_double(3.14);
   c10::IValue ival_string(std::string("test"));
@@ -68,26 +50,19 @@ TEST_F(LibraryTest, IValueBasicConstruction) {
   file << std::to_string(ival_int.isInt() ? 1 : 0) << " ";
   file << std::to_string(ival_double.isDouble() ? 1 : 0) << " ";
   file << std::to_string(ival_string.isString() ? 1 : 0) << " ";
-#endif
   file << "\n";
   file.saveFile();
 }
 
 // 测试 IValue 从 vector 构造
 TEST_F(LibraryTest, IValueVectorConstruction) {
-  // [DIFF] 用例级差异：vector 元素类型在两端为 torch::IValue vs c10::IValue。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
   file << "IValueVectorConstruction ";
 
-#if USE_PADDLE_API
-  std::vector<torch::IValue> args_vec = {
-      torch::IValue(1), torch::IValue(2.5), torch::IValue(std::string("test"))};
-#else
   std::vector<c10::IValue> args_vec = {
       c10::IValue(1), c10::IValue(2.5), c10::IValue(std::string("test"))};
-#endif
 
   file << std::to_string(args_vec.size()) << " ";
   file << std::to_string(args_vec.empty() ? 0 : 1) << " ";
@@ -102,24 +77,6 @@ TEST_F(LibraryTest, IValueGet) {
   file.openAppend();
   file << "IValueGet ";
 
-#if USE_PADDLE_API
-  torch::IValue ival_int(42);
-  torch::IValue ival_double(3.14);
-
-  try {
-    int64_t int_val = ival_int.to_int();
-    file << std::to_string(int_val) << " ";
-  } catch (...) {
-    file << "-1 ";
-  }
-
-  try {
-    double double_val = ival_double.to_double();
-    file << std::to_string(double_val) << " ";
-  } catch (...) {
-    file << "-1 ";
-  }
-#else
   c10::IValue ival_int(42);
   c10::IValue ival_double(3.14);
 
@@ -136,7 +93,6 @@ TEST_F(LibraryTest, IValueGet) {
   } catch (...) {
     file << "-1 ";
   }
-#endif
 
   file << "\n";
   file.saveFile();
@@ -149,19 +105,11 @@ TEST_F(LibraryTest, IValueIsNone) {
   file.openAppend();
   file << "IValueIsNone ";
 
-#if USE_PADDLE_API
-  torch::IValue ival_none;
-  torch::IValue ival_int(42);
-
-  file << std::to_string(ival_none.is_none() ? 1 : 0) << " ";
-  file << std::to_string(ival_int.is_none() ? 0 : 1) << " ";
-#else
   c10::IValue ival_none;
   c10::IValue ival_int(42);
 
   file << std::to_string(ival_none.isNone() ? 1 : 0) << " ";
   file << std::to_string(ival_int.isNone() ? 0 : 1) << " ";
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -174,13 +122,8 @@ TEST_F(LibraryTest, IValueSizeToInt64) {
   file << "IValueSizeToInt64 ";
 
   size_t sz = 42;
-#if USE_PADDLE_API
-  torch::IValue ival(static_cast<int64_t>(sz));
-  file << std::to_string(ival.to_int()) << " ";
-#else
   c10::IValue ival(static_cast<int64_t>(sz));
   file << std::to_string(ival.toInt()) << " ";
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -193,13 +136,8 @@ TEST_F(LibraryTest, IValueTensor) {
   file << "IValueTensor ";
 
   at::Tensor tensor = at::ones({3, 3});
-#if USE_PADDLE_API
-  torch::IValue ival(tensor);
-  file << std::to_string(ival.is_tensor() ? 1 : 0) << " ";
-#else
   c10::IValue ival(tensor);
   file << std::to_string(ival.isTensor() ? 1 : 0) << " ";
-#endif
   file << "\n";
   file.saveFile();
 }
