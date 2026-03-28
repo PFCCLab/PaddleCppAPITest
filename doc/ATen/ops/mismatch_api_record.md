@@ -1,37 +1,34 @@
 # SparseTensor
 
 > Paddle 头文件：`ATen/ops/sparse_coo_tensor.h`、`ATen/ops/sparse_csr_tensor.h`
+>
+> 2026-03-28 复核：`SparseCOOInferSize` 已对齐。当前 `Paddle` 与 `Torch` 输出均为 `2 3 3`。
 
-## 差异点列表
+## 历史差异
 
-1.  **sparse_coo_tensor 无 size 推断行为**：PyTorch 能根据 indices 内容正确推断完整 size（如 `2 2 2`）；Paddle 推断结果第一个维度为 0（如 `0 2 2`）
+1. **sparse_coo_tensor 无 size 推断行为**：历史上 `Paddle` compat 在不显式传入 `size` 时，曾把首个维度错误推断为 `0`。
 
 ---
 
-## Diff 测试用例位置
+## 当前回归用例位置
 
 测试文件：`test/ATen/ops/SparseTensorTest.cpp`
 
-### 测试用例原文
+### 当前测试用例原文
 
 ```cpp
-// COO 带推断 size
 TEST_F(SparseTensorTest, SparseCOOInferSize) {
+  auto idx_data = create_tensor_from_list({0L, 1L, 2L, 1L, 2L, 0L});
+  at::Tensor indices = idx_data.reshape({2, 3});
+  at::Tensor values = create_tensor_from_float_list({5.0f, 6.0f, 7.0f});
+  at::Tensor sparse = at::sparse_coo_tensor(indices, values);
+
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-
-  // indices: [2, 3] -> values: [3]
-  at::Tensor indices = at::tensor({{0, 1, 2}, {0, 1, 2}}, at::kLong);
-  at::Tensor values = at::tensor({1.0, 2.0, 3.0}, at::kFloat);
-
-  // 不指定 size，让框架推断
-  at::Tensor sparse = at::sparse_coo_tensor(indices, values);
-
-  file << std::to_string(sparse.size(0)) << " ";
-  file << std::to_string(sparse.size(1)) << " ";
-  file << std::to_string(sparse.size(2)) << " ";
-
+  file << "SparseCOOInferSize ";
+  write_sparse_info_to_file(&file, sparse);
+  file << "\n";
   file.saveFile();
 }
 ```
@@ -42,13 +39,14 @@ TEST_F(SparseTensorTest, SparseCOOInferSize) {
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| SparseCOOInferSize | `0 2 2` | `2 2 2` |
+| SparseCOOInferSize（2026-03-28 复核） | `2 3 3` | `2 3 3` |
+| SparseCOOInferSize（历史） | `0 2 2` | `2 2 2` |
 
 ---
 
-## 初步问题分析
+## 复核结论
 
-Paddle 在使用 sparse_coo_tensor(indices, values) 不指定 size 参数时，无法正确推断第一个维度的大小，会返回 0；而 PyTorch 能正确推断为 2。
+当前 compat 中 `ATen/ops/sparse_coo_tensor.h` 已能按 indices 正确推断 shape。为避免该行为再次回退，`/home/may/Paddle/test/cpp/compat/c10_layout_test.cc` 已补充 infer-size 的 shape 断言。
 
 ---
 
@@ -113,36 +111,38 @@ Paddle 与 PyTorch 的 ScalarType::Bool 枚举值不同：Paddle = 10，Torch = 
 # Equal
 
 > Paddle 头文件：`ATen/ops/equal.h`
+>
+> 2026-03-28 复核：`NotEqualDtype` 已对齐。当前 `Paddle` 与 `Torch` 输出均为 `1`。
 
-## 差异点列表
+## 历史差异
 
-1. **数据类型不同时的比对行为**：Torch在比对类型不一致的Tensor时会静默返回false，不触发任何错误；而Paddle在尝试比对时会在底层抛出类型检查不匹配（例如要求int32但接收到了float32）的C++异常甚至崩溃。
+1. **数据类型不同时的比对行为**：历史上 `Paddle` compat 的某些路径曾在异 dtype 比较时抛出类型检查异常。
 
 ---
 
-## Diff 测试用例位置
+## 当前回归用例位置
 
 测试文件：`test/ATen/ops/EqualTest.cpp`
 
-### 测试用例原文
+### 当前测试用例原文
 
 ```cpp
-// [DIFF] Test paddle equal exception when comparing tensors of different types
-// Torch returns false without checking specific data types, whereas Paddle throws:
-// "The type of data we are trying to retrieve (int32) does not match the type of data (float32)..."
 TEST_F(EqualTest, NotEqualDtype) {
-  /*
   at::Tensor t1 = at::zeros({4}, at::kFloat);
   at::Tensor t2 = at::zeros({4}, at::kInt);
-
-  bool result = t1.equal(t2);
 
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
-  write_bool_result_to_file(&file, result);
+  file << "NotEqualDtype ";
+  try {
+    bool result = t1.equal(t2);
+    write_bool_result_to_file(&file, result);
+  } catch (const std::exception& e) {
+    file << "exception: " << e.what();
+  }
+  file << "\n";
   file.saveFile();
-  */
 }
 ```
 
@@ -152,36 +152,37 @@ TEST_F(EqualTest, NotEqualDtype) {
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| NotEqualDtype | 历史观测：抛出异常 | 历史观测：`false` |
+| NotEqualDtype（2026-03-28 复核） | `1` | `1` |
+| NotEqualDtype（历史） | 历史观测：抛出异常 | 历史观测：`false` |
 
 ---
 
-## 初步问题分析
+## 复核结论
 
-该差异是历史实测结论；当前 case 已禁用，暂不参与常规回归对比。
+当前 `EqualTest.NotEqualDtype` 在两侧都返回 `true`，该 case 不再是稳定差异。当前残留差异仍主要集中在异常路径的 stack trace 完整性，而不是异 dtype 的比较结果本身。
 
 ---
 
 # Select
 
 > Paddle 头文件：`ATen/ops/select.h`
+>
+> 2026-03-28 复核：`SelectNegativeDim` 已对齐。当前 `Paddle` 与 `Torch` 输出均为 `1 3 0.000000 1.000000 2.000000`。
 
-## 差异点列表
+## 历史差异
 
-1. **支持负数维度的表现**：Torch支持传入负数维（如-1代表最后一维）进行选取；而Paddle在使用 -1 时可能会引发底层的 double free or corruption (out) 崩溃引发SIGABRT。
+1. **支持负数维度的表现**：历史上 `Paddle` compat 在 `select(-1, ...)` 路径上曾出现崩溃。
 
 ---
 
-## Diff 测试用例位置
+## 当前回归用例位置
 
 测试文件：`test/ATen/ops/SelectTest.cpp`
 
-### 测试用例原文
+### 当前测试用例原文
 
 ```cpp
-// [DIFF] Paddle select with negative dim causes double free or corruption SIGABRT
 TEST_F(SelectTest, SelectNegativeDim) {
-  /*
   at::Tensor t1 = at::zeros({3, 3}, at::kFloat);
   float* data = t1.data_ptr<float>();
   for (int i = 0; i < 9; ++i) {
@@ -193,9 +194,10 @@ TEST_F(SelectTest, SelectNegativeDim) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
+  file << "SelectNegativeDim ";
   write_result_to_file(&file, result);
+  file << "\n";
   file.saveFile();
-  */
 }
 ```
 
@@ -205,13 +207,14 @@ TEST_F(SelectTest, SelectNegativeDim) {
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| SelectNegativeDim | 历史观测：崩溃 (SIGABRT) | 历史观测：正常返回 Tensor |
+| SelectNegativeDim（2026-03-28 复核） | `1 3 0.000000 1.000000 2.000000` | `1 3 0.000000 1.000000 2.000000` |
+| SelectNegativeDim（历史） | 历史观测：崩溃 (SIGABRT) | 历史观测：正常返回 Tensor |
 
 ---
 
-## 初步问题分析
+## 复核结论
 
-该差异是历史复现结论；当前为保持回归稳定性已禁用该 case。
+当前负维 `select` 路径已经正常工作。`SelectTest` 里仍可观察到的差异主要是 `SelectException` 异常输出缺少 Torch 侧的 C++ stack trace，而不是负维行为本身。
 
 ---
 
