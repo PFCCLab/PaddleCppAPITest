@@ -1,5 +1,37 @@
 #### 记录 PaddleCppAPITest 仓库中曾经出现过的接口差异，便于回溯排查过程。当前基线已在 2026-03-23 通过 `bash test/result_cmp.sh ./build/` 对齐；以下内容主要作为历史归档，不代表现状仍然存在 diff。测试文件中仍保留了 `[DIFF]` 注释，便于检索当时的差异背景。
 
+---
+
+## 2026-03-28 兼容性对齐更新
+
+### 本轮修复（已解决）
+
+| 测试项 | 修复前 Paddle | 修复后 Paddle | PyTorch | 状态 |
+|--------|---------------|---------------|---------|------|
+| EqualTest.ExceptionTest | `Null pointer error, the impl_ of Tensor should not be Null` | `Expected a proper Tensor but got None` | `Expected a proper Tensor but got None` | ✅ 已对齐 |
+| StreamTest.OstreamOperator | `Stream(device_type=0...)` | `stream 17 on device cpu:0` | `stream 17 on device cpu:0` | ✅ 已对齐 |
+| StreamTest.NativeHandleCPU | 抛出 `PD_CHECK` 错误 | 抛出包含 `not supported` 的异常 | 抛出包含 `not supported` 的异常 | ✅ 已对齐 |
+
+### 本轮未解决（已知差距）
+
+| 测试项 | 差距描述 | 原因分析 |
+|--------|----------|----------|
+| SelectTest.SelectException | 缺少 C++ stack trace | Paddle 兼容层暂未实现异常堆栈跟踪机制 |
+| StdTest.StdException | 缺少 C++ stack trace | 同上，需要更复杂的异常处理基础设施 |
+| StreamTest.CudaQuerySynchronizeAndNativeHandle | 内存地址值不同 | 运行时环境差异（非兼容性问题） |
+| TensorFactoryTest.TensorFromBoolArrayRef | 数值差异 (5 10 vs 5 11) | 需要进一步分析 |
+| SparseTensorTest | 缺失结果文件 | 需要排查测试是否崩溃 |
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/equal.h` - 添加 undefined tensor 检查
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/select.h` - 更新错误消息格式
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/std.h` - 更新错误消息格式
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Stream.h` - 修改 ostream 输出格式
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Stream.cpp` - 修改 native_handle 行为
+
+---
+
 ## 按差异类型分组（便于 Review）
 
 | 分类 | 测试 | 主要表现 |
@@ -17,10 +49,10 @@
 | DefaultDtypeTest | `... 15 ... 9` | `... 11 ... 8` |
 | DeviceGuardTest | `cpu -1 ...` | `cpu 0 ...` |
 | DeviceTest | `cpu cpu:0 cuda:0 cuda:1 / 0 1 0 1` | `cpu:0 cpu:0 gpu:0 gpu:1 / 1 1 1 1` |
-| EqualTest | `... 0 0 1 ...` | `... 0 exception ...` |
+| EqualTest | `... 0 0 1 ...` | `... 0 exception ...` → `... 0 "Expected a proper Tensor" ...` |
 | HalfBFloat16Test | `... 5 15` | `... 5 11` |
 | ScalarTypeTest | `... QInt8 QUInt8 ...` | `... UNKNOWN_SCALAR UNKNOWN_SCALAR ...` |
-| SelectTest | `... SelectNegativeDim 的真实结果 ...` | `known_crash_on_negative_dim` |
+| SelectTest | `... SelectNegativeDim 的真实结果 ...` | `known_crash_on_negative_dim` → 异常消息格式已对齐（但缺少 stack trace） |
 | SparseTensorTest | `... InferSize: 2 2 2 ...` | `... InferSize: 0 2 2 ...` |
 | TensorFactoryTest | `... bool scalar_type=11 ...` | `... bool scalar_type=10 ...` |
 | TensorOptionsTest | `... device_index=-1 ...` | `... device_index=0 ...` |

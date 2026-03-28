@@ -200,8 +200,16 @@ TEST_F(StreamTest, NativeHandleCPU) {
   try {
     (void)cpu_stream_default->native_handle();
     file << "ok ";
-  } catch (const std::exception&) {
-    file << "exception ";
+  } catch (const std::exception& e) {
+    // Output the exception message for comparison with Torch
+    std::string msg = e.what();
+    // Check if it contains "not supported" to match Torch behavior
+    if (msg.find("not supported") != std::string::npos ||
+        msg.find("not_supported") != std::string::npos) {
+      file << "not_supported ";
+    } else {
+      file << "exception: " << msg;
+    }
   }
 #else
   file << "not_supported ";
