@@ -63,13 +63,13 @@
 
 # Device
 
-> Paddle 头文件：`c10\core\Device.h`
+> Paddle 头文件：`c10/core/Device.h`、`c10/core/DeviceType.h`
 >
-> 2026-03-29 复核：本节记录的 `index/has_index/str/type/tensor.device()` 行为差异已对齐；当前 compat `Device.h` 还补齐了 `operator!=()`、`set_index()`、`is_privateuseone()`、`supports_as_strided()`、严格字符串解析和 `std::hash<c10::Device>`。以下内容保留为历史差异归档。
+> 2026-03-29 复核：`DeviceTest` 覆盖的 `index/has_index/str/type/tensor.device()` 等主路径差异已对齐；详细头文件级对齐矩阵见 [doc/c10/core/device.md](/home/may/PaddleCppAPITest/doc/c10/core/device.md) 与 [doc/c10/core/device_type.md](/home/may/PaddleCppAPITest/doc/c10/core/device_type.md)。当前剩余缺口主要集中在 `DeviceType` 扩展 backend 枚举、`DeviceTypeName()` 与 privateuse1 backend 注册接口。
 
 ## 当前状态
 
-当前 `Device` 行为与接口均已按 PyTorch 对齐，文档保留的旧 diff 不再复现。当前 compat 额外补齐了以下接口面：
+当前 compat 已对齐 `Device.h` 的核心行为与常用接口，文档保留的旧 diff 不再复现；但 `DeviceType.h` 仍有一批 PyTorch 扩展 API 未覆盖。当前状态可概括为：
 
 1. `DeviceType::PrivateUse1` / `kPrivateUse1`
 2. `Device::operator!=()`
@@ -78,12 +78,20 @@
 5. `supports_as_strided()`
 6. `std::hash<c10::Device>` 与 `std::hash<c10::DeviceType>`
 7. 与 PyTorch 一致的严格字符串解析规则
+8. 未覆盖的 `DeviceType` 主要缺口：扩展枚举/常量别名、`DeviceTypeName()`、`register_privateuse1_backend()`、`get_privateuse1_backend()`、`is_privateuse1_backend_registered()`
+
+详细 API 逐项状态见：
+
+- [doc/c10/core/device.md](/home/may/PaddleCppAPITest/doc/c10/core/device.md)
+- [doc/c10/core/device_type.md](/home/may/PaddleCppAPITest/doc/c10/core/device_type.md)
 
 ---
 
 ## 当前测试覆盖
 
 测试文件：`test/c10/core/DeviceTest.cpp`
+
+以下用例覆盖 `Device.h` 的共享 backend 主路径，不覆盖 `DeviceType.h` 中尚未实现的扩展 backend 枚举与 privateuse1 backend 注册接口。
 
 ### 1. `DeviceStr`
 
@@ -122,12 +130,13 @@
 - `StrictStringParsing`：第 1 列表示 `privateuseone:3` 解析成功；后 4 列表示非法字符串均正确抛异常。
 - `PredicatesAndHash`：依次对应 `is_cpu`、`is_cuda`、`is_xpu`、`is_ipu`、`is_privateuseone`、`is_mps`、`cpu.supports_as_strided`、`ipu.supports_as_strided`、`cpu != cuda`、`cuda == cuda:0`、`unordered_map[cuda:0]`、`unordered_map[cpu]`。
 - `SetIndexAndTensorDevice`：前两组分别是 `cpu.set_index(0)`、`cuda.set_index(2)` 的 `(type index has_index str)`；后两组分别是默认 CPU tensor 与显式 CPU tensor 的 `(type index has_index str)`。
+- 上表结果说明 `Device.h` 主路径当前已对齐；`DeviceType.h` 的扩展枚举与 helper 缺口需参考详细文档，不体现在这组测试输出中。
 
 ---
 
 ## 历史背景
 
-本节原先记录过以下差异：默认 index 语义、`cpu/cuda` 字符串表示、设备类型枚举值、默认 CPU tensor 的 `device()` 表达方式。它们已经在 compat 中修复，旧内容仅作为回溯背景保留。
+本节原先记录过以下差异：默认 index 语义、`cpu/cuda` 字符串表示、`DeviceType::PrivateUse1` 补齐、默认 CPU tensor 的 `device()` 表达方式。它们已经在 compat 中修复，旧内容仅作为回溯背景保留。`DeviceType.h` 中剩余的扩展 backend / helper 缺口属于后续头文件级补齐范围，不属于这批历史 diff 的残留。
 
 历史对齐 PR：https://github.com/PaddlePaddle/Paddle/pull/78066
 
