@@ -1,5 +1,7 @@
 ## Allocator.h 头文件 API 兼容性
 
+> 2026-03-29 复核：`paddle_AllocatorCompatTest` 与 `torch_AllocatorCompatTest` 当前结果已完全一致；本页记录的是 `Allocator.h` 头文件级别的当前接口对齐状态。
+
 对比文件：
 - `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Allocator.h`
 - `/home/may/pytorch/c10/core/Allocator.h`

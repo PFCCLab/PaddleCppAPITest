@@ -1,441 +1,135 @@
 # Allocator
 
-> 2026-03-29 复核：本节保留的是 `DataPtr` 历史差异记录。当前 compat `Allocator.h` 已按 PyTorch 进一步补齐 `mutable_get()`、allocator 注册接口、`InefficientStdFunctionContext` 等直接 API；现状以 [doc/c10/core/allocator.md](/home/may/PaddleCppAPITest/doc/c10/core/allocator.md) 为准。
+> Paddle 头文件：`c10/core/Allocator.h`
+>
+> 2026-03-29 复核：本节记录的 `DataPtr` 历史行为差异已对齐；当前 compat `Allocator.h` 还补齐了 `mutable_get()`、allocator 注册接口、`InefficientStdFunctionContext`、`CaptureId_t/MempoolId_t/MempoolIdHash`。详细 API 对齐矩阵见 [doc/c10/core/allocator.md](/home/may/PaddleCppAPITest/doc/c10/core/allocator.md)。
 
-## 差异点列表
+## 当前状态
 
-1.  **构造函数参数默认值**
-2.  **拷贝语义**
-3.  **`get_deleter()` 在默认构造后的返回值**
-4.  **`clear()` 后 `get_deleter()` 的行为**
-5.  **Device 类型和方法**
-6.  **`allocation()` 方法**
+当前 `DataPtr` / `Allocator` 核心行为与 PyTorch 已对齐，当前新增并已验证的直接接口包括：
 
----
-
-## Diff 测试用例位置
-
-测试文件：`test/c10/core/unmatch_AllocatorTest.cpp`
-
-### 测试用例原文
-
-#### 1. Diff_ConstructorDefaultDevice（构造函数参数默认值）
-
-```cpp
-TEST_F(AllocatorTest, Diff_ConstructorDefaultDevice) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-#if USE_PADDLE_API
-  // Paddle 支持不指定 device 的构造（使用默认 CPUPlace）
-  c10::DataPtr ptr_default(static_cast<void*>(test_data_));
-  file << "paddle_single_arg_ctor_supported ";
-  file << std::to_string(ptr_default.get() == static_cast<void*>(test_data_))
-       << " ";
-#else
-  // PyTorch 必须显式指定 device
-  c10::DataPtr ptr_with_device(static_cast<void*>(test_data_),
-                               c10::Device(c10::DeviceType::CPU));
-  file << "torch_requires_device_arg ";
-  file << std::to_string(ptr_with_device.get() ==
-                         static_cast<void*>(test_data_))
-       << " ";
-#endif
-
-  file.saveFile();
-}
-```
-
-#### 2. Diff_CopySemantics（拷贝语义）
-
-```cpp
-TEST_F(AllocatorTest, Diff_CopySemantics) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-#if USE_PADDLE_API
-  // Paddle 支持拷贝构造
-  c10::DataPtr original(static_cast<void*>(test_data_), phi::CPUPlace());
-  c10::DataPtr copied(original);  // 拷贝构造
-  c10::DataPtr assigned;
-  assigned = original;  // 拷贝赋值
-
-  file << "paddle_copy_supported ";
-  // 拷贝后两个指针指向同一数据
-  file << std::to_string(original.get() == copied.get()) << " ";
-  file << std::to_string(original.get() == assigned.get()) << " ";
-  // 原始对象仍然有效
-  file << std::to_string(original.get() != nullptr) << " ";
-#else
-  // PyTorch 只支持移动，拷贝构造和拷贝赋值被删除
-  c10::DataPtr original(static_cast<void*>(test_data_),
-                        c10::Device(c10::DeviceType::CPU));
-  c10::DataPtr moved(std::move(original));
-
-  file << "torch_move_only ";
-  file << std::to_string(moved.get() == static_cast<void*>(test_data_)) << " ";
-  file << std::to_string(moved.get() != nullptr) << " ";
-  file << std::to_string(true) << " ";  // 占位符保持输出长度一致
-#endif
-
-  file.saveFile();
-}
-```
-
-#### 3. Diff_DefaultDeleter（get_deleter() 默认值）
-
-```cpp
-TEST_F(AllocatorTest, Diff_DefaultDeleter) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-  c10::DataPtr default_ptr;
-
-#if USE_PADDLE_API
-  // Paddle: 默认 deleter 为 nullptr
-  file << "paddle_default_deleter_null ";
-  file << std::to_string(default_ptr.get_deleter() == nullptr) << " ";
-#else
-  // PyTorch: 默认 deleter 可能不为 nullptr
-  file << "torch_default_deleter_may_exist ";
-  bool has_deleter = (default_ptr.get_deleter() != nullptr);
-  file << std::to_string(has_deleter || !has_deleter) << " ";  // 总是 true
-#endif
-
-  file.saveFile();
-}
-```
-
-#### 4. Diff_ClearDeleterBehavior（clear() 后行为）
-
-```cpp
-TEST_F(AllocatorTest, Diff_ClearDeleterBehavior) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-#if USE_PADDLE_API
-  c10::DataPtr data_ptr(
-      static_cast<void*>(test_data_), test_ctx_, test_deleter, phi::CPUPlace());
-#else
-  c10::DataPtr data_ptr(static_cast<void*>(test_data_),
-                        test_ctx_,
-                        test_deleter,
-                        c10::Device(c10::DeviceType::CPU));
-#endif
-
-  // clear 前 deleter 应该正确设置
-  file << std::to_string(data_ptr.get_deleter() == test_deleter) << " ";
-
-  data_ptr.clear();
-
-#if USE_PADDLE_API
-  // Paddle: clear 后 deleter 被重置为 nullptr
-  file << "paddle_clear_resets_deleter ";
-  file << std::to_string(data_ptr.get_deleter() == nullptr) << " ";
-#else
-  // PyTorch: clear 后 deleter 可能仍然存在
-  file << "torch_clear_keeps_deleter ";
-  file << std::to_string(true) << " ";
-#endif
-
-  file.saveFile();
-}
-```
-
-#### 5. Diff_DeviceType（Device 类型和方法）
-
-```cpp
-TEST_F(AllocatorTest, Diff_DeviceType) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-#if USE_PADDLE_API
-  c10::DataPtr data_ptr(static_cast<void*>(test_data_), phi::CPUPlace());
-  // Paddle 使用 phi::Place，有 DebugString() 和 HashValue()
-  std::string device_str = data_ptr.device().DebugString();
-  size_t hash_value = data_ptr.device().HashValue();
-  file << "paddle_phi_place ";
-  file << std::to_string(!device_str.empty()) << " ";
-  file << std::to_string(hash_value != 0 || hash_value == 0) << " ";
-#else
-  c10::DataPtr data_ptr(static_cast<void*>(test_data_),
-                        c10::Device(c10::DeviceType::CPU));
-  // PyTorch 使用 c10::Device，有 str() 方法
-  std::string device_str = data_ptr.device().str();
-  file << "torch_c10_device ";
-  file << std::to_string(!device_str.empty()) << " ";
-  file << std::to_string(device_str == "cpu") << " ";
-#endif
-
-  file.saveFile();
-}
-```
-
-#### 6. Diff_AllocationMethod（allocation() 方法）
-
-```cpp
-TEST_F(AllocatorTest, Diff_AllocationMethod) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-#if USE_PADDLE_API
-  c10::DataPtr data_ptr(static_cast<void*>(test_data_), phi::CPUPlace());
-  // Paddle 有 allocation() 方法
-  auto alloc = data_ptr.allocation();
-  file << "paddle_has_allocation_method ";
-  file << std::to_string(alloc == nullptr) << " ";
-#else
-  c10::DataPtr data_ptr(static_cast<void*>(test_data_),
-                        c10::Device(c10::DeviceType::CPU));
-  // PyTorch 没有 allocation() 方法
-  file << "torch_no_allocation_method ";
-  file << std::to_string(true) << " ";
-#endif
-
-  file.saveFile();
-}
-```
+1. `CaptureId_t`、`MempoolId_t`、`MempoolIdHash`
+2. `DataPtr::mutable_get()`
+3. `InefficientStdFunctionContext` 与 `InefficientStdFunctionContext::makeDataPtr()`
+4. `SetAllocator()`、`GetAllocator()`、`AllocatorRegisterer`、`REGISTER_ALLOCATOR`
+5. `Allocator::is_simple_data_ptr()` 语义修正为 `get() == get_context()`
 
 ---
 
-## 输出对比
+## 当前测试覆盖
 
-| 测试用例 | Paddle 输出 | Torch 输出 |
-|---------|------------|------------|
-| Diff_ConstructorDefaultDevice | `paddle_single_arg_ctor_supported 1` | `torch_requires_device_arg 1` |
-| Diff_CopySemantics | `paddle_copy_supported 1 1 1` | `torch_move_only 1 1 1` |
-| Diff_DefaultDeleter | `paddle_default_deleter_null 1` | `torch_default_deleter_may_exist 1` |
-| Diff_ClearDeleterBehavior | `1 paddle_clear_resets_deleter 1` | `1 torch_clear_keeps_deleter 1` |
-| Diff_DeviceType | `paddle_phi_place 1 1` | `torch_c10_device 1 1` |
-| Diff_AllocationMethod | `paddle_has_allocation_method 1` | `torch_no_allocation_method 1` |
+测试文件：`test/c10/core/AllocatorCompatTest.cpp`
 
----
+### 关键测试项
 
-## 初步问题分析
-
-1. **构造函数参数默认值**：PyTorch 的 DataPtr 构造函数要求显式传入 device 参数，而 Paddle 支持使用默认的 CPUPlace。
-
-2. **拷贝语义**：PyTorch 的 DataPtr 删除了拷贝构造和拷贝赋值函数（仅支持移动语义），而 Paddle 支持完整的拷贝语义。
-
-3. **get_deleter() 默认值**：PyTorch 默认构造的 DataPtr 的 deleter 可能不为 nullptr，而 Paddle 默认为 nullptr。
-
-4. **clear() 后行为**：PyTorch 的 clear() 方法不会重置 deleter，而 Paddle 会将其重置为 nullptr。
-
-5. **Device 类型**：PyTorch 使用 c10::Device（有 str() 方法），而 Paddle 使用 phi::Place（有 DebugString() 和 HashValue() 方法）。
-
-6. **allocation() 方法**：Paddle 额外提供了 allocation() 方法返回底层 phi::Allocation 对象，PyTorch 没有此方法。
+1. `DefaultConstructor` / `ConstructorWithDataAndDevice` / `ConstructorWithDeleter`
+2. `MutableGet`
+3. `CaptureAndMempoolTypes`
+4. `InefficientStdFunctionContextMakeDataPtr`
+5. `IsSimpleDataPtrSemantics`
+6. `SetAndGetAllocatorPriority`
+7. `RegisterAllocatorMacro`
 
 ---
 
-涉及到的 PR：https://github.com/PFCCLab/PaddleCppAPITest/pull/42/changes#diff
+## 当前对齐结果
+
+| 测试用例 | Paddle/Torch 当前输出 |
+|---------|----------------------|
+| `DefaultConstructor` | `1 1 1` |
+| `MutableGet` | `1 9.000000` |
+| `CaptureAndMempoolTypes` | `1 1 1` |
+| `InefficientStdFunctionContextMakeDataPtr` | `1 1 1 1` |
+| `IsSimpleDataPtrSemantics` | `1 0 0` |
+| `SetAndGetAllocatorPriority` | `1 1 1` |
+| `RegisterAllocatorMacro` | `1` |
+
+补充说明：
+
+- `bash test/result_cmp.sh ./build/` 中 `paddle_AllocatorCompatTest` 与 `torch_AllocatorCompatTest` 已完全 `MATCH`。
+- 当前仓库全量仍存在其他历史 diff，但不再来自 `AllocatorCompatTest`。
+
+---
+
+## 历史背景
+
+本节原先记录过以下差异：单参数构造默认 `device`、拷贝语义、默认/`clear()` 后 `get_deleter()`、`device()` 返回类型，以及 Paddle 独有的 `allocation()` 方法。对应历史归档测试仍保留在 `test/c10/core/unmatch_AllocatorTest.cpp`，仅用于回溯，不代表现状。
+
+---
+
+历史对齐 PR：https://github.com/PFCCLab/PaddleCppAPITest/pull/42/changes#diff
 
 ---
 
 # Device
 
 > Paddle 头文件：`c10\core\Device.h`
+>
+> 2026-03-29 复核：本节记录的 `index/has_index/str/type/tensor.device()` 行为差异已对齐；当前 compat `Device.h` 还补齐了 `operator!=()`、`set_index()`、`is_privateuseone()`、`supports_as_strided()`、严格字符串解析和 `std::hash<c10::Device>`。以下内容保留为历史差异归档。
 
-## 差异点列表
+## 当前状态
 
-1.  **未指定 Index 时的默认行为**：PyTorch index = -1，has_index() = false；Paddle 强制默认为 0，has_index() = true
-2.  **纯字符串解析行为**：PyTorch 保持无索引状态（如 `cpu`、`cuda`）；Paddle 自动补全为 0 号设备（如 `cpu:0`、`gpu:0`）
-3.  **GPU/CUDA 字符串表示**：PyTorch 严格输出 `cuda` 或 `cuda:0`；Paddle 底层映射为 GPU，输出 `gpu:0` 或 `gpu:1`
-4.  **底层类型枚举值（Enum ID）**：PyTorch CPU=0，CUDA=1；Paddle CPU=1，CUDA/GPU=2
-5.  **默认 Tensor 所在设备**：PyTorch 处于无明确索引的 cpu 状态；Paddle 明确挂载在 cpu:0 设备上
+当前 `Device` 行为与接口均已按 PyTorch 对齐，文档保留的旧 diff 不再复现。当前 compat 额外补齐了以下接口面：
+
+1. `DeviceType::PrivateUse1` / `kPrivateUse1`
+2. `Device::operator!=()`
+3. `Device::set_index()`
+4. `is_privateuseone()`、`is_xpu()`、`is_ipu()` 等设备谓词
+5. `supports_as_strided()`
+6. `std::hash<c10::Device>` 与 `std::hash<c10::DeviceType>`
+7. 与 PyTorch 一致的严格字符串解析规则
 
 ---
 
-## Diff 测试用例位置
+## 当前测试覆盖
 
 测试文件：`test/c10/core/DeviceTest.cpp`
 
-### 测试用例原文
+### 1. `DeviceStr`
 
-#### 1. IndexAndHasIndex（未指定 Index 时的默认行为）
+校验 `cpu`、`cpu:0`、`cuda:0`、`cuda:1` 的字符串输出。
 
-```cpp
-TEST_F(DeviceTest, IndexAndHasIndex) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
+### 2. `HasIndex`
 
-  // CPU 设备
-  c10::Device cpu_device(c10::kCPU);
-  file << std::to_string(cpu_device.index()) << " ";
-  file << (cpu_device.has_index() ? "1" : "0") << " ";
+校验默认 `CPU/CUDA` 设备的 `index = -1` 与 `has_index() = false` 语义。
 
-  // CUDA 设备 index=0
-  c10::Device cuda_0(c10::kCUDA, 0);
-  file << std::to_string(cuda_0.index()) << " ";
-  file << (cuda_0.has_index() ? "1" : "0") << " ";
+### 3. `StrictStringParsing`
 
-  // CUDA 设备 index=1
-  c10::Device cuda_1(c10::kCUDA, 1);
-  file << std::to_string(cuda_1.index()) << " ";
-  file << (cuda_1.has_index() ? "1" : "0") << " ";
+校验 `privateuseone` 设备解析，以及 `cuda:-1`、`cuda:01`、`cuda:1:2`、`cpu::0` 等非法字符串抛异常。
 
-  // 字符串构造的设备
-  c10::Device cpu_str("cpu");
-  file << std::to_string(cpu_str.index()) << " ";
-  file << (cpu_str.has_index() ? "1" : "0") << " ";
+### 4. `PredicatesAndHash`
 
-  c10::Device cuda0_str("cuda:0");
-  file << std::to_string(cuda0_str.index()) << " ";
-  file << (cuda0_str.has_index() ? "1" : "0") << " ";
+校验设备谓词、`supports_as_strided()`、`operator!=()`、`operator==()` 以及 `unordered_map<c10::Device, ...>` 可用性。
 
-  file.saveFile();
-}
-```
+### 5. `SetIndexAndTensorDevice`
 
-#### 2. ConstructorWithString（纯字符串解析行为）
-
-```cpp
-TEST_F(DeviceTest, ConstructorWithString) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-  // "cpu" 字符串
-  c10::Device cpu_str("cpu");
-  write_device_result_to_file(&file, cpu_str);
-
-  // "cpu:0" 字符串
-  c10::Device cpu0_str("cpu:0");
-  write_device_result_to_file(&file, cpu0_str);
-
-  // "cuda" 字符串
-  c10::Device cuda_str("cuda");
-  write_device_result_to_file(&file, cuda_str);
-
-  // "cuda:0" 字符串
-  c10::Device cuda0_str("cuda:0");
-  write_device_result_to_file(&file, cuda0_str);
-
-  // "cuda:1" 字符串
-  c10::Device cuda1_str("cuda:1");
-  write_device_result_to_file(&file, cuda1_str);
-
-  file.saveFile();
-}
-```
-
-#### 3. ToString（GPU/CUDA 字符串表示）
-
-```cpp
-TEST_F(DeviceTest, ToString) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-  c10::Device cpu_device(c10::kCPU);
-  file << cpu_device.str() << " ";
-
-  c10::Device cuda_0(c10::kCUDA, 0);
-  file << cuda_0.str() << " ";
-
-  c10::Device cuda_1(c10::kCUDA, 1);
-  file << cuda_1.str() << " ";
-
-  c10::Device cpu_str("cpu:0");
-  file << cpu_str.str() << " ";
-
-  c10::Device cuda_str("cuda:1");
-  file << cuda_str.str() << " ";
-
-  file.saveFile();
-}
-```
-
-#### 4. DeviceType（底层类型枚举值）
-
-```cpp
-TEST_F(DeviceTest, DeviceType) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-  c10::Device cpu_device(c10::kCPU);
-  file << std::to_string(static_cast<int>(cpu_device.type())) << " ";
-
-  c10::Device cuda_device(c10::kCUDA, 0);
-  file << std::to_string(static_cast<int>(cuda_device.type())) << " ";
-
-  // 从字符串解析
-  c10::Device cpu_str("cpu");
-  file << std::to_string(static_cast<int>(cpu_str.type())) << " ";
-
-  c10::Device cuda_str("cuda:0");
-  file << std::to_string(static_cast<int>(cuda_str.type())) << " ";
-
-  file.saveFile();
-}
-```
-
-#### 5. TensorDevice（默认 Tensor 所在设备）
-
-```cpp
-TEST_F(DeviceTest, TensorDevice) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-  // 默认 CPU tensor
-  at::Tensor cpu_tensor = at::zeros({2, 3});
-  c10::Device cpu_dev = cpu_tensor.device();
-  write_device_result_to_file(&file, cpu_dev);
-
-  // 指定 CPU device 的 tensor
-  at::Tensor cpu_tensor2 =
-      at::zeros({2, 3}, at::TensorOptions().device(c10::kCPU));
-  c10::Device cpu_dev2 = cpu_tensor2.device();
-  write_device_result_to_file(&file, cpu_dev2);
-
-  // 使用 TensorOptions 构造
-  at::Tensor cpu_tensor3 =
-      at::zeros({2, 3}, at::TensorOptions().device(c10::Device(c10::kCPU)));
-  c10::Device cpu_dev3 = cpu_tensor3.device();
-  write_device_result_to_file(&file, cpu_dev3);
-
-  file.saveFile();
-}
-```
+校验 `set_index()`，以及默认 CPU tensor / 显式 CPU tensor 的 `device()` 语义。
 
 ---
 
-## 输出对比
+## 当前对齐结果
 
-| 测试用例 | Paddle 输出 | Torch 输出 |
-|---------|------------|------------|
-| IndexAndHasIndex (cpu_device) | `0 1` | `-1 0` |
-| ConstructorWithString ("cpu") | `1 0 0 1 cpu:0` | `0 -1 0 0 cpu` |
-| ConstructorWithString ("cuda") | `2 0 1 0 gpu:0` | `1 -1 1 0 cuda` |
-| ToString (cuda_0) | `gpu:0` | `cuda:0` |
-| DeviceType (cpu) | `1` | `0` |
-| DeviceType (cuda) | `2` | `1` |
+| 测试用例 | Paddle/Torch 当前输出 |
+|---------|----------------------|
+| `DeviceStr` | `cpu cpu:0 cuda:0 cuda:1` |
+| `HasIndex` | `0 1 0 1` |
+| `StrictStringParsing` | `1 privateuseone:3 1 1 1 1` |
+| `PredicatesAndHash` | `1 1 1 1 1 0 1 0 1 1 7 3` |
+| `SetIndexAndTensorDevice` | `0 0 1 cpu:0 1 2 1 cuda:2 0 -1 0 cpu 0 -1 0 cpu` |
 
----
+字段说明：
 
-## 初步问题分析
-
-1. **未指定 Index 默认行为**：PyTorch 使用 -1 表示无显式 index，has_index() 返回 false；Paddle 强制默认为 0，has_index() 返回 true。
-
-2. **字符串解析行为**：PyTorch 解析 "cpu" 后保持无 index 状态；Paddle 自动补全为 "cpu:0"。
-
-3. **GPU/CUDA 表示**：PyTorch 严格输出 "cuda"，Paddle 底层映射为 "gpu"。
-
-4. **枚举值差异**：CPU 在 PyTorch=0, Paddle=1；CUDA 在 PyTorch=1, Paddle=2。
-
-5. **默认 Tensor 设备**：PyTorch 默认 tensor 所在设备的 index 为 -1（无显式），Paddle 为 0。
+- `StrictStringParsing`：第 1 列表示 `privateuseone:3` 解析成功；后 4 列表示非法字符串均正确抛异常。
+- `PredicatesAndHash`：依次对应 `is_cpu`、`is_cuda`、`is_xpu`、`is_ipu`、`is_privateuseone`、`is_mps`、`cpu.supports_as_strided`、`ipu.supports_as_strided`、`cpu != cuda`、`cuda == cuda:0`、`unordered_map[cuda:0]`、`unordered_map[cpu]`。
+- `SetIndexAndTensorDevice`：前两组分别是 `cpu.set_index(0)`、`cuda.set_index(2)` 的 `(type index has_index str)`；后两组分别是默认 CPU tensor 与显式 CPU tensor 的 `(type index has_index str)`。
 
 ---
 
-提交的对齐 PR：https://github.com/PaddlePaddle/Paddle/pull/78066
+## 历史背景
+
+本节原先记录过以下差异：默认 index 语义、`cpu/cuda` 字符串表示、设备类型枚举值、默认 CPU tensor 的 `device()` 表达方式。它们已经在 compat 中修复，旧内容仅作为回溯背景保留。
+
+历史对齐 PR：https://github.com/PaddlePaddle/Paddle/pull/78066
 
 ---
 
@@ -709,27 +403,26 @@ TEST_F(ScalarTypeTest, NumScalarTypes) {
 
 ---
 
-# TensorOptions（`requires_grad` 传递问题）
+# TensorOptions（`requires_grad` / `device_index`）
 
 > Paddle 头文件：`c10/core/TensorOptions.h`
+>
+> 2026-03-29 复核：`device_index()` 已随 `Device` 语义一并对齐；当前 `TensorOptionsTest.DeviceIndex` 的 Paddle/Torch 输出均为 `-1`。本节当前剩余的已知差异只在 `requires_grad` 创建路径。
 
-## 差异点列表
+## 当前状态
 
 1. **`at::empty()` 不支持含 `requires_grad` 的 `TensorOptions`**：Paddle 在通过 `at::empty({...}, opts)` 创建 tensor 时，若 `opts` 含有 `requires_grad(true)` 会抛出异常。PyTorch 完整支持。当前测试已绕过：将含 `requires_grad` 的 `opts` 与用于创建 tensor 的 `opts_for_dtype` 分离，单独测试 `requires_grad()` 的读取，但实际上 Paddle 无法通过 `TensorOptions` 在 tensor 创建时传递梯度需求。
-2. **`device_index()` 对 CPU 设备的返回值不同**：Torch 对 CPU 设备返回 `-1`（无显式 index）；Paddle 会将 CPU 规范化为 `cpu:0`，因此返回 `0`。
+2. **`device_index()` 已对齐**：`c10::TensorOptions().device(c10::Device(c10::kCPU)).device_index()` 当前 Paddle/Torch 均返回 `-1`。
 
 ---
 
-## Diff 测试用例位置
+## 当前测试用例位置
 
 测试文件：`test/c10/core/TensorOptionsTest.cpp`
 
-### 测试用例原文
+### 相关测试用例
 
 ```cpp
-// 测试 device_index() 对 CPU 设备的返回值
-// [DIFF] 对于 `c10::TensorOptions().device(c10::Device(c10::kCPU))`，
-// Paddle 返回 0（因为会将 CPU 规范化为 cpu:0），Torch 返回 -1
 TEST_F(TensorOptionsTest, DeviceIndex) {
   auto opts = c10::TensorOptions().device(c10::Device(c10::kCPU));
 
@@ -737,11 +430,10 @@ TEST_F(TensorOptionsTest, DeviceIndex) {
   FileManerger file(file_name);
   file.openAppend();
 
-  // file << std::to_string(opts.device_index()) << " "; // [DIFF] 已注释
+  file << std::to_string(opts.device_index()) << " ";
   file.saveFile();
 }
 
-// 测试 requires_grad 传递（测试已绕过）
 TEST_F(TensorOptionsTest, ChainedSetters) {
   auto opts = c10::TensorOptions()
       .dtype(at::kDouble)
@@ -751,7 +443,6 @@ TEST_F(TensorOptionsTest, ChainedSetters) {
   FileManerger file(file_name);
   file.openAppend();
 
-  // Paddle: requires_grad 会抛出异常，但此处单独测试 getter
   file << std::to_string(opts.requires_grad().value()) << " ";
   file.saveFile();
 }
@@ -759,20 +450,18 @@ TEST_F(TensorOptionsTest, ChainedSetters) {
 
 ---
 
-## 输出对比
+## 当前结果
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| DeviceIndex | 不序列化该字段（已注释） | 不序列化该字段（已注释） |
+| DeviceIndex | `-1` | `-1` |
 | ChainedSetters | `1` | `1` |
 
 ---
 
-## 初步问题分析
+## 当前问题分析
 
 1. **requires_grad 传递**：Paddle 不支持通过 TensorOptions 在创建 tensor 时传递 requires_grad 参数，会抛出异常。
-
-2. **device_index() 返回值**：Paddle 将 CPU 设备规范化为 cpu:0，因此 device_index() 返回 0；PyTorch 返回 -1 表示无显式 index。
 
 ---
 
@@ -827,18 +516,21 @@ Paddle 兼容层 `default_complex_dtype` 的初始值与 PyTorch 默认策略不
 # Device（`has_index`）
 
 > Paddle 头文件：`c10/core/Device.h`
+>
+> 2026-03-29 复核：`has_index()` 默认 index 语义已与 PyTorch 对齐；测试已恢复实际值比对，本节保留历史差异说明。
 
-## 差异点列表
+## 当前结论
 
-1. **默认 index 语义不一致**：PyTorch 默认为 `index = -1`（`has_index() = false`），Paddle 默认为 `index = 0`（`has_index() = true`）。
+`DeviceTest.HasIndex` 当前 Paddle/Torch 一致输出 `0 1 0 1`，分别对应：
+
+1. `c10::Device(c10::kCPU).has_index() == false`
+2. `c10::Device(c10::kCPU, 0).has_index() == true`
+3. `c10::Device(c10::kCUDA).has_index() == false`
+4. `c10::Device(c10::kCUDA, 1).has_index() == true`
 
 ---
 
-## Diff 测试用例位置
-
-测试文件：`test/c10/core/DeviceTest.cpp`
-
-### 测试用例原文
+## 当前测试代码
 
 ```cpp
 TEST_F(DeviceCompatTest, HasIndex) {
@@ -851,17 +543,10 @@ TEST_F(DeviceCompatTest, HasIndex) {
   c10::Device cuda_default(c10::kCUDA);
   c10::Device cuda_1(c10::kCUDA, 1);
 
-  bool cpu_default_has = cpu_default.has_index();
-  bool cpu_0_has = cpu_0.has_index();
-  bool cuda_default_has = cuda_default.has_index();
-  bool cuda_1_has = cuda_1.has_index();
-
-  // [DIFF] DeviceType::CPU 的默认 index 语义不同：Torch(-1, has_index=false) vs Paddle(0, has_index=true)
-  // [DIFF] DeviceType::CUDA 的默认 index 语义不同：Torch(-1, has_index=false) vs Paddle(0, has_index=true)
-  file << std::to_string(cpu_default_has || !cpu_default_has) << " ";
-  file << std::to_string(cpu_0_has || !cpu_0_has) << " ";
-  file << std::to_string(cuda_default_has || !cuda_default_has) << " ";
-  file << std::to_string(cuda_1_has || !cuda_1_has) << " ";
+  file << std::to_string(cpu_default.has_index() ? 1 : 0) << " ";
+  file << std::to_string(cpu_0.has_index() ? 1 : 0) << " ";
+  file << std::to_string(cuda_default.has_index() ? 1 : 0) << " ";
+  file << std::to_string(cuda_1.has_index() ? 1 : 0) << " ";
 
   file.saveFile();
 }
@@ -869,35 +554,27 @@ TEST_F(DeviceCompatTest, HasIndex) {
 
 ---
 
-## 输出对比
+## 当前输出
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| HasIndex（原始） | `1 1 1 1` | `0 1 0 1` |
-
----
-
-## 初步问题分析
-
-Paddle 兼容层 `Device(DeviceType, DeviceIndex)` 的默认 index 设置为 `0`，而 PyTorch 默认为 `-1`（表示未显式指定设备索引），因此 `has_index()` 在默认构造路径上出现语义差异。
+| HasIndex | `0 1 0 1` | `0 1 0 1` |
 
 ---
 
 # Device（`str`）
 
 > Paddle 头文件：`c10/core/Device.h`
+>
+> 2026-03-29 复核：`str()` 已输出 PyTorch 风格的 `cpu/cuda/privateuseone` 设备字符串；本节保留历史差异说明。
 
-## 差异点列表
+## 当前结论
 
-1. **设备字符串规范不一致**：PyTorch 使用 `cpu/cuda`，Paddle 使用 `cpu:0/gpu` 风格。
+`DeviceTest.DeviceStr` 当前 Paddle/Torch 一致输出 `cpu cpu:0 cuda:0 cuda:1`。
 
 ---
 
-## Diff 测试用例位置
-
-测试文件：`test/c10/core/DeviceTest.cpp`
-
-### 测试用例原文
+## 当前测试代码
 
 ```cpp
 TEST_F(DeviceCompatTest, DeviceStr) {
@@ -917,16 +594,10 @@ TEST_F(DeviceCompatTest, DeviceStr) {
   c10::Device cuda_device_1(c10::kCUDA, 1);
   auto cuda_1_str = cuda_device_1.str();
 
-  // [DIFF] PyTorch输出: cpu cpu:0 cuda:0 cuda:1
-  // [DIFF] PaddlePaddle输出: cpu:0 cpu:0 gpu:0 gpu:1
-  // file << cpu_str << " ";
-  // file << cpu_0_str << " ";
-  // file << cuda_0_str << " ";
-  // file << cuda_1_str << " ";
-  (void)cpu_str;
-  (void)cpu_0_str;
-  (void)cuda_0_str;
-  (void)cuda_1_str;
+  file << cpu_str << " ";
+  file << cpu_0_str << " ";
+  file << cuda_0_str << " ";
+  file << cuda_1_str << " ";
 
   file.saveFile();
 }
@@ -934,16 +605,10 @@ TEST_F(DeviceCompatTest, DeviceStr) {
 
 ---
 
-## 输出对比
+## 当前输出
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| DeviceStr | `cpu:0 cpu:0 gpu:0 gpu:1` | `cpu cpu:0 cuda:0 cuda:1` |
-
----
-
-## 初步问题分析
-
-Paddle 在设备命名（`gpu`）与 CPU 默认索引显式化（`cpu:0`）上的规范与 PyTorch（`cuda`、默认 `cpu`）不同，导致字符串层面的稳定差异。
+| DeviceStr | `cpu cpu:0 cuda:0 cuda:1` | `cpu cpu:0 cuda:0 cuda:1` |
 
 ---

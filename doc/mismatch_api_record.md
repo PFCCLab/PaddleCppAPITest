@@ -35,6 +35,26 @@
 - `/home/may/PaddleCppAPITest/doc/ATen/ops/mismatch_api_record.md` - 将 `SparseTensor`、`Equal`、`Select` 更新为“历史差异 + 当前已对齐”
 - `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 更新总览中的已解决项与未解决项
 
+## 2026-03-29 Device 接口补齐
+
+### 本轮修复（已解决）
+
+| 测试项 | 修复前 Paddle | 修复后 Paddle | PyTorch | 状态 |
+|--------|---------------|---------------|---------|------|
+| DeviceTest.DeviceStr | 历史观测：`cpu:0 cpu:0 gpu:0 gpu:1` | `cpu cpu:0 cuda:0 cuda:1` | `cpu cpu:0 cuda:0 cuda:1` | ✅ 已对齐 |
+| DeviceTest.HasIndex | 历史观测：`1 1 1 1` | `0 1 0 1` | `0 1 0 1` | ✅ 已对齐 |
+| DeviceTest.StrictStringParsing / PredicatesAndHash / SetIndexAndTensorDevice | 历史上未覆盖 | 已新增并对齐 | 已对齐 | ✅ 已对齐 |
+| TensorOptionsTest.DeviceIndex | 历史观测：`0` | `-1` | `-1` | ✅ 已对齐 |
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/DeviceType.h` - 新增 `PrivateUse1`/`kPrivateUse1` 别名与 `hash<DeviceType>`
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Device.h` - 补齐 `operator!=`、`set_index`、设备谓词、`supports_as_strided` 与 `hash<Device>`
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Device.cpp` - 对齐严格字符串解析与 `privateuseone` 支持
+- `/home/may/Paddle/test/cpp/compat/c10_Device_test.cc` - 补充 compat 单测覆盖新增接口
+- `/home/may/PaddleCppAPITest/test/c10/core/DeviceTest.cpp` - 增加 `Device` 行为/接口对比测试
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 更新 `Device` 历史差异说明
+
 ---
 
 ## 按差异类型分组（便于 Review）
