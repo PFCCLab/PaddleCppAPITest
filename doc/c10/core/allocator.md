@@ -16,9 +16,9 @@
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------|------------------|------------|-------|------|
 | `DeleterFnPtr` | ✅ | - [x] | P0 | 已定义，`AllocatorCompatTest` 覆盖 |
-| `CaptureId_t` | ❌ | - [ ] | P2 | 未定义 |
-| `MempoolId_t` | ❌ | - [ ] | P2 | 未定义 |
-| `MempoolIdHash` | ❌ | - [ ] | P2 | 未定义 |
+| `CaptureId_t` | ✅ | - [x] | P2 | 已定义，`CaptureAndMempoolTypes` 覆盖 |
+| `MempoolId_t` | ✅ | - [x] | P2 | 已定义，`CaptureAndMempoolTypes` 覆盖 |
+| `MempoolIdHash` | ✅ | - [x] | P2 | 已定义，`CaptureAndMempoolTypes` 覆盖 |
 
 ---
 
@@ -31,7 +31,7 @@
 | `DataPtr(void*, void*, DeleterFnPtr, Device)` | ✅ | - [x] | P0 | 已实现，`AllocatorCompatTest` 覆盖 |
 | copy ctor / copy assignment（move-only 语义） | ✅ | - [ ] | P1 | Paddle 显式 `= delete`，与 PyTorch 语义一致 |
 | `DataPtr(DataPtr&&)` / `operator=(DataPtr&&)` | ✅ | - [x] | P0 | 已实现，`AllocatorCompatTest` 覆盖 |
-| `mutable_get()` | ❌ | - [ ] | P2 | PyTorch 提供，Paddle 未提供 |
+| `mutable_get()` | ✅ | - [x] | P2 | 已实现，`MutableGet` 覆盖 |
 
 ---
 
@@ -65,7 +65,7 @@
 |-----------|------------------|------------|-------|------|
 | `allocate(size_t)` | ✅ | - [ ] | P0 | 纯虚接口已声明 |
 | `clone(const void*, size_t)` | ✅ | - [ ] | P1 | 已实现 |
-| `is_simple_data_ptr(const DataPtr&)` | ✅ | - [ ] | P1 | 已实现 |
+| `is_simple_data_ptr(const DataPtr&)` | ✅ | - [x] | P1 | 语义已修正为 `get() == get_context()`，`IsSimpleDataPtrSemantics` 覆盖 |
 | `raw_deleter()` | ✅ | - [ ] | P1 | 默认返回 `nullptr` |
 | `raw_allocate(size_t)` | ✅ | - [ ] | P1 | 已实现 |
 | `raw_deallocate(void*)` | ✅ | - [ ] | P1 | 已实现 |
@@ -78,12 +78,12 @@
 
 | torch API | paddle API 兼容性 | 测试用例状态 | 优先级 | 备注 |
 |-----------|------------------|------------|-------|------|
-| `SetAllocator(DeviceType, Allocator*, uint8_t)` | ❌ | - [ ] | P2 | 未实现 |
-| `GetAllocator(const DeviceType&)` | ❌ | - [ ] | P2 | 未实现 |
-| `AllocatorRegisterer` | ❌ | - [ ] | P2 | 未实现 |
-| `REGISTER_ALLOCATOR` | ❌ | - [ ] | P2 | 未实现 |
-| `InefficientStdFunctionContext` | ❌ | - [ ] | P2 | 未实现 |
-| `InefficientStdFunctionContext::makeDataPtr()` | ❌ | - [ ] | P2 | 未实现 |
+| `SetAllocator(DeviceType, Allocator*, uint8_t)` | ✅ | - [x] | P2 | 已实现，`SetAndGetAllocatorPriority` 覆盖 |
+| `GetAllocator(const DeviceType&)` | ✅ | - [x] | P2 | 已实现，`SetAndGetAllocatorPriority` 覆盖 |
+| `AllocatorRegisterer` | ✅ | - [x] | P2 | 已实现，通过 `REGISTER_ALLOCATOR` 编译探针间接覆盖 |
+| `REGISTER_ALLOCATOR` | ✅ | - [x] | P2 | 已实现，`RegisterAllocatorMacro` 作为编译探针覆盖 |
+| `InefficientStdFunctionContext` | ✅ | - [x] | P2 | 已实现，`InefficientStdFunctionContextMakeDataPtr` 覆盖 |
+| `InefficientStdFunctionContext::makeDataPtr()` | ✅ | - [x] | P2 | 已实现，`InefficientStdFunctionContextMakeDataPtr` 覆盖 |
 
 ---
 
@@ -112,9 +112,9 @@
 
 | 状态 | 数量 |
 |---|---|
-| ✅ 已实现 | 32 |
+| ✅ 已实现 | 42 |
 | 🔧 部分兼容 | 0 |
-| ❌ 未实现 | 16 |
+| ❌ 未实现 | 6 |
 
 ---
 
@@ -132,10 +132,10 @@
      - `/home/may/pytorch/c10/core/Allocator.h`
 
 3. **主要差异说明**：
-   - `DataPtr` / `Allocator` 核心路径已基本对齐。
-   - 缺口集中在全局 allocator 注册体系与 profiler/caching allocator 辅助接口。
-   - `mutable_get()` 为当前最直接的 DataPtr API 缺失项。
+   - `DataPtr` / `Allocator` 直接接口已进一步对齐，`mutable_get()`、allocator 注册体系、`InefficientStdFunctionContext` 已补齐。
+   - 当前剩余缺口主要集中在 profiler / caching allocator 辅助接口。
+   - `is_simple_data_ptr()` 已修正为与 PyTorch 一致的 `get() == get_context()` 语义。
 
 4. **测试现状**：
-   - `test/c10/core/AllocatorCompatTest.cpp` 已覆盖 `DataPtr` 的构造、移动、clear、比较、alias 等主路径。
-   - `Allocator` 注册与 profiling 相关缺失接口暂无直接测试。
+   - `test/c10/core/AllocatorCompatTest.cpp` 已覆盖 `DataPtr` 的构造、移动、`mutable_get()`、`InefficientStdFunctionContext`、allocator 注册与 `is_simple_data_ptr()` 语义。
+   - profiling / caching allocator 相关缺失接口暂无直接测试。

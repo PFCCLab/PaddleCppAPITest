@@ -1,5 +1,7 @@
 # Allocator
 
+> 2026-03-29 复核：本节保留的是 `DataPtr` 历史差异记录。当前 compat `Allocator.h` 已按 PyTorch 进一步补齐 `mutable_get()`、allocator 注册接口、`InefficientStdFunctionContext` 等直接 API；现状以 [doc/c10/core/allocator.md](/home/may/PaddleCppAPITest/doc/c10/core/allocator.md) 为准。
+
 ## 差异点列表
 
 1.  **构造函数参数默认值**

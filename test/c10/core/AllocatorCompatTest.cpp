@@ -2,6 +2,7 @@
 #include <c10/core/Allocator.h>
 #include <gtest/gtest.h>
 
+#include <functional>
 #include <string>
 
 #include "src/file_manager.h"
@@ -40,6 +41,27 @@ static void test_deleter(void* ptr) { g_deleter_called = true; }
 
 // 真正释放内存的 deleter
 static void real_float_deleter(void* ptr) { delete[] static_cast<float*>(ptr); }
+
+static void delete_byte_array(void* ptr) { delete[] static_cast<char*>(ptr); }
+
+class ByteAllocator final : public c10::Allocator {
+ public:
+  c10::DataPtr allocate(size_t n) override {
+    size_t bytes = n == 0 ? 1 : n;
+    char* data = new char[bytes];
+    return c10::DataPtr(
+        data, data, delete_byte_array, c10::Device(c10::DeviceType::CPU));
+  }
+
+  void copy_data(void* dest,
+                 const void* src,
+                 std::size_t count) const override {
+    default_copy_data(dest, src, count);
+  }
+};
+
+static ByteAllocator g_registered_allocator;
+REGISTER_ALLOCATOR(c10::DeviceType::IPU, &g_registered_allocator);
 
 static void dataptr_clear_api_probe(c10::DataPtr* data_ptr) {
   data_ptr->clear();
@@ -85,6 +107,25 @@ TEST_F(AllocatorTest, ConstructorWithDataAndDevice) {
   float* ptr = static_cast<float*>(data_ptr.get());
   file << std::to_string(ptr[0]) << " ";
   file << std::to_string(ptr[1]) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AllocatorTest, MutableGet) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "MutableGet ";
+
+  c10::DataPtr data_ptr(static_cast<void*>(test_data_),
+                        c10::Device(c10::DeviceType::CPU));
+
+  void* mutable_ptr = data_ptr.mutable_get();
+  static_cast<float*>(mutable_ptr)[2] = 9.0f;
+
+  file << std::to_string(mutable_ptr == data_ptr.get()) << " ";
+  file << std::to_string(test_data_[2]) << " ";
 
   file << "\n";
   file.saveFile();
@@ -370,6 +411,121 @@ TEST_F(AllocatorTest, DeleterFnPtrType) {
                         c10::Device(c10::DeviceType::CPU));
 
   file << std::to_string(data_ptr.get_deleter() == deleter) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AllocatorTest, CaptureAndMempoolTypes) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "CaptureAndMempoolTypes ";
+
+  c10::CaptureId_t capture_id = 7;
+  c10::MempoolId_t primary{capture_id, 11};
+  c10::MempoolId_t fallback{0, 13};
+  c10::MempoolIdHash hasher;
+
+  file << std::to_string(primary.first == capture_id) << " ";
+  file << std::to_string(hasher(primary) == 7) << " ";
+  file << std::to_string(hasher(fallback) == 13) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AllocatorTest, InefficientStdFunctionContextMakeDataPtr) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "InefficientStdFunctionContextMakeDataPtr ";
+
+  bool deleter_called = false;
+  int* value = new int(7);
+
+  {
+    c10::DataPtr data_ptr = c10::InefficientStdFunctionContext::makeDataPtr(
+        value,
+        [&deleter_called](void* ptr) {
+          deleter_called = true;
+          delete static_cast<int*>(ptr);
+        },
+        c10::Device(c10::DeviceType::CPU));
+
+    file << std::to_string(data_ptr.get() == static_cast<void*>(value)) << " ";
+    file << std::to_string(data_ptr.get_context() != nullptr) << " ";
+    file << std::to_string(data_ptr.get_context() != static_cast<void*>(value))
+         << " ";
+  }
+
+  file << std::to_string(deleter_called) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AllocatorTest, IsSimpleDataPtrSemantics) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "IsSimpleDataPtrSemantics ";
+
+  ByteAllocator allocator;
+  c10::DataPtr simple_ptr(static_cast<void*>(test_data_),
+                          static_cast<void*>(test_data_),
+                          test_deleter,
+                          c10::Device(c10::DeviceType::CPU));
+  c10::DataPtr view_ptr(static_cast<void*>(test_data_),
+                        c10::Device(c10::DeviceType::CPU));
+  c10::DataPtr separate_ctx_ptr(static_cast<void*>(test_data_),
+                                test_ctx_,
+                                test_deleter,
+                                c10::Device(c10::DeviceType::CPU));
+
+  file << std::to_string(allocator.is_simple_data_ptr(simple_ptr)) << " ";
+  file << std::to_string(allocator.is_simple_data_ptr(view_ptr)) << " ";
+  file << std::to_string(allocator.is_simple_data_ptr(separate_ctx_ptr)) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AllocatorTest, SetAndGetAllocatorPriority) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "SetAndGetAllocatorPriority ";
+
+  static ByteAllocator high_priority_allocator;
+  static ByteAllocator low_priority_allocator;
+
+  c10::SetAllocator(c10::DeviceType::XPU, &high_priority_allocator, 2);
+  file << std::to_string(c10::GetAllocator(c10::DeviceType::XPU) ==
+                         &high_priority_allocator)
+       << " ";
+
+  c10::SetAllocator(c10::DeviceType::XPU, &low_priority_allocator, 1);
+  file << std::to_string(c10::GetAllocator(c10::DeviceType::XPU) ==
+                         &high_priority_allocator)
+       << " ";
+
+  c10::SetAllocator(c10::DeviceType::XPU, &low_priority_allocator, 2);
+  file << std::to_string(c10::GetAllocator(c10::DeviceType::XPU) ==
+                         &low_priority_allocator)
+       << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AllocatorTest, RegisterAllocatorMacro) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "RegisterAllocatorMacro ";
+
+  // 宏在文件作用域完成展开和注册；这里用运行时输出锁定该编译路径存在。
+  file << std::to_string(true) << " ";
 
   file << "\n";
   file.saveFile();
