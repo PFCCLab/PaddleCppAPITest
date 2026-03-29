@@ -80,6 +80,8 @@
 7. 与 PyTorch 一致的严格字符串解析规则
 8. 未覆盖的 `DeviceType` 主要缺口：扩展枚举/常量别名、`DeviceTypeName()`、`register_privateuse1_backend()`、`get_privateuse1_backend()`、`is_privateuse1_backend_registered()`
 
+其中 `Device(const std::string&)` 的解析状态机对外行为已与 PyTorch 对齐；仅内部实现为了兼容 Windows 头文件里的 `ERROR` 宏污染，将状态枚举命名从上游的 `START/INDEX_START/INDEX_REST/ERROR` 改成了 `kStart/kIndexStart/kIndexRest/kError`。
+
 详细 API 逐项状态见：
 
 - [doc/c10/core/device.md](/home/may/PaddleCppAPITest/doc/c10/core/device.md)

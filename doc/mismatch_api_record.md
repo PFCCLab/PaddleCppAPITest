@@ -50,10 +50,33 @@
 
 - `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/DeviceType.h` - 新增 `PrivateUse1`/`kPrivateUse1` 别名与 `hash<DeviceType>`
 - `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Device.h` - 补齐 `operator!=`、`set_index`、设备谓词、`supports_as_strided` 与 `hash<Device>`
-- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Device.cpp` - 对齐严格字符串解析与 `privateuseone` 支持
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Device.cpp` - 对齐严格字符串解析与 `privateuseone` 支持；字符串解析状态枚举为规避 Windows `ERROR` 宏污染使用了 Windows-safe 命名
 - `/home/may/Paddle/test/cpp/compat/c10_Device_test.cc` - 补充 compat 单测覆盖新增接口
 - `/home/may/PaddleCppAPITest/test/c10/core/DeviceTest.cpp` - 增加 `Device` 行为/接口对比测试
 - `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 更新 `Device` 历史差异说明
+
+---
+
+## 2026-03-29 Exception 宏对齐
+
+### 本轮修复（已解决）
+
+| 测试项 | 修复前 Paddle | 修复后 Paddle | PyTorch | 状态 |
+|--------|---------------|---------------|---------|------|
+| ExceptionTest.TorchCheckEqFailure | 历史实现报错前缀为 `Expected 3 == 4 ... but got false`，测试通过 `#if USE_PADDLE_API` 单独走 try-catch | 统一输出 `1`，表示异常文本包含 `Check failed: 3 == 4 (3 vs. 4). ` | `1` | ✅ 已对齐 |
+| ExceptionTest.TorchCheckNe | 历史实现报错前缀与 Torch 不同，测试按平台分叉 | 统一输出 `1 1`，表示成功路径与失败消息校验都对齐 | `1 1` | ✅ 已对齐 |
+
+### 本轮说明
+
+- 本轮同时修正文档中的历史误记：当前 PyTorch `TORCH_CHECK_OP` 派生宏失败路径是抛异常，不是旧文档中记录的 `EXPECT_DEATH` / `abort()`。
+- `TORCH_CHECK_EQ / NE / LE / LT / GE / GT` 共享 `TORCH_CHECK_OP`，因此本轮对齐的是比较类异常宏的公共报错前缀。
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/util/Exception.h` - 对齐 `TORCH_CHECK_OP` 派生宏报错前缀
+- `/home/may/PaddleCppAPITest/test/c10/util/ExceptionTest.cpp` - 移除平台分叉，统一校验异常消息
+- `/home/may/PaddleCppAPITest/doc/c10/util/mismatch_api_record.md` - 将 `Exception` 节更新为“历史差异 + 当前已对齐”
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 增补本轮汇总
 
 ---
 

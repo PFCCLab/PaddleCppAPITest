@@ -21,7 +21,7 @@
 |-----------|------------------|------------|-------|------|
 | `using DeviceIndex = int8_t` | ✅ | - [ ] | P0 | 类型别名一致 |
 | `Device(DeviceType, DeviceIndex = -1)` | ✅ | - [x] | P0 | 构造签名与默认 `index = -1` 语义已对齐，`HasIndex` / `SetIndexAndTensorDevice` 覆盖 |
-| `Device(const std::string&)` | 🔧 | - [x] | P0 | 严格字符串解析规则已对齐；但 Paddle 只支持 `cpu/cuda/xpu/ipu/privateuseone`，缺少 PyTorch 的 `hip/mps/xla/...` 与动态 privateuse1 backend 名称 |
+| `Device(const std::string&)` | 🔧 | - [x] | P0 | 严格字符串解析规则已对齐；但 Paddle 只支持 `cpu/cuda/xpu/ipu/privateuseone`，缺少 PyTorch 的 `hip/mps/xla/...` 与动态 privateuse1 backend 名称。实现细节上，Paddle 为规避 Windows `ERROR` 宏污染，将内部解析状态枚举命名改为 `kStart/kIndexStart/kIndexRest/kError`，外部语义不变 |
 
 ---
 
@@ -99,3 +99,6 @@
 4. **测试现状**：
    - `test/c10/core/DeviceTest.cpp` 已覆盖字符串表示、默认 index 语义、严格字符串解析、共享 backend 谓词、`supports_as_strided()`、`set_index()`、`std::hash<c10::Device>` 和默认 CPU tensor 的 `device()` 语义。
    - 扩展 backend 谓词与 `C10_API` ABI 差异暂无直接测试。
+
+5. **实现细节差异**：
+   - `Device.cpp` 的字符串解析状态机在 PyTorch 上游中使用 `START/INDEX_START/INDEX_REST/ERROR`；Paddle compat 为避免 Windows 头文件里的 `ERROR` 宏破坏编译，改用了 `kStart/kIndexStart/kIndexRest/kError`。这属于实现级兼容处理，不影响 `Device(const std::string&)` 的对外接口和测试行为。

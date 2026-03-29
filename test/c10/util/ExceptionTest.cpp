@@ -19,9 +19,20 @@ class ExceptionTest : public ::testing::Test {
   void SetUp() override {}
 };
 
-// [DIFF] 文件级说明：异常宏在两端失败路径语义不同（LibTorch 常见为
-// abort/死亡测试， Paddle 兼容层常见为 C++
-// 异常），导致断言方式和结果协议必须分叉。
+template <typename Fn>
+bool ThrowsMessageContaining(Fn&& fn, const char* expected_substr) {
+  try {
+    fn();
+  } catch (const std::exception& e) {
+    return std::string(e.what()).find(expected_substr) != std::string::npos;
+  } catch (...) {
+    return false;
+  }
+  return false;
+}
+
+// 历史上这里曾按 Torch death test / Paddle try-catch 分叉。当前统一锁定
+// TORCH_CHECK_OP 派生宏的共享异常消息前缀，直接比较跨实现可复现的行为。
 
 // TORCH_CHECK 成功（条件为 true）
 TEST_F(ExceptionTest, TorchCheckSuccess) {
@@ -109,37 +120,20 @@ TEST_F(ExceptionTest, TorchCheckEqSuccess) {
 }
 
 // TORCH_CHECK_EQ 失败
-// LibTorch: 失败时调用 abort()，使用 EXPECT_DEATH 捕获进程终止。
-// Paddle:   失败时抛出 C++ 异常，使用 try-catch 捕获。
 TEST_F(ExceptionTest, TorchCheckEqFailure) {
-  // [DIFF] 用例级差异：同一失败条件在两端终止机制不同，无法共用同一断言写法。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
   file << "TorchCheckEqFailure ";
-#if USE_PADDLE_API
-  bool caught = false;
-  try {
-    TORCH_CHECK_EQ(3, 4);
-  } catch (...) {
-    caught = true;
-  }
+  bool caught = ThrowsMessageContaining([] { TORCH_CHECK_EQ(3, 4); },
+                                        "Check failed: 3 == 4 (3 vs. 4). ");
   file << std::to_string(caught ? 1 : 0) << " ";
-#else
-  // [DIFF] 问题行：LibTorch 路径必须用 EXPECT_DEATH 捕获 abort；
-  // Paddle 路径若使用该写法会语义不匹配。
-  EXPECT_DEATH({ TORCH_CHECK_EQ(3, 4); }, ".*");
-  file << "1 ";
-#endif
   file << "\n";
   file.saveFile();
 }
 
 // TORCH_CHECK_NE
-// LibTorch: 失败时调用 abort()，使用 EXPECT_DEATH 捕获进程终止。
-// Paddle:   失败时抛出 C++ 异常，使用 try-catch 捕获。
 TEST_F(ExceptionTest, TorchCheckNe) {
-  // [DIFF] 用例级差异：NE 失败分支同样是 abort（Torch）vs throw（Paddle）。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -152,19 +146,9 @@ TEST_F(ExceptionTest, TorchCheckNe) {
   }
   file << std::to_string(passed ? 1 : 0) << " ";
 
-#if USE_PADDLE_API
-  bool caught = false;
-  try {
-    TORCH_CHECK_NE(3, 3);
-  } catch (...) {
-    caught = true;
-  }
+  bool caught = ThrowsMessageContaining([] { TORCH_CHECK_NE(3, 3); },
+                                        "Check failed: 3 != 3 (3 vs. 3). ");
   file << std::to_string(caught ? 1 : 0) << " ";
-#else
-  // [DIFF] 问题行：EXPECT_DEATH 仅适用于 Torch 失败语义。
-  EXPECT_DEATH({ TORCH_CHECK_NE(3, 3); }, ".*");
-  file << "1 ";
-#endif
   file << "\n";
   file.saveFile();
 }

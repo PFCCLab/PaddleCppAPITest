@@ -114,86 +114,90 @@ OptionalArrayRef 核心功能在两个框架中完全兼容。差异仅在于：
 
 ---
 
-# Exception 宏（TORCH_CHECK_EQ / TORCH_CHECK_NE 失败语义差异）
+# Exception 宏（`TORCH_CHECK_EQ / TORCH_CHECK_NE` 已对齐）
 
 > Paddle 头文件：`c10/util/Exception.h`
+>
+> 2026-03-29 复核：本节原先把 `TORCH_CHECK_OP` 派生宏的失败路径记成“Torch abort / Paddle throw”，这与当前 PyTorch 头文件实现和本仓库运行结果都不一致。当前 `TORCH_CHECK_EQ / NE / LE / LT / GE / GT` 已通过共享 `TORCH_CHECK_OP` 对齐到统一的失败消息前缀，并由测试直接校验异常文本。
 
-## 差异点列表
+## 当前状态
 
-1. **`TORCH_CHECK_EQ` 失败行为**：PyTorch 调用 `abort()` 终止进程（测试用 `EXPECT_DEATH` 捕获）；Paddle 抛出 C++ 异常（测试用 try-catch 捕获）。
-2. **`TORCH_CHECK_NE` 失败行为**：同上，两者失败行为不一致。
+当前 compat 对齐点如下：
 
-当前代码通过 `#if USE_PADDLE_API` 分叉两套检测逻辑以绕过差异，但这导致两个平台实际走不同测试路径，无法真正对比行为。
+1. `TORCH_CHECK_EQ / NE / LE / LT / GE / GT` 统一复用 `TORCH_CHECK_OP`
+2. 失败消息前缀对齐为 PyTorch 口径：`Check failed: <lhs> <op> <rhs> (<lhs_value> vs. <rhs_value>). `
+3. `ExceptionTest` 不再通过 `#if USE_PADDLE_API` 分叉 `EXPECT_DEATH` / `try-catch` 两套逻辑，而是统一捕获异常并校验 `what()` 中的共享前缀
+
+需要特别说明的是：PyTorch 当前 `TORCH_CHECK_OP` 宏走的是 `NON_FATAL_IF(..., exit_on_fatal=false)` 路径，失败时会抛出异常，而不是本节旧文档中记录的 `abort()`。
 
 ---
 
-## Diff 测试用例位置
+## 当前测试覆盖
 
 测试文件：`test/c10/util/ExceptionTest.cpp`
 
-### 测试用例原文
+### 关键测试项
+
+1. `TorchCheckEqFailure`：校验 `TORCH_CHECK_EQ(3, 4)` 抛异常，且异常文本包含 `Check failed: 3 == 4 (3 vs. 4). `
+2. `TorchCheckNe`：校验 `TORCH_CHECK_NE(3, 4)` 成功；`TORCH_CHECK_NE(3, 3)` 抛异常，且异常文本包含 `Check failed: 3 != 3 (3 vs. 3). `
+3. `TorchCheckComparisons`：保留 `LT / LE / GT / GE` 成功路径覆盖，确认共享宏未破坏正向行为
+
+### 当前测试代码
 
 ```cpp
-// 测试 TORCH_CHECK_EQ 失败行为
-TEST_F(ExceptionTest, TorchCheckEqFailure) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-#if USE_PADDLE_API
-  // Paddle: 抛出异常
+template <typename Fn>
+bool ThrowsMessageContaining(Fn&& fn, const char* expected_substr) {
   try {
-    TORCH_CHECK_EQ(1, 2, "Values should be equal");
-    file << "no_exception ";
-  } catch (const c10::Error& e) {
-    file << "c10::Error ";
+    fn();
+  } catch (const std::exception& e) {
+    return std::string(e.what()).find(expected_substr) != std::string::npos;
+  } catch (...) {
+    return false;
   }
-#else
-  // PyTorch: 调用 abort()，使用 EXPECT_DEATH 捕获
-  // 在非 death test 中直接跳过
-  file << "skipped ";
-#endif
-  file.saveFile();
+  return false;
 }
 
-// 测试 TORCH_CHECK_NE 失败行为
-TEST_F(ExceptionTest, TorchCheckNe) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
+TEST_F(ExceptionTest, TorchCheckEqFailure) {
+  ...
+  bool caught = ThrowsMessageContaining(
+      [] { TORCH_CHECK_EQ(3, 4); }, "Check failed: 3 == 4 (3 vs. 4). ");
+  file << std::to_string(caught ? 1 : 0) << " ";
+  ...
+}
 
-#if USE_PADDLE_API
-  // Paddle: 抛出异常
-  try {
-    TORCH_CHECK_NE(1, 1, "Values should not be equal");
-    file << "no_exception ";
-  } catch (const c10::Error& e) {
-    file << "c10::Error ";
-  }
-#else
-  // PyTorch: 调用 abort()
-  file << "skipped ";
-#endif
-  file.saveFile();
+TEST_F(ExceptionTest, TorchCheckNe) {
+  ...
+  bool caught = ThrowsMessageContaining(
+      [] { TORCH_CHECK_NE(3, 3); }, "Check failed: 3 != 3 (3 vs. 3). ");
+  file << std::to_string(caught ? 1 : 0) << " ";
+  ...
 }
 ```
 
 ---
 
-## 输出对比
+## 当前对齐结果
 
-| 测试用例 | Paddle 输出 | Torch 输出 |
-|---------|------------|------------|
-| TorchCheckEqFailure | `c10::Error` | `skipped`（需用 EXPECT_DEATH） |
-| TorchCheckNe | `c10::Error` | `skipped`（需用 EXPECT_DEATH） |
+| 测试用例 | Paddle/Torch 当前输出 |
+|---------|----------------------|
+| `TorchCheckEqFailure` | `1` |
+| `TorchCheckNe` | `1 1` |
+| `TorchCheckComparisons` | `1 1 1 1` |
+
+补充说明：
+
+- `1` 表示异常被成功捕获，且 `what()` 中包含与 PyTorch 对齐后的共享前缀。
+- 当前 `bash test/result_cmp.sh ./build/` 中，`paddle_ExceptionTest` 与 `torch_ExceptionTest` 的结果文件应保持一致。
 
 ---
 
-## 初步问题分析
+## 历史背景
 
-1. **TORCH_CHECK_EQ 失败行为**：PyTorch 调用 abort() 终止进程，Paddle 抛出 C++ 异常。
-2. **TORCH_CHECK_NE 失败行为**：同上。
+本节原先记录的是两类历史问题：
 
-当前通过条件编译分叉两套测试逻辑，导致无法真正对比两框架的行为差异。
+1. 文档把 PyTorch `TORCH_CHECK_OP` 失败路径误记成了 death test / `abort()`
+2. Paddle compat 的 `TORCH_CHECK_OP` 报错文案与 PyTorch 前缀不一致，测试也因此长期通过条件编译分叉来规避直接比对
+
+当前这两项都已修正，旧结论仅保留作为回溯背景。
 
 ---
