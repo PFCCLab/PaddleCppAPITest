@@ -69,12 +69,16 @@ TEST_F(CUDAContextTest, GetCurrentCUDAStream) {
 
 ---
 
-# CUDADataTypeTest
+# CUDADataType（历史差异：旧文档曾误记 `Bool` 支持范围）
 
-## 差异点列表
+> Paddle 头文件：`ATen/cuda/CUDADataType.h`、`ATen/cuda/EmptyTensor.h`
 
-1. **`ScalarTypeToCudaDataType(Bool)` 支持范围不同**：Paddle compat 不支持 `Bool` 转 `cudaDataType`，会抛出异常；Torch 侧接口支持范围更完整。当前测试已跳过 `Bool`。
-2. **`empty_cuda` 结果依赖运行时/构建环境**：Torch CUDA 版通常可成功创建 CUDA Tensor；Paddle compat 在未编译 CUDA 或运行时不可用时会抛异常并进入不可用分支。该差异属于环境差异，不属于接口语义差异。
+## 当前状态
+
+1. `ScalarTypeToCudaDataType` 针对当前 compat 暴露的 `Float`、`Double`、`Int`、`Long`、`Half`、`Byte`、`Char`、`Short`、`BFloat16`、`ComplexFloat`、`ComplexDouble` 已纳入常规回归，当前输出与 Torch 一致。
+2. `Bool` 并不是 Torch 侧单独支持的类型；两端调用 `ScalarTypeToCudaDataType(c10::ScalarType::Bool)` 都会抛异常。当前测试已改为显式记录 `bool_unsupported`，不再把它记为 Paddle 单边差异。
+3. `EmptyCUDA` / `EmptyCudaDifferentDtype` 的输出取决于当前 CUDA 运行时是否可用。在同一台机器上执行 `result_cmp` 时，两端会进入相同分支：有 CUDA 运行时时输出 `cuda_empty` / `cuda_empty_int`，无 CUDA 运行时时输出 `cuda_not_available`。当前环境下两端均输出 `cuda_not_available`。
+4. 当前 compat `c10::ScalarType` 侧尚未暴露 `ComplexHalf` / `Float4_e2m1fn_x2`，因此这两项暂未纳入本测试覆盖；本节结论仅针对当前已暴露的 scalar type 子集。
 
 ---
 
@@ -82,34 +86,50 @@ TEST_F(CUDAContextTest, GetCurrentCUDAStream) {
 
 测试文件：`test/ATen/cuda/CUDADataTypeTest.cpp`
 
-### 测试用例原文
+### 当前测试策略
 
 ```cpp
-// 测试 ScalarTypeToCudaDataType 对 Bool 的支持
 TEST_F(CUDADataTypeTest, GetCudaDataType) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
 
-  // 测试 Bool - [DIFF] Paddle 不支持，会抛出异常
-  // file << std::to_string(
-  //     at::cuda::ScalarTypeToCudaDataType(c10::ScalarType::Bool)) << " "; // [DIFF]
+  try {
+    (void)at::cuda::ScalarTypeToCudaDataType(c10::ScalarType::Bool);
+    file << "bool_supported ";
+  } catch (...) {
+    file << "bool_unsupported ";
+  }
 
-  file << "cuda_type_test ";
   file.saveFile();
 }
 
-// 测试 empty_cuda
 TEST_F(CUDADataTypeTest, EmptyCUDA) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
 
   try {
-    at::Tensor t = at::empty_cuda({2, 3}, at::TensorOptions().dtype(at::kFloat));
+    at::Tensor t = at::detail::empty_cuda({2, 3, 4},
+                                          c10::ScalarType::Float,
+                                          at::Device(at::kCUDA, 0),
+                                          std::nullopt);
+    (void)t;
     file << "cuda_empty ";
-  } catch (const std::exception& e) {
-    // Paddle 非 GPU 版或 CUDA 不可用时会抛异常
+  } catch (...) {
+    file << "cuda_not_available ";
+  }
+  file.saveFile();
+}
+
+TEST_F(CUDADataTypeTest, EmptyCudaDifferentDtype) {
+  ...
+  try {
+    at::Tensor t = at::detail::empty_cuda(
+        {2, 3}, c10::ScalarType::Int, at::Device(at::kCUDA, 0), std::nullopt);
+    (void)t;
+    file << "cuda_empty_int ";
+  } catch (...) {
     file << "cuda_not_available ";
   }
   file.saveFile();
@@ -122,15 +142,14 @@ TEST_F(CUDADataTypeTest, EmptyCUDA) {
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| GetCudaDataType | `cuda_type_test` | 正常输出（包含 Bool） |
-| EmptyCUDA | `cuda_not_available` | `cuda_empty` |
+| GetCudaDataType | 已进入常规 `result_cmp`；当前输出包含 `bool_unsupported` 标记 | 已进入常规 `result_cmp`；当前输出包含 `bool_unsupported` 标记 |
+| GetCudaDataTypeBFloat16 | `14` | `14` |
+| GetCudaDataTypeComplex | `4 5` | `4 5` |
+| EmptyCUDA | 同一运行环境下与 Torch 进入同一分支；当前环境为 `cuda_not_available` | 同左 |
+| EmptyCudaDifferentDtype | 同一运行环境下与 Torch 进入同一分支；当前环境为 `cuda_not_available` | 同左 |
 
 ---
 
-## 初步问题分析
+## 结论
 
-1. **ScalarTypeToCudaDataType(Bool)**：Paddle 未实现 Bool 到 cudaDataType 的转换，会抛出异常。
-
-2. **empty_cuda**：属于运行时环境差异，取决于 Paddle 是否编译了 CUDA 支持。
-
----
+`ATen/cuda/CUDADataType.h` 针对当前 compat 暴露的标量类型集合已与 Torch 保持一致回归，`CUDADataTypeTest` 不再是当前未对齐项。本文档保留该节仅作为历史记录，说明旧结论已回写。

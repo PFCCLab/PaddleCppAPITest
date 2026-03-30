@@ -39,6 +39,29 @@
 
 ---
 
+## 2026-03-30 CUDADataType 复核
+
+### 本轮复核（已确认对齐）
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `CUDADataTypeTest.GetCudaDataType` / `GetCudaDataTypeBFloat16` / `GetCudaDataTypeComplex` | 常规回归输出一致；`Bool` 分支当前统一记录为 `bool_unsupported` | 一致 | ✅ 已对齐 |
+| `CUDADataTypeTest.EmptyCUDA` / `EmptyCudaDifferentDtype` | 同一运行环境下进入相同分支；当前环境均为 `cuda_not_available` | 一致 | ✅ 已对齐 |
+
+说明：
+
+- 旧文档把 `ScalarTypeToCudaDataType(Bool)` 记成了 Paddle 单边差异，但当前 Torch 实现同样不支持 `Bool -> cudaDataType`；本轮已将测试改成显式记录共享异常分支。
+- `empty_cuda` 系列的可观察输出仍受 CUDA 运行时影响，但在 `result_cmp` 的同机执行前提下，两端当前输出一致。
+- 当前 compat `c10::ScalarType` 侧尚未暴露 `ComplexHalf` / `Float4_e2m1fn_x2`，因此本轮结论仅覆盖现有已暴露类型。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/ATen/cuda/CUDADataTypeTest.cpp` - 显式记录 `Bool` 的共享异常分支，并修正文档性注释
+- `/home/may/PaddleCppAPITest/doc/ATen/cuda/mismatch_api_record.md` - 将 `CUDADataType` 节更新为“历史差异 + 当前已对齐”
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 增补本轮汇总，并从待跟踪项中移除 `CUDADataTypeTest`
+
+---
+
 ## 2026-03-30 Utils 回归纳入
 
 ### 本轮复核（已确认对齐）
@@ -143,7 +166,7 @@
 | 分类 | 测试 | 主要表现 |
 |---|---|---|
 | 语义差异（设计/规范不同） | `AccumulateTypeTest`、`DefaultDtypeTest`、`DeviceGuardTest`、`DeviceTest`、`HalfBFloat16Test`、`ScalarTypeTest`、`SparseTensorTest`、`TensorFactoryTest`、`TensorOptionsTest`、`TensorTest` | 默认值、枚举值、字符串规范或推断规则不同，且可稳定复现 |
-| 环境差异（运行时条件相关） | `CUDADataTypeTest`、`EmptyOpsTest` | CUDA 可用性与构建形态影响输出分支（如 `cuda_empty` vs `cuda_not_available`） |
+| 环境差异（运行时条件相关） | `EmptyOpsTest` | CUDA 可用性与构建形态影响输出分支（如 `cuda_tensor` vs `cuda_not_available`） |
 | 实现缺口/兼容层行为差异 | `EqualTest`、`SelectTest`、`TensorPtrTest`、`OptionalArrayRefTest` | 异常路径、崩溃风险、typed ptr 能力缺口或悬空引用行为差异 |
 
 ## 关键差异摘要（节选）
@@ -151,7 +174,6 @@
 | 测试 | Torch（节选） | Paddle（节选） |
 |---|---|---|
 | AccumulateTypeTest | `... Bool->11 ...` | `... Bool->10 ...` |
-| CUDADataTypeTest | `... cuda_empty cuda_empty_int` | `... cuda_not_available cuda_not_available` |
 | DefaultDtypeTest | `... 15 ... 9` | `... 11 ... 8` |
 | DeviceGuardTest | `cpu -1 ...` | `cpu 0 ...` |
 | DeviceTest | `cpu cpu:0 cuda:0 cuda:1 / 0 1 0 1` | `cpu:0 cpu:0 gpu:0 gpu:1 / 1 1 1 1` |
@@ -169,7 +191,7 @@
 
 1. **P0（稳定语义差异）**：`Device*`、`TensorOptionsTest`、`DefaultDtypeTest`、`HalfBFloat16Test`、`TensorFactoryTest`、`TensorTest`。
 2. **P1（稀疏/存储一致性）**：`SparseTensorTest`、`AccumulateTypeTest`、`ScalarTypeTest`。
-3. **P2（环境与实现缺口）**：`CUDADataTypeTest`、`EmptyOpsTest`、`EqualTest`、`SelectTest`、`TensorPtrTest`、`OptionalArrayRefTest`。
+3. **P2（环境与实现缺口）**：`EmptyOpsTest`、`EqualTest`、`SelectTest`、`TensorPtrTest`、`OptionalArrayRefTest`。
 
 ---
 

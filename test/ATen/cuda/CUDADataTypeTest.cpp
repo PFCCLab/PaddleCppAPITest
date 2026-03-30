@@ -52,8 +52,15 @@ TEST_F(CUDADataTypeTest, GetCudaDataType) {
   file << std::to_string(
               at::cuda::ScalarTypeToCudaDataType(c10::ScalarType::Half))
        << " ";
-  // DIFF: Paddle compat 的 ScalarTypeToCudaDataType 不支持 Bool，
-  // 会抛出 "Cannot convert ScalarType Bool to cudaDataType"，因此跳过。
+  // Bool is unsupported on both libtorch and Paddle compat, so record the
+  // shared exception branch explicitly instead of treating it as a Paddle-only
+  // diff.
+  try {
+    (void)at::cuda::ScalarTypeToCudaDataType(c10::ScalarType::Bool);
+    file << "bool_supported ";
+  } catch (...) {
+    file << "bool_unsupported ";
+  }
   file << std::to_string(
               at::cuda::ScalarTypeToCudaDataType(c10::ScalarType::Byte))
        << " ";
@@ -108,11 +115,9 @@ TEST_F(CUDADataTypeTest, GetCudaDataTypeComplex) {
 }
 
 // empty_cuda
-// DIFF: 该测试在 Torch CUDA 版下可成功创建 Tensor，输出 "cuda_empty"；
-// 但在 Paddle 兼容层中，如果 Paddle 未编译 CUDA
-// 或当前运行时不可用，会进入异常分支， 输出
-// "cuda_not_available"。这是运行时/构建环境差异，不属于接口语义差异。
-// 为避免比较结果受环境影响，保留调用，仅注释掉相关输出。
+// The observed branch depends on whether the current machine can materialize a
+// CUDA tensor at runtime. Both binaries run in the same environment, so
+// result_cmp should see the same token on both sides.
 TEST_F(CUDADataTypeTest, EmptyCUDA) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -139,10 +144,8 @@ TEST_F(CUDADataTypeTest, EmptyCUDA) {
 }
 
 // empty_cuda with different dtypes
-// DIFF: 与 EmptyCUDA 相同，该测试结果依赖 Paddle 是否为 GPU 版以及当前 CUDA
-// 运行时是否可用。 Torch CUDA 版通常输出 "cuda_empty_int"，而 Paddle 侧可能输出
-// "cuda_not_available"。
-// 为避免环境差异导致比对失败，仅保留调用，不记录结果字符串。
+// Same as EmptyCUDA: the token reflects the shared runtime environment rather
+// than a semantic mismatch in the compat API itself.
 TEST_F(CUDADataTypeTest, EmptyCudaDifferentDtype) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
