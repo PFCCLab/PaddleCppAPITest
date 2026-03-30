@@ -64,7 +64,7 @@ TEST_F(TensorTest, Resize) {
 
 ## 当前行为
 
-当前 compat `resize_` 已改为走 Paddle 原生 `set_` 语义，和 PyTorch 一样支持原地修改 tensor 形状，覆盖当前 diff 用例中 `2x3x4 -> 4x5` 的缩容场景。
+当前 compat `resize_` 已改为混合实现：元素总数不变时走 `reshape`，元素总数变化时走 Paddle 原生 `set_` 路径，因此覆盖了当前 diff 用例中 `2x3x4 -> 4x5` 的缩容场景，也不会破坏连续多次 `resize_()` 的稳定性。
 
 当前范围：
 
