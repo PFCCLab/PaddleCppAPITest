@@ -1,33 +1,49 @@
-# CUDA Context（`at::cuda::getCurrentCUDAStream` 测试路径被跳过）
+# CUDAContext（历史差异：曾因 `unmatch` 路径未进入常规回归）
 
 > Paddle 头文件：`ATen/cuda/CUDAContext.h`
 
-## 差异点列表
+## 当前状态
 
-1. **常规回归中该项未执行**：虽然 `unmatch_CUDAContextTest.cpp` 内已改为双端调用，但它不在常规构建集合，`result_cmp` 默认不会比较该项。
+1. 原 `test/ATen/cuda/unmatch_CUDAContextTest.cpp` 已迁移为常规测试文件 `test/ATen/cuda/CUDAContextTest.cpp`，会参与默认构建与 `result_cmp` 比对。
+2. `getDeviceProperties`、`getCurrentDeviceProperties`、`getCurrentCUDAStream` 三个接口已纳入常规回归。
+3. 为避免地址值与运行时噪声导致假阳性，当前测试只比较稳定摘要字段：
+   设备属性测试比较 `prop != nullptr`、`major`、`minor`、`multiProcessorCount`；
+   stream 测试比较 `device_index`、`device_type`，以及与显式/默认 stream 的一致性。
+4. 当 CUDA 运行时不可用时，两端统一输出 `cuda_runtime_unavailable`，不再依赖 `unmatch` 路径做条件分叉。
 
 ---
 
 ## Diff 测试用例位置
 
-测试文件：`test/ATen/cuda/unmatch_CUDAContextTest.cpp`
+测试文件：`test/ATen/cuda/CUDAContextTest.cpp`
 
-### 测试用例原文
+### 当前测试策略
 
 ```cpp
-// 测试 getCurrentCUDAStream
-TEST_F(CUDAContextTest, GetCurrentCUDAStream) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-
-try {
-  auto stream = at::cuda::getCurrentCUDAStream();
-  (void)stream;
-  file << "stream_available ";
-} catch (...) {
-  file << "stream_not_available ";
+static bool HasCudaRuntime() {
+  try {
+    return at::cuda::is_available();
+  } catch (const std::exception&) {
+    return false;
+  }
 }
+
+TEST_F(CUDAContextTest, GetCurrentCUDAStream) {
+  if (!HasCudaRuntime()) {
+    file << "cuda_runtime_unavailable ";
+    ...
+    return;
+  }
+
+  auto default_stream = at::cuda::getDefaultCUDAStream(0);
+  at::cuda::setCurrentCUDAStream(default_stream);
+  auto current_stream = at::cuda::getCurrentCUDAStream();
+  auto explicit_stream = at::cuda::getCurrentCUDAStream(0);
+
+  file << static_cast<int>(current_stream.device_index()) << " ";
+  file << static_cast<int>(current_stream.device_type()) << " ";
+  file << (current_stream == explicit_stream) << " ";
+  file << (current_stream == default_stream) << " ";
   file.saveFile();
 }
 ```
@@ -38,13 +54,15 @@ try {
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| GetCurrentCUDAStream | 不在常规 `result_cmp` 集合中 | 不在常规 `result_cmp` 集合中 |
+| GetDeviceProperties | 已进入常规 `result_cmp`；比较稳定设备属性摘要 | 已进入常规 `result_cmp`；比较同一组摘要 |
+| GetCurrentDeviceProperties | 已进入常规 `result_cmp`；比较稳定设备属性摘要 | 已进入常规 `result_cmp`；比较同一组摘要 |
+| GetCurrentCUDAStream | 已进入常规 `result_cmp`；比较稳定 stream 摘要 | 已进入常规 `result_cmp`；比较同一组摘要 |
 
 ---
 
-## 初步问题分析
+## 结论
 
-`ATen/cuda/CUDAContext.h` 已在 compat 提供。当前问题不是“接口缺失”，而是该节仍按 `unmatch` 管理，未纳入常规回归。
+`ATen/cuda/CUDAContext.h` 已在 compat 提供。当前这组接口不再属于“未纳入常规回归”的问题，本文档保留该节仅作为历史记录，说明它已经转入常规回归路径。
 
 ---
 

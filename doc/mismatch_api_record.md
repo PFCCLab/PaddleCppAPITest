@@ -18,6 +18,27 @@
 
 ---
 
+## 2026-03-30 CUDAContext 回归纳入
+
+### 本轮复核（已确认对齐）
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `CUDAContextTest.GetDeviceProperties` / `GetCurrentDeviceProperties` / `GetCurrentCUDAStream` | 已进入常规 `result_cmp`；无 CUDA 运行时时统一输出 `cuda_runtime_unavailable`，有 CUDA 时比较稳定设备/stream 摘要 | 一致 | ✅ 已纳入回归 |
+
+说明：
+
+- 原 `test/ATen/cuda/unmatch_CUDAContextTest.cpp` 已迁移为 `test/ATen/cuda/CUDAContextTest.cpp`。
+- 本轮同时将文档中的旧结论“未进入常规回归”回写为历史信息，不再代表当前基线。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/ATen/cuda/CUDAContextTest.cpp` - 新增常规回归测试，替代原 `unmatch` 路径
+- `/home/may/PaddleCppAPITest/doc/ATen/cuda/mismatch_api_record.md` - 将 `CUDAContext` 节更新为“历史差异 + 当前已纳入回归”
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 增补本轮汇总
+
+---
+
 ## 2026-03-28 兼容性对齐更新
 
 ### 本轮修复（已解决）
