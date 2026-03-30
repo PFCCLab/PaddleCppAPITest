@@ -612,19 +612,18 @@ TEST_F(TensorTest, NewOnes) {
   file.saveFile();
 }
 
-// 测试 resize_ - Paddle不支持，会抛出异常
+// 测试 resize_ - 缩小元素数时应成功并保留前缀数据
 TEST_F(TensorTest, Resize) {
-  // [DIFF] 用例级差异：resize_ 在 Paddle
-  // 兼容层可能未实现或行为不对齐（以异常路径记录）。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
   file << "Resize ";
-  try {
-    tensor.resize_({4, 5});
-  } catch (const std::exception& e) {
-    (void)e;
-  }
+  tensor.resize_({4, 5});
+  file << std::to_string(tensor.sizes()[0]) << " ";
+  file << std::to_string(tensor.sizes()[1]) << " ";
+  file << std::to_string(tensor.numel()) << " ";
+  file << std::to_string(tensor.data_ptr<float>()[0]) << " ";
+  file << std::to_string(tensor.data_ptr<float>()[19]) << " ";
   file << "\n";
   file.saveFile();
 }

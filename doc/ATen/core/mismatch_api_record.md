@@ -23,9 +23,10 @@
 
 ---
 
-# Tensor::resize_（Paddle 不支持）
+# Tensor::resize_（已对齐）
 
-> Paddle 头文件：`ATen/core/Tensor.h`
+> Paddle 相关头文件：`ATen/core/TensorBody.h`、`ATen/ops/resize.h`
+> 状态：基础 `resize_` 语义已对齐（2026-03-30）
 
 ## Diff 测试用例位置
 
@@ -34,17 +35,19 @@
 ### 测试用例原文
 
 ```cpp
-// 测试 resize_ - Paddle不支持，会抛出异常
+// 测试 resize_ - 缩小元素数时应成功并保留前缀数据
 TEST_F(TensorTest, Resize) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
-  file.createFile();
-  try {
-    tensor.resize_({4, 5});
-    file << "0 ";
-  } catch (const std::exception& e) {
-    file << "1 ";
-  }
+  file.openAppend();
+  file << "Resize ";
+  tensor.resize_({4, 5});
+  file << std::to_string(tensor.sizes()[0]) << " ";
+  file << std::to_string(tensor.sizes()[1]) << " ";
+  file << std::to_string(tensor.numel()) << " ";
+  file << std::to_string(tensor.data_ptr<float>()[0]) << " ";
+  file << std::to_string(tensor.data_ptr<float>()[19]) << " ";
+  file << "\n";
   file.saveFile();
 }
 ```
@@ -55,13 +58,23 @@ TEST_F(TensorTest, Resize) {
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| Resize | `1`（抛出异常） | `0`（成功） |
+| Resize | `4 5 20 1.000000 1.000000` | `4 5 20 1.000000 1.000000` |
 
 ---
 
-## 初步问题分析
+## 当前行为
 
-Paddle 不支持 Tensor::resize_() 方法，调用时会抛出异常；PyTorch 完整支持原地调整 tensor 形状。
+当前 compat `resize_` 已改为走 Paddle 原生 `set_` 语义，和 PyTorch 一样支持原地修改 tensor 形状，覆盖当前 diff 用例中 `2x3x4 -> 4x5` 的缩容场景。
+
+当前范围：
+
+1. 支持元素总数变化的 `resize_()` 调用，不再退化为只能 `reshape`。
+2. 现有对比用例验证了缩容后 shape、`numel()` 和前缀数据保留行为。
+3. `memory_format` 目前仅覆盖 `nullopt` / `Contiguous` 路径，这与当前仓里的使用方式一致。
+
+备注：
+
+- 本节原先“不支持、会抛异常”的结论已失效，排查时请以现有实现和测试结果为准。
 
 ---
 

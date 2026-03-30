@@ -300,7 +300,7 @@
 | `reshape`                   |       ✅        |   ✅    |  P2 |                                      |
 | `reshape_as`                |       ⏳        |   ⏳    |  P2 |                                      |
 | `reshape_symint`            |       ⏳        |   ⏳    |  P2 |                                      |
-| `resize_`                   |       🚧        |   🚧    |  P2 |                                      |
+| `resize_`                   |       ✅        |   ✅    |  P2 | `memory_format` 当前覆盖 `nullopt/Contiguous` |
 | `resize__symint`            |       ⏳        |   ⏳    |  P2 |                                      |
 | `resize_as_`                |       ⏳        |   ⏳    |  P2 |                                      |
 | `resize_as_sparse_`         |       ⏳        |   ⏳    |  P2 |                                      |
