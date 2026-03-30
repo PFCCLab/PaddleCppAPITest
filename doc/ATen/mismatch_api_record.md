@@ -1,3 +1,53 @@
+# Utils（历史差异：原 `unmatch` 直接调用 `at::detail::*`）
+
+> Paddle 头文件：`ATen/Utils.h`、`ATen/ops/tensor.h`
+> 状态：已纳入常规回归（2026-03-30）
+
+当前 `ATen/Utils` 相关构造入口已经纳入默认构建与 `result_cmp` 比对：
+
+1. 原 `test/ATen/unmatch_UtilsTest.cpp` 已迁移为常规测试文件 `test/ATen/UtilsTest.cpp`。
+2. 常规回归不再直接比较 `at::detail::tensor_cpu`、`tensor_backend`、`tensor_complex_*` 这些内部 helper 模板符号，而是改为通过公开入口 `at::tensor(ArrayRef<T>, TensorOptions)` 与 `at::tensor(ArrayRef<c10::complex<double>>, TensorOptions)` 覆盖 `ATen/Utils.cpp` 的实现路径。
+3. `TensorBackend` 与 `TensorComplexBackend` 现在使用显式 `device(CUDA)` 选项直接尝试 backend 分支；若当前运行时路径不可用，则两端统一回写 `cuda_runtime_unavailable`。
+4. 当前环境下 `/tmp/paddle_cpp_api_test/paddle_UtilsTest.txt` 与 `/tmp/paddle_cpp_api_test/torch_UtilsTest.txt` 输出一致。
+
+验证位置：
+
+- `test/ATen/UtilsTest.cpp`
+
+### 当前测试片段
+
+```cpp
+TEST(UtilsTest, TensorCPU) {
+  std::vector<float> data = {1.0f, 2.0f, 3.0f, 4.0f};
+  at::ArrayRef<float> arr(data);
+  at::Tensor t1 = at::tensor(arr, at::TensorOptions(at::kFloat));
+  WriteTensorResult(&file, t1);
+}
+
+TEST(UtilsTest, TensorComplexCPU) {
+  std::vector<c10::complex<double>> data = {{1.0, 2.0}, {3.0, 4.0}};
+  at::ArrayRef<c10::complex<double>> arr(data);
+  at::Tensor t1 = at::tensor(arr, at::TensorOptions(at::kComplexDouble));
+  WriteComplexTensorResult(&file, t1);
+}
+```
+
+### 输出对比
+
+| 测试用例 | Paddle 输出 | Torch 输出 |
+|---------|------------|------------|
+| `TensorCPU` | `1 4 1 2 3 4 1 0` | `1 4 1 2 3 4 1 0` |
+| `TensorBackend` | `cuda_runtime_unavailable` | `cuda_runtime_unavailable` |
+| `TensorComplexCPU` | `1 2 1 2 3 4` | `1 2 1 2 3 4` |
+| `TensorComplexBackend` | `cuda_runtime_unavailable` | `cuda_runtime_unavailable` |
+
+备注：
+
+- 原 `unmatch_UtilsTest.cpp` 中直接调用 `at::detail::*` 的写法不再作为外部回归目标；当前回归聚焦公开 `at::tensor` 构造入口。
+- `TensorCPU` 结果中尾部的 `1 0` 对应空 `ArrayRef<float>` 构造结果：`dim=1`、`numel=0`。
+
+---
+
 # at::indexing（Slice / TensorIndex，已对齐）
 
 > Paddle 头文件：`ATen/TensorIndexing.h`

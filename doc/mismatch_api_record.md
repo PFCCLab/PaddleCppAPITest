@@ -39,6 +39,27 @@
 
 ---
 
+## 2026-03-30 Utils 回归纳入
+
+### 本轮复核（已确认对齐）
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `UtilsTest.TensorCPU` / `TensorBackend` / `TensorComplexCPU` / `TensorComplexBackend` | 已进入常规 `result_cmp`；公开 `at::tensor(ArrayRef<T>, TensorOptions)` 与复数重载输出一致，backend 分支当前统一回写 `cuda_runtime_unavailable` | 一致 | ✅ 已纳入回归 |
+
+说明：
+
+- 原 `test/ATen/unmatch_UtilsTest.cpp` 已迁移为 `test/ATen/UtilsTest.cpp`。
+- 本轮不再把 `at::detail::tensor_*` 内部 helper 作为外部比较目标，而是改为通过公开 `at::tensor` 入口覆盖 `ATen/Utils.cpp` 的实现路径。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/ATen/UtilsTest.cpp` - 新增常规回归测试，覆盖 `ATen/Utils` 对应公开构造入口
+- `/home/may/PaddleCppAPITest/doc/ATen/mismatch_api_record.md` - 新增 `Utils` 历史差异与当前回归状态说明
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 增补本轮汇总
+
+---
+
 ## 2026-03-28 兼容性对齐更新
 
 ### 本轮修复（已解决）
