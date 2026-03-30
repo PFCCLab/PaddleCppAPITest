@@ -1,3 +1,88 @@
+# Arange
+
+> Paddle 头文件：`ATen/ops/arange.h`
+>
+> 2026-03-30 复核：未显式指定 `dtype` 时，整数标量输入已按 PyTorch 语义推断为 `kLong`，浮点标量输入继续跟随当前默认浮点 dtype。`Paddle` 侧已在 `test/cpp/compat/ATen_factory_default_dtype_test.cc` 补充对应回归。
+
+## 历史差异
+
+1. **不指定 dtype 时整数输入的类型推断不一致**：当调用 `at::arange` 不指定 dtype 且输入为整数时，Paddle compat 层推断为 `kFloat`，而 PyTorch 推断为 `kLong`。
+
+---
+
+## 当前回归用例位置
+
+测试文件：`test/ATen/ops/ArangeTest.cpp`
+
+Compat 回归：`/home/may/Paddle/test/cpp/compat/ATen_factory_default_dtype_test.cc`
+
+### 测试用例原文
+
+```cpp
+TEST_F(ArangeTest, NoDtypeWithEndInt) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  file << "NoDtypeWithEndInt ";
+  at::Tensor result = at::arange(5);  // 不指定 dtype，整数推断为 kLong
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ArangeTest, NoDtypeWithStartEndInt) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NoDtypeWithStartEndInt ";
+  at::Tensor result = at::arange(2, 7);  // 不指定 dtype，整数推断为 kLong
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ArangeTest, NoDtypeWithStartEndStepInt) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NoDtypeWithStartEndStepInt ";
+  at::Tensor result = at::arange(1, 10, 2);  // 不指定 dtype，整数推断为 kLong
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+```
+
+---
+
+## 历史输出对比
+
+| 测试用例 | Paddle 输出 | Torch 输出 |
+|---------|------------|------------|
+| NoDtypeWithEndInt | `6 1 5 5 0.000000 1.000000 2.000000 3.000000 4.000000` (scalar_type=6, kFloat) | `4 1 5 5 0 1 2 3 4` (scalar_type=4, kLong) |
+| NoDtypeWithStartEndInt | `6 1 5 5 2.000000 3.000000 4.000000 5.000000 6.000000` (scalar_type=6, kFloat) | `4 1 5 5 2 3 4 5 6` (scalar_type=4, kLong) |
+| NoDtypeWithStartEndStepInt | `6 1 5 5 1.000000 3.000000 5.000000 7.000000 9.000000` (scalar_type=6, kFloat) | `4 1 5 5 1 3 5 7 9` (scalar_type=4, kLong) |
+
+（注：scalar_type 数值含义：4=kLong, 6=kFloat）
+
+---
+
+## 修复结论
+
+`ATen/ops/arange.h` 已补齐与 PyTorch 一致的省略 `dtype` 推断逻辑：
+- **整数输入**（如 `arange(5)`、`arange(1, 10, 2)`）→ 默认推断为 `kLong` (int64)
+- **浮点输入**（如 `arange(5.0)`、`arange(0.0, 1.0, 0.1)`）→ 默认推断为当前默认浮点 dtype
+
+为避免该行为回退，`/home/may/Paddle/test/cpp/compat/ATen_factory_default_dtype_test.cc` 已补充整数/浮点两组省略 `dtype` 的回归断言，并同时覆盖直接 `at::arange(...)` 与 `dtype=nullopt` 两种调用路径。
+
+---
+
+
+---
+
 # SparseTensor
 
 > Paddle 头文件：`ATen/ops/sparse_coo_tensor.h`、`ATen/ops/sparse_csr_tensor.h`
@@ -215,6 +300,62 @@ TEST_F(SelectTest, SelectNegativeDim) {
 ## 复核结论
 
 当前负维 `select` 路径已经正常工作。`SelectTest` 里仍可观察到的差异主要是 `SelectException` 异常输出缺少 Torch 侧的 C++ stack trace，而不是负维行为本身。
+
+---
+
+
+---
+
+# Flatten（`unflatten_symint`）
+
+> Paddle 头文件：`ATen/ops/flatten.h`
+
+## 差异点列表
+
+1. **`unflatten_symint` 对 `SymIntArrayRef` 参数处理异常**：Paddle compat 层在处理 `SymIntArrayRef` 类型的 shape 参数时出现内存解释错误，导致 shape 值被错误读取为极大随机数。
+
+---
+
+## Diff 测试用例位置
+
+测试文件：`test/ATen/ops/FlattenTest.cpp`
+
+### 测试用例原文
+
+```cpp
+TEST_F(FlattenTest, UnflattenSymint) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "UnflattenSymint ";
+  at::Tensor flattened = tensor.flatten(1, 2);
+  c10::SymIntArrayRef sizes({3, 4});
+  at::Tensor result = flattened.unflatten_symint(1, sizes);
+  write_flatten_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+```
+
+---
+
+## 输出对比
+
+| 测试用例 | Paddle 输出 | Torch 输出 |
+|---------|------------|------------|
+| UnflattenSymint | 抛出异常：`InvalidArgument`，shape 被错误解释为 `[2, 140731327446528, 107102659218832]` | 正常返回 Tensor，shape 为 `[2, 3, 4]` |
+
+---
+
+## 初步问题分析
+
+Paddle compat 层中的 `unflatten_symint` 实现未能正确处理 `c10::SymIntArrayRef` 类型的参数。具体表现为：
+
+1. `SymIntArrayRef` 内部的 `SymInt` 数据被错误地解释为原始内存地址或随机值
+2. 导致 reshape 操作接收到了非法的 shape 参数（如 `140731327446528` 等极大数值）
+3. 最终触发 `ReshapeOp` 的 `InvalidArgument` 异常
+
+这是 symint 类型在 compat 层中的实现缺陷，需要修复 `unflatten_symint` 对 `SymIntArrayRef` 的解析逻辑。
 
 ---
 

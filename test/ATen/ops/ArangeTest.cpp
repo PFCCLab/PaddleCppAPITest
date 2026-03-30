@@ -96,6 +96,69 @@ class ArangeTest : public ::testing::Test {
   void SetUp() override {}
 };
 
+// ========== 不指定 dtype（类型推断）==========
+
+TEST_F(ArangeTest, NoDtypeWithEndInt) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.createFile();
+  file << "NoDtypeWithEndInt ";
+  at::Tensor result = at::arange(5);  // 不指定 dtype，整数推断为 kLong
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ArangeTest, NoDtypeWithStartEndInt) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NoDtypeWithStartEndInt ";
+  at::Tensor result = at::arange(2, 7);  // 不指定 dtype，整数推断为 kLong
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ArangeTest, NoDtypeWithStartEndStepInt) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NoDtypeWithStartEndStepInt ";
+  at::Tensor result = at::arange(1, 10, 2);  // 不指定 dtype，整数推断为 kLong
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ArangeTest, NoDtypeWithEndFloat) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NoDtypeWithEndFloat ";
+  at::Tensor result = at::arange(5.0);  // 不指定 dtype，浮点推断为 kFloat
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ArangeTest, NoDtypeWithStartEndStepFloat) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NoDtypeWithStartEndStepFloat ";
+  at::Tensor result =
+      at::arange(0.0, 1.0, 0.1);  // 不指定 dtype，浮点推断为 kFloat
+  file << std::to_string(static_cast<int>(result.scalar_type())) << " ";
+  write_arange_result_to_file(&file, result);
+  file << "\n";
+  file.saveFile();
+}
+
 // ========== 基础功能 ==========
 
 TEST_F(ArangeTest, BasicArangeWithEnd) {
