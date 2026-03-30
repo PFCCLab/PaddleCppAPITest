@@ -146,10 +146,7 @@ TEST_F(TensorOptionsTest, HasAndOptMethods) {
 }
 
 // device_index
-// DIFF: 对于 `c10::TensorOptions().device(c10::Device(c10::kCPU))`，
-// Torch 的 `device_index()` 返回 -1（CPU 无显式 index），
-// Paddle 返回 0（CPU 被规范化为 cpu:0）。该差异属于设备表示设计差异。
-// 为避免结果比对失败，保留构造逻辑，注释掉 `device_index()` 输出。
+// 当前 compat 已与 PyTorch 对齐：CPU Device 的默认 index 为 -1。
 TEST_F(TensorOptionsTest, DeviceIndex) {
   auto opts = c10::TensorOptions().device(c10::Device(c10::kCPU));
   auto file_name = g_custom_param.get();

@@ -19,9 +19,8 @@ class IndexingTest : public ::testing::Test {
   void SetUp() override {}
 };
 
-// [DIFF] 文件级说明：Indexing 在两端的核心差异集中在
-// 1) operator[] 对 Slice 的支持范围；2) integer() 返回类型（int64_t vs
-// SymInt）。
+// 当前基线下，at::indexing 的 Slice / TensorIndex 路径已与 PyTorch 对齐；
+// 本文件保留行为回归测试，避免历史差异重新引入。
 
 // EllipsisIndexType test
 TEST_F(IndexingTest, EllipsisIndexType) {
@@ -83,7 +82,6 @@ TEST_F(IndexingTest, SliceWithValues) {
 
 // Test using indexing with tensors
 TEST_F(IndexingTest, TensorIndexing) {
-  // [DIFF] 用例级差异：同一索引表达式在两端可用写法不一致。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -92,16 +90,7 @@ TEST_F(IndexingTest, TensorIndexing) {
   // Create a test tensor
   at::Tensor t = at::arange(12, at::kInt).view({3, 4});
 
-  // 【API 差异】Paddle compat 的 Tensor::operator[] 仅重载 int64_t，不支持传入
-  // Slice； 须改用 index({Slice, ...}) 接口。 PyTorch 支持
-  // operator[](Slice) 及 index({Slice, ...}) 两种写法。
-#if USE_PADDLE_API
-  // [DIFF] 问题行：Paddle 分支必须走 index({...})，不能依赖 operator[](Slice)。
   at::Tensor result = t.index({at::indexing::Slice()});
-#else
-  // [DIFF] 问题行：Torch 可支持更丰富的索引写法（含 operator[](Slice) 变体）。
-  at::Tensor result = t.index({at::indexing::Slice()});
-#endif
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.numel()) << " ";
   file << "\n";
@@ -110,7 +99,6 @@ TEST_F(IndexingTest, TensorIndexing) {
 
 // Test Slice indexing
 TEST_F(IndexingTest, SliceIndexing) {
-  // [DIFF] 用例级差异：多维 Slice 的表达方式在两端存在稳定分歧。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -118,16 +106,8 @@ TEST_F(IndexingTest, SliceIndexing) {
 
   at::Tensor t = at::arange(12, at::kInt).view({3, 4});
 
-  // 【API 差异】同上：Paddle 不支持链式 operator[](Slice)，
-  // 多维 Slice 须放入同一个 initializer_list 传给 index()；
-  // PyTorch 可用 index({Slice(0,2), Slice(1,3)}) 的 initializer_list 写法。
-#if USE_PADDLE_API
   at::Tensor result =
       t.index({at::indexing::Slice(0, 2), at::indexing::Slice(1, 3)});
-#else
-  at::Tensor result =
-      t.index({at::indexing::Slice(0, 2), at::indexing::Slice(1, 3)});
-#endif
   file << std::to_string(result.dim()) << " ";
   file << std::to_string(result.size(0)) << " ";
   file << std::to_string(result.size(1)) << " ";
@@ -189,19 +169,17 @@ TEST_F(IndexingTest, TensorIndexEllipsisString) {
   file.saveFile();
 }
 
-// Helper function to convert integer to string - for Paddle (int64_t)
+// Helper function to convert integer to string.
+// 当前两端都走 SymInt，但保留对历史 int64_t 形态的兼容，便于回归比对。
 template <typename T,
           typename std::enable_if_t<std::is_same_v<T, int64_t>, int> = 0>
 std::string integer_to_string(T val) {
   return std::to_string(val);
 }
 
-// Helper function to convert integer to string - for PyTorch (c10::SymInt)
 template <typename T,
           typename std::enable_if_t<!std::is_same_v<T, int64_t>, int> = 0>
 std::string integer_to_string(T val) {
-  // [DIFF] 问题行：Torch 路径 integer() 返回 SymInt，需要 maybe_as_int
-  // 额外适配； Paddle 路径直接是 int64_t。
   auto maybe_int = val.maybe_as_int();
   if (maybe_int.has_value()) {
     return std::to_string(maybe_int.value());

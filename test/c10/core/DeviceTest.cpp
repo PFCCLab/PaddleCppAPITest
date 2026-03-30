@@ -56,8 +56,8 @@ TEST_F(DeviceCompatTest, DeviceStr) {
   c10::Device cuda_device_1(c10::kCUDA, 1);
   auto cuda_1_str = cuda_device_1.str();
 
-  // [DIFF] PyTorch输出: cpu cpu:0 cuda:0 cuda:1
-  // [DIFF] PaddlePaddle输出: cpu:0 cpu:0 gpu:0 gpu:1
+  // 当前 compat 已与 PyTorch 对齐：字符串输出统一为
+  // `cpu cpu:0 cuda:0 cuda:1`。
   file << cpu_str << " ";
   file << cpu_0_str << " ";
   file << cuda_0_str << " ";

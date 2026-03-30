@@ -2,6 +2,22 @@
 
 ---
 
+## 2026-03-30 ATen Indexing / DeviceGuard 复核
+
+### 本轮复核（已确认对齐）
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `IndexingTest.TensorIndexing` / `SliceIndexing` | `index({Slice(...)})` 路径输出与 Torch 一致 | 一致 | ✅ 已对齐 |
+| `DeviceGuardTest.DeviceOfTensor` / `DeviceOfOptionalTensor` | CPU 设备输出为 `cpu -1` | `cpu -1` | ✅ 已对齐 |
+
+说明：
+
+- `doc/ATen/mismatch_api_record.md` 中关于 `ATen/indexing.h`、`std::vector<Slice>` 专用入口以及 `device_of` 返回 `cpu:0` 的旧结论已回写为历史信息，不再代表当前基线。
+- 本轮复核使用的直接验证文件为 `test/ATen/IndexingTest.cpp` 与 `test/ATen/DeviceGuardTest.cpp`。
+
+---
+
 ## 2026-03-28 兼容性对齐更新
 
 ### 本轮修复（已解决）
