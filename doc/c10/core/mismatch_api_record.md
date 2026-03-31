@@ -1,3 +1,25 @@
+## 2026-03-30 Allocator 回归纳入
+
+### 本轮复核（已确认纳入回归）
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `AllocatorCompatTest.DefaultConstructor` / `Clear` / `CopySemanticsDeleted` / `NoSingleArgConstructor` / `ConstructorWithDataAndDevice` | 已进入常规 `result_cmp`；`get_deleter()`、拷贝删除、单参数构造缺失、`device().str()` 等输出一致 | 一致 | ✅ 已纳入回归 |
+
+说明：
+
+- 原 `test/c10/core/unmatch_AllocatorTest.cpp` 中记录的历史差异（单参数构造默认值、拷贝语义、默认/clear 后 `get_deleter()`、`device()` 类型、`allocation()` 方法）当前 compat 实现已与 PyTorch 对齐。
+- 上述差异点已通过在 `AllocatorCompatTest.cpp` 中补充测试用例的方式纳入常规回归；原 `unmatch_AllocatorTest.cpp` 保留为历史归档，不再参与 `result_cmp`。
+- `AllocatorCompatTest` 当前在 `result_cmp` 中已完全 `MATCH`。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/c10/core/AllocatorCompatTest.cpp` - 补充 `get_deleter()`、`device().str()`、拷贝语义、单参数构造等回归测试
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 更新 Allocator 回归状态
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 增补本轮汇总
+
+---
+
 # Allocator
 
 > Paddle 头文件：`c10/core/Allocator.h`
@@ -29,6 +51,7 @@
 5. `IsSimpleDataPtrSemantics`
 6. `SetAndGetAllocatorPriority`
 7. `RegisterAllocatorMacro`
+8. `CopySemanticsDeleted` / `NoSingleArgConstructor`（2026-03-30 新增，覆盖原 `unmatch_AllocatorTest.cpp` 历史差异点）
 
 ---
 
@@ -36,8 +59,12 @@
 
 | 测试用例 | Paddle/Torch 当前输出 |
 |---------|----------------------|
-| `DefaultConstructor` | `1 1 1` |
+| `DefaultConstructor` | `1 1 1 1` |
+| `ConstructorWithDataAndDevice` | `1 1 1.000000 2.000000 1` |
 | `MutableGet` | `1 9.000000` |
+| `Clear` | `1 1 1 1 1 1` |
+| `CopySemanticsDeleted` | `1 1` |
+| `NoSingleArgConstructor` | `1` |
 | `CaptureAndMempoolTypes` | `1 1 1` |
 | `InefficientStdFunctionContextMakeDataPtr` | `1 1 1 1` |
 | `IsSimpleDataPtrSemantics` | `1 0 0` |

@@ -82,6 +82,8 @@ TEST_F(AllocatorTest, DefaultConstructor) {
   file << std::to_string(static_cast<bool>(data_ptr) == false) << " ";
   // context 应该为 nullptr
   file << std::to_string(data_ptr.get_context() == nullptr) << " ";
+  // 默认 deleter 不为 nullptr（两端均有默认 deleter）
+  file << std::to_string(data_ptr.get_deleter() != nullptr) << " ";
 
   file << "\n";
   file.saveFile();
@@ -107,6 +109,8 @@ TEST_F(AllocatorTest, ConstructorWithDataAndDevice) {
   float* ptr = static_cast<float*>(data_ptr.get());
   file << std::to_string(ptr[0]) << " ";
   file << std::to_string(ptr[1]) << " ";
+  // device 字符串表示
+  file << std::to_string(data_ptr.device().str() == "cpu") << " ";
 
   file << "\n";
   file.saveFile();
@@ -198,12 +202,7 @@ TEST_F(AllocatorTest, MoveAssignment) {
 }
 
 // 测试 clear 方法
-// 注意：clear() 后 get_deleter() 的行为在 PyTorch 和 Paddle 间有差异
-// PyTorch 不会重置 deleter 为 nullptr，Paddle 会
-// 因此只测试 get(), operator bool(), get_context() 的行为一致性
 TEST_F(AllocatorTest, Clear) {
-  // [DIFF] 用例级差异：clear() 后 get_deleter 行为两端不一致（Paddle
-  // 清空，Torch 可能保留）。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -224,7 +223,8 @@ TEST_F(AllocatorTest, Clear) {
   file << std::to_string(data_ptr.get() == nullptr) << " ";
   file << std::to_string(static_cast<bool>(data_ptr) == false) << " ";
   file << std::to_string(data_ptr.get_context() == nullptr) << " ";
-  // 注意：不测试 get_deleter() == nullptr，因为两个框架行为不同
+  // clear 后 deleter 仍然保留（与 PyTorch 行为一致）
+  file << std::to_string(data_ptr.get_deleter() == test_deleter) << " ";
 
   file << "\n";
   file.saveFile();
@@ -319,6 +319,33 @@ TEST_F(AllocatorTest, EmptyDataPtrEdgeCases) {
   // 调用 clear 对空指针应该安全
   empty_ptr.clear();
   file << std::to_string(empty_ptr.get() == nullptr) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+// 测试拷贝语义已被删除（move-only，与 PyTorch 一致）
+TEST_F(AllocatorTest, CopySemanticsDeleted) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "CopySemanticsDeleted ";
+
+  file << std::to_string(!std::is_copy_constructible_v<c10::DataPtr>) << " ";
+  file << std::to_string(!std::is_copy_assignable_v<c10::DataPtr>) << " ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+// 测试不存在单参数构造函数（与 PyTorch 一致）
+TEST_F(AllocatorTest, NoSingleArgConstructor) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NoSingleArgConstructor ";
+
+  file << std::to_string(!std::is_constructible_v<c10::DataPtr, void*>) << " ";
 
   file << "\n";
   file.saveFile();
