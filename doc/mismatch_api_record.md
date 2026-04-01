@@ -2,6 +2,29 @@
 
 ---
 
+## 2026-03-30 Event 回归纳入
+
+### 本轮复核（已确认纳入回归）
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `EventCompatTest.EventDefault` / `EventWithFlag` / `EventRecordThrows` / `EventRecordOnceThrows` / `EventMove` / `EventDevice` | 已进入常规 `result_cmp`；`c10::Event` 构造、`EventFlag`、移动语义、属性读取及 CPU 路径异常行为均已对齐 | 一致 | ✅ 已纳入回归 |
+
+说明：
+
+- 原 `test/c10/core/unmatch_EventTest.cpp` 中记录的历史差异（条件编译包裹、构造函数缺少 `EventFlag`、非 CUDA 构建下 `c10::Event` 不可用）当前 compat 实现已与 PyTorch 对齐。
+- `c10::EventPool` 为 Paddle 私有扩展，不纳入跨库对齐测试；原 `unmatch_EventTest.cpp` 保留为历史归档。
+- 详细记录见 [doc/c10/core/mismatch_api_record.md](/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md)。
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Event.h` - 补齐 `c10::Event` 跨平台兼容实现
+- `/home/may/PaddleCppAPITest/test/c10/core/EventCompatTest.cpp` - 新增 `c10::Event` 回归测试
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 更新 Event 回归状态
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 增补本轮汇总
+
+---
+
 ## 2026-03-30 Allocator 回归纳入
 
 ### 本轮复核（已确认纳入回归）
