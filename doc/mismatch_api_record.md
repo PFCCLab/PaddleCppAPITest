@@ -2,6 +2,31 @@
 
 ---
 
+## 2026-04-02 CUDAStream review blocker 收敛（Paddle 内部 ctest）
+
+### 本轮复核
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `getStreamFromPool(true)` 默认参数与重载分派 | bool 重载已恢复 `device_index = -1` 默认参数，不再误绑到 `int priority` 重载并返回低优先级 stream | 同签名、同语义 | ✅ 已对齐 |
+| `CUDAStream::raw_stream()` legacy compatibility | 当前 compat surface 继续保留，行为等价于 `stream()` | 上游无该旧入口 | ✅ 非上游接口，但兼容面稳定 |
+
+说明：
+
+- 这轮修复的是 reviewer 指出的两个 blocker，均位于 `/home/may/Paddle/paddle/phi/api/include/compat/c10/cuda/CUDAStream.h`。
+- Paddle 内部新增 `/home/may/Paddle/test/cpp/compat/c10_Stream_test.cc` 回归，并在 `/home/may/Paddle/build` 下通过了 `ninja -j16`、`ctest -R c10 --output-on-failure`、`ctest -R ATen --output-on-failure`。
+- 详细记录见 [doc/c10/cuda/cuda_stream.md](/home/may/PaddleCppAPITest/doc/c10/cuda/cuda_stream.md) 与 [doc/c10/cuda/mismatch_api_record.md](/home/may/PaddleCppAPITest/doc/c10/cuda/mismatch_api_record.md)。
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/cuda/CUDAStream.h`
+- `/home/may/Paddle/test/cpp/compat/c10_Stream_test.cc`
+- `/home/may/PaddleCppAPITest/doc/c10/cuda/cuda_stream.md`
+- `/home/may/PaddleCppAPITest/doc/c10/cuda/mismatch_api_record.md`
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md`
+
+---
+
 ## 2026-04-02 Event 语义补齐（Paddle 内部 ctest）
 
 ### 本轮复核
