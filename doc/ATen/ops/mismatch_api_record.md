@@ -2,11 +2,12 @@
 
 > Paddle 头文件：`ATen/ops/arange.h`
 >
-> 2026-03-30 复核：未显式指定 `dtype` 时，整数标量输入已按 PyTorch 语义推断为 `kLong`，浮点标量输入继续跟随当前默认浮点 dtype。`Paddle` 侧已在 `test/cpp/compat/ATen_factory_default_dtype_test.cc` 补充对应回归。
+> 2026-04-02 复核：未显式指定 `dtype` 时，整数标量输入已按 PyTorch 语义推断为 `kLong`，浮点标量输入继续跟随当前默认浮点 dtype；同时，整型路径已去掉进入 kernel 前的 `double` round-trip，`2^53` 以上的 `int64` 输入不会再提前丢精度。`Paddle` 侧已在 `test/cpp/compat/ATen_factory_default_dtype_test.cc` 补充默认 dtype 与大整数精度回归。
 
 ## 历史差异
 
 1. **不指定 dtype 时整数输入的类型推断不一致**：当调用 `at::arange` 不指定 dtype 且输入为整数时，Paddle compat 层推断为 `kFloat`，而 PyTorch 推断为 `kLong`。
+2. **大整数 `int64` 输入存在 `double` round-trip 精度丢失**：历史上 compat 层在调用 `paddle::experimental::arange` 前，会先把 `start/end/step` 统一构造成 `FLOAT64` 的 0-d tensor，导致大于 `2^53` 的 `int64` 输入在进入 kernel 前就可能丢精度。
 
 ---
 
@@ -75,8 +76,9 @@ TEST_F(ArangeTest, NoDtypeWithStartEndStepInt) {
 `ATen/ops/arange.h` 已补齐与 PyTorch 一致的省略 `dtype` 推断逻辑：
 - **整数输入**（如 `arange(5)`、`arange(1, 10, 2)`）→ 默认推断为 `kLong` (int64)
 - **浮点输入**（如 `arange(5.0)`、`arange(0.0, 1.0, 0.1)`）→ 默认推断为当前默认浮点 dtype
+- **大整数 `int64` 输入**（如 `arange((1LL << 53) + 1, (1LL << 53) + 4)`）→ 按 resolved dtype 直接构造 `start/end/step` 标量 tensor，不再经过 `double` 中转
 
-为避免该行为回退，`/home/may/Paddle/test/cpp/compat/ATen_factory_default_dtype_test.cc` 已补充整数/浮点两组省略 `dtype` 的回归断言，并同时覆盖直接 `at::arange(...)` 与 `dtype=nullopt` 两种调用路径。
+为避免该行为回退，`/home/may/Paddle/test/cpp/compat/ATen_factory_default_dtype_test.cc` 已补充整数/浮点两组省略 `dtype` 的回归断言，并新增 `2^53 + 1` 大整数场景，覆盖直接 `at::arange(...)` 与 `dtype=nullopt` 两种调用路径。
 
 ---
 
