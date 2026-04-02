@@ -1,3 +1,34 @@
+## 2026-04-02 Event 语义补齐（Paddle 内部 ctest 已验证）
+
+### 本轮复核
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `c10::Event::record` / `block` / `elapsedTime` / legacy raw-stream compatibility | `Event` 首次 `record()` 时才按目标 stream 的 device lazy-create；`EventFlag::BACKEND_DEFAULT` 启用 timing；`elapsedTime()` 不再返回固定 `0.0`；同时暂时保留 `record(const cudaStream_t&)` 兼容旧下游 | 上游 `Event` 语义一致；无 raw-stream 旧接口 | ✅ 核心语义已对齐，兼容扩展暂保留 |
+
+说明：
+
+- 修复了 review 指出的两类 blocker：构造阶段错误绑定 device，以及 `elapsedTime()`/timing 语义静默失真。
+- Paddle 不再依赖旧版 `EventPool` 预创建语义；当前实现与 PyTorch 一样，在第一次 `record()` 时才真正 materialize backend event。
+- 本轮新增验证来自 Paddle 内部：
+  - `/home/may/Paddle/test/cpp/compat/c10_Event_test.cc`
+  - `/home/may/Paddle/test/cpp/compat/ATen_record_stream_test.cc`
+  - `/home/may/Paddle/build` 下 `ctest -R c10`
+  - `/home/may/Paddle/build` 下 `ctest -R ATen`
+- `PaddleCppAPITest/test/c10/core/EventCompatTest.cpp` 目前仍主要覆盖构造、属性和 CPU 异常主路径；timing / lazy-create / raw-stream 兼容路径尚未单独纳入 `result_cmp`。
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Event.h` - 改为 lazy-create，补齐 device index 与 timing 语义
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/cuda/CUDAStream.h` - 恢复 `raw_stream()` 兼容入口
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/record_stream.h` - 恢复 `record_stream(cudaStream_t)` 兼容重载
+- `/home/may/Paddle/test/cpp/compat/c10_Event_test.cc` - 新增 Event 语义回归
+- `/home/may/Paddle/test/cpp/compat/ATen_record_stream_test.cc` - 补充 raw-stream 兼容路径验证
+- `/home/may/PaddleCppAPITest/doc/c10/core/event.md` - 更新 Event 头文件级对齐矩阵
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 记录本轮 Event 语义补齐
+
+---
+
 ## 2026-03-30 Event 回归纳入
 
 ### 本轮复核（已确认纳入回归）

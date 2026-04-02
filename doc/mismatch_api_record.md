@@ -2,6 +2,33 @@
 
 ---
 
+## 2026-04-02 Event 语义补齐（Paddle 内部 ctest）
+
+### 本轮复核
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `c10::Event` lazy-create / timing / raw-stream compatibility | 首次 `record()` 才按目标 device 创建 event，`elapsedTime()` 按 `EventFlag` 真正返回计时结果；同时临时保留 `record(const cudaStream_t&)` 兼容旧下游 | 上游 `Event` 语义一致；无 raw-stream 旧接口 | ✅ 语义已对齐，兼容扩展暂保留 |
+
+说明：
+
+- 这轮主要解决 reviewer 指出的两类差异：构造阶段错误绑定 device，以及 `elapsedTime()` 固定返回 `0.0`。
+- 验证来自 Paddle 内部 `ctest -R c10` / `ctest -R ATen`；新增覆盖见 `/home/may/Paddle/test/cpp/compat/c10_Event_test.cc` 与 `/home/may/Paddle/test/cpp/compat/ATen_record_stream_test.cc`。
+- `PaddleCppAPITest` 现有 `EventCompatTest` 仍主要覆盖基础构造/属性/CPU 异常行为；详细说明见 [doc/c10/core/event.md](/home/may/PaddleCppAPITest/doc/c10/core/event.md) 与 [doc/c10/core/mismatch_api_record.md](/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md)。
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Event.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/cuda/CUDAStream.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/record_stream.h`
+- `/home/may/Paddle/test/cpp/compat/c10_Event_test.cc`
+- `/home/may/Paddle/test/cpp/compat/ATen_record_stream_test.cc`
+- `/home/may/PaddleCppAPITest/doc/c10/core/event.md`
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md`
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md`
+
+---
+
 ## 2026-03-30 Event 回归纳入
 
 ### 本轮复核（已确认纳入回归）
