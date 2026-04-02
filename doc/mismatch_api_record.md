@@ -149,7 +149,7 @@
 
 - 旧文档把 `ScalarTypeToCudaDataType(Bool)` 记成了 Paddle 单边差异，但当前 Torch 实现同样不支持 `Bool -> cudaDataType`；本轮已将测试改成显式记录共享异常分支。
 - `empty_cuda` 系列的可观察输出仍受 CUDA 运行时影响，但在 `result_cmp` 的同机执行前提下，两端当前输出一致。
-- 当前 compat `c10::ScalarType` 侧尚未暴露 `ComplexHalf` / `Float4_e2m1fn_x2`，因此本轮结论仅覆盖现有已暴露类型。
+- 当前 compat `c10::ScalarType` 已重新暴露 `ComplexHalf` / `Float4_e2m1fn_x2`；但 `CUDADataType` 的转换分支仍未覆盖这两项，因此本轮结论仍以当前 conversion switch 已支持的子集为准。
 
 ### 本轮修改文件
 
@@ -276,7 +276,7 @@
 | DeviceTest | `cpu cpu:0 cuda:0 cuda:1 / 0 1 0 1` | `cpu:0 cpu:0 gpu:0 gpu:1 / 1 1 1 1` |
 | EqualTest | `... 0 0 1 ...` | `... 0 exception ...` → `... 0 "Expected a proper Tensor" ...` |
 | HalfBFloat16Test | `... 5 15` | `... 5 11` |
-| ScalarTypeTest | `... QInt8 QUInt8 ...` | `... UNKNOWN_SCALAR UNKNOWN_SCALAR ...` |
+| ScalarTypeTest | `... QInt8 QUInt8 ...` | 历史回归已修复：`QInt*` / 扩展 `ScalarType` 不再回退为 `UNKNOWN_SCALAR`；仍有 `isQIntType/isBitsType/canCast` 等 helper 缺口 |
 | SelectTest | `... SelectNegativeDim 的真实结果 ...` | `known_crash_on_negative_dim` → 异常消息格式已对齐（但缺少 stack trace） |
 | SparseTensorTest | `... InferSize: 2 2 2 ...` | `... InferSize: 0 2 2 ...` |
 | TensorFactoryTest | `... bool scalar_type=11 ...` | `... bool scalar_type=10 ...` |

@@ -78,7 +78,7 @@ TEST_F(CUDAContextTest, GetCurrentCUDAStream) {
 1. `ScalarTypeToCudaDataType` 针对当前 compat 暴露的 `Float`、`Double`、`Int`、`Long`、`Half`、`Byte`、`Char`、`Short`、`BFloat16`、`ComplexFloat`、`ComplexDouble` 已纳入常规回归，当前输出与 Torch 一致。
 2. `Bool` 并不是 Torch 侧单独支持的类型；两端调用 `ScalarTypeToCudaDataType(c10::ScalarType::Bool)` 都会抛异常。当前测试已改为显式记录 `bool_unsupported`，不再把它记为 Paddle 单边差异。
 3. `EmptyCUDA` / `EmptyCudaDifferentDtype` 的输出取决于当前 CUDA 运行时是否可用。在同一台机器上执行 `result_cmp` 时，两端会进入相同分支：有 CUDA 运行时时输出 `cuda_empty` / `cuda_empty_int`，无 CUDA 运行时时输出 `cuda_not_available`。当前环境下两端均输出 `cuda_not_available`。
-4. 当前 compat `c10::ScalarType` 侧尚未暴露 `ComplexHalf` / `Float4_e2m1fn_x2`，因此这两项暂未纳入本测试覆盖；本节结论仅针对当前已暴露的 scalar type 子集。
+4. 当前 compat `c10::ScalarType` 已重新暴露 `ComplexHalf` / `Float4_e2m1fn_x2`；但 `ATen/cuda/CUDADataType.h` 的 `ScalarTypeToCudaDataType` 仍未覆盖这两项，因此本节结论仍只针对当前 conversion switch 已支持的 scalar type 子集。
 
 ---
 
