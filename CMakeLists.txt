@@ -18,6 +18,7 @@ endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 get_filename_component(THIRD_ROOT "${PROJECT_BINARY_DIR}/3rd_party" ABSOLUTE)
 
+include(ccache)
 include(external)
 
 find_package(Threads REQUIRED)
