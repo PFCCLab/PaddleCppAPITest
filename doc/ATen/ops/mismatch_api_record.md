@@ -308,21 +308,23 @@ TEST_F(SelectTest, SelectNegativeDim) {
 
 ---
 
-# Flatten（`unflatten_symint`）
+# Flatten（`unflatten_symint`，已对齐）
 
-> Paddle 头文件：`ATen/ops/flatten.h`
+> Paddle 头文件：`ATen/ops/unflatten.h`
+>
+> 2026-04-03 复核：`UnflattenSymint` 已对齐。当前 `Paddle` 与 `Torch` 输出均为 `3 24 2 3 4`。
 
-## 差异点列表
+## 历史差异
 
-1. **`unflatten_symint` 对 `SymIntArrayRef` 参数处理异常**：Paddle compat 层在处理 `SymIntArrayRef` 类型的 shape 参数时出现内存解释错误，导致 shape 值被错误读取为极大随机数。
+1. **`unflatten_symint` 对 `SymIntArrayRef` 参数处理异常**：历史上 `c10::SymIntArrayRef sizes({3, 4})` 在 GCC 13 `-O3` 优化下出现临时对象生命周期问题，导致 `ArrayRef` 内部数据指针悬空，shape 值被错误读取为极大随机数。
 
 ---
 
-## Diff 测试用例位置
+## 当前回归用例位置
 
 测试文件：`test/ATen/ops/FlattenTest.cpp`
 
-### 测试用例原文
+### 当前测试用例原文
 
 ```cpp
 TEST_F(FlattenTest, UnflattenSymint) {
@@ -331,7 +333,8 @@ TEST_F(FlattenTest, UnflattenSymint) {
   file.openAppend();
   file << "UnflattenSymint ";
   at::Tensor flattened = tensor.flatten(1, 2);
-  c10::SymIntArrayRef sizes({3, 4});
+  std::vector<c10::SymInt> sizes_vec = {3, 4};
+  c10::SymIntArrayRef sizes(sizes_vec);
   at::Tensor result = flattened.unflatten_symint(1, sizes);
   write_flatten_result_to_file(&file, result);
   file << "\n";
@@ -345,19 +348,18 @@ TEST_F(FlattenTest, UnflattenSymint) {
 
 | 测试用例 | Paddle 输出 | Torch 输出 |
 |---------|------------|------------|
-| UnflattenSymint | 抛出异常：`InvalidArgument`，shape 被错误解释为 `[2, 140731327446528, 107102659218832]` | 正常返回 Tensor，shape 为 `[2, 3, 4]` |
+| UnflattenSymint（2026-04-03 复核） | `3 24 2 3 4` | `3 24 2 3 4` |
+| UnflattenSymint（历史） | 抛出异常：`InvalidArgument`，shape 被错误解释为 `[2, <random>, <random>]` | 正常返回 Tensor，shape 为 `[2, 3, 4]` |
 
 ---
 
-## 初步问题分析
+## 修复结论
 
-Paddle compat 层中的 `unflatten_symint` 实现未能正确处理 `c10::SymIntArrayRef` 类型的参数。具体表现为：
+问题根因并非 `unflatten_symint` 实现逻辑缺陷，而是 Paddle compat 层将 `c10::SymIntArrayRef` 简化为 `ArrayRef<int64_t>` 后，`ArrayRef<int64_t>({3, 4})` 在 GCC 13 `-O3` 优化级别下的列表初始化存在临时数组生命周期未预期的行为。修复方式：
 
-1. `SymIntArrayRef` 内部的 `SymInt` 数据被错误地解释为原始内存地址或随机值
-2. 导致 reshape 操作接收到了非法的 shape 参数（如 `140731327446528` 等极大数值）
-3. 最终触发 `ReshapeOp` 的 `InvalidArgument` 异常
-
-这是 symint 类型在 compat 层中的实现缺陷，需要修复 `unflatten_symint` 对 `SymIntArrayRef` 的解析逻辑。
+1. 测试代码改为先用具名 `std::vector<c10::SymInt>` 存储 shape 数据，再构造 `c10::SymIntArrayRef`
+2. 该写法对 PyTorch（`SymInt` 为类类型）和 Paddle compat（`SymInt` 为 `int64_t` 别名）均兼容
+3. `unflatten_symint` 本身的实现逻辑（直接转发给 `unflatten`）无需修改
 
 ---
 

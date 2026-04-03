@@ -54,9 +54,10 @@ Paddle 与 PyTorch 的 ScalarType 枚举值定义不同：BFloat16 在 PyTorch=1
 
 ## 差异点列表
 
-1.  **运行时内存地址值**：两框架输出的内存地址不同（属正常运行时差异，不影响功能）
-2.  **内部对象标识符**：两框架内部唯一标识符数值不同（属正常实现差异，不影响功能）
-3.  **FromOptionalArrayRef 临时对象悬空引用**：
+1.  **运行时内存地址值**：`FromInitializerList`、`ValueMethod*`、`OptionalIntArrayRef`、`CopyConstruction`、`MoveConstruction` 等用例输出的内存地址不同（属正常运行时差异，不影响功能）。
+2.  **内部对象标识符**：`EmplaceMethod`、`InPlaceConstruction` 中因 `std::initializer_list` 临时对象构造导致的内部标识符/随机值不同。
+3.  **`FloatOptionalArrayRef` 浮点零符号差异**：Paddle 侧输出 `0.000000`，Torch 侧输出 `-0.000000`，其余元素均为 `0.000000`。该差异同样源于 `ArrayRef<float>({1.5f, 2.5f, 3.5f})` 在 GCC 13 `-O3` 下的临时数组生命周期问题，实际为同一类构造未定义行为在不同 ABI/优化下的表现差异。
+4.  **FromOptionalArrayRef 临时对象悬空引用**：
     `std::optional<c10::ArrayRef<int64_t>>(std::vector<int64_t>{...})`
     让 `ArrayRef` 指向临时 vector，`front()` 输出随机内存值，Torch/Paddle diff。
     已按测试规范在 `OptionalArrayRefTest.cpp` 添加 `DIFF` 标注并注释该不稳定输出字段，仅保留 `has_value/size`。

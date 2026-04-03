@@ -245,7 +245,8 @@ TEST_F(FlattenTest, UnflattenSymint) {
   file.openAppend();
   file << "UnflattenSymint ";
   at::Tensor flattened = tensor.flatten(1, 2);
-  c10::SymIntArrayRef sizes({3, 4});
+  std::vector<c10::SymInt> sizes_vec = {3, 4};
+  c10::SymIntArrayRef sizes(sizes_vec);
   at::Tensor result = flattened.unflatten_symint(1, sizes);
   write_flatten_result_to_file(&file, result);
   file << "\n";

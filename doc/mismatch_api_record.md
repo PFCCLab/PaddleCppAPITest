@@ -1,4 +1,30 @@
-#### 记录 PaddleCppAPITest 仓库中曾经出现过的接口差异，便于回溯排查过程。当前基线已在 2026-03-23 通过 `bash test/result_cmp.sh ./build/` 对齐；以下内容主要作为历史归档，不代表现状仍然存在 diff。测试文件中仍保留了 `[DIFF]` 注释，便于检索当时的差异背景。
+#### 记录 PaddleCppAPITest 仓库中曾经出现过的接口差异，便于回溯排查过程。当前基线已在 2026-04-03 通过 `bash test/result_cmp.sh ./build/` 对齐；以下内容主要作为历史归档，不代表现状仍然存在 diff。测试文件中仍保留了 `[DIFF]` 注释，便于检索当时的差异背景。
+
+---
+
+## 2026-04-03 result_cmp 基线复核（PaddleCppAPITest）
+
+### 本轮复核
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `FlattenTest.UnflattenSymint` | `3 24 2 3 4` | `3 24 2 3 4` | ✅ 已对齐 |
+| `AbsTest.NonContiguousTensor` | 输出值顺序与 Torch 不同 | 非连续张量处理策略不同 | ⚠️ 已知差异（设计/规范不同） |
+| `ArrayRefTest.FromInitializerList` | 指针地址值不同 | 运行时地址差异 | ⚠️ 非兼容性问题 |
+| `EqualTest.ExceptionTest` | 异常消息缺少 C++ stack trace | 包含完整堆栈与参数名 | ⚠️ 已知限制（基础设施缺口） |
+| `OptionalArrayRefTest` | 指针地址、悬空引用随机值不同 | 同上 | ⚠️ 已知差异（运行时/UB） |
+| `StreamTest.CudaQuerySynchronizeAndNativeHandle` | `native_handle` 地址值不同 | `0` | ⚠️ 运行时环境差异 |
+
+说明：
+
+- 本轮通过修改 `test/ATen/ops/FlattenTest.cpp`，将 `c10::SymIntArrayRef sizes({3, 4})` 改为先用 `std::vector<c10::SymInt>` 存储再构造 `SymIntArrayRef`，规避了 GCC 13 `-O3` 下 `ArrayRef<int64_t>` 列表初始化的临时对象生命周期问题。
+- 本轮之后，`result_cmp.sh` 中未解决的 DIFFER 剩余 **5 项**，均属于历史已知的非兼容性差异或环境差异。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/ATen/ops/FlattenTest.cpp`
+- `/home/may/PaddleCppAPITest/doc/ATen/ops/mismatch_api_record.md`
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md`
 
 ---
 
@@ -262,33 +288,28 @@
 
 | 分类 | 测试 | 主要表现 |
 |---|---|---|
-| 语义差异（设计/规范不同） | `AccumulateTypeTest`、`DefaultDtypeTest`、`DeviceGuardTest`、`DeviceTest`、`HalfBFloat16Test`、`ScalarTypeTest`、`SparseTensorTest`、`TensorFactoryTest`、`TensorOptionsTest`、`TensorTest` | 默认值、枚举值、字符串规范或推断规则不同，且可稳定复现 |
-| 环境差异（运行时条件相关） | `EmptyOpsTest` | CUDA 可用性与构建形态影响输出分支（如 `cuda_tensor` vs `cuda_not_available`） |
-| 实现缺口/兼容层行为差异 | `EqualTest`、`SelectTest`、`TensorPtrTest`、`OptionalArrayRefTest` | 异常路径、崩溃风险、typed ptr 能力缺口或悬空引用行为差异 |
+| 语义差异（设计/规范不同） | `AbsTest`、`HalfBFloat16Test`、`TensorFactoryTest`、`DefaultDtypeTest`、`ScalarTypeTest`、`TensorOptionsTest` | 非连续张量处理策略、默认值、枚举值或推断规则不同，且可稳定复现 |
+| 环境差异（运行时条件相关） | `EmptyOpsTest`、`StreamTest` | CUDA 可用性、构建形态、运行时句柄值影响输出分支 |
+| 实现缺口/兼容层行为差异 | `EqualTest`、`OptionalArrayRefTest` | 异常 stack trace 基础设施缺口、typed ptr 能力缺口或悬空引用行为差异 |
+| 运行时地址差异（非兼容性问题） | `ArrayRefTest` | 指针地址值不同，不影响功能正确性 |
 
-## 关键差异摘要（节选）
+## 关键差异摘要（节选，2026-04-03 基线）
 
-| 测试 | Torch（节选） | Paddle（节选） |
-|---|---|---|
-| AccumulateTypeTest | `... Bool->11 ...` | `... Bool->10 ...` |
-| DefaultDtypeTest | `... 15 ... 9` | `... 11 ... 8` |
-| DeviceGuardTest | `cpu -1 ...` | `cpu 0 ...` |
-| DeviceTest | `cpu cpu:0 cuda:0 cuda:1 / 0 1 0 1` | `cpu:0 cpu:0 gpu:0 gpu:1 / 1 1 1 1` |
-| EqualTest | `... 0 0 1 ...` | `... 0 exception ...` → `... 0 "Expected a proper Tensor" ...` |
-| HalfBFloat16Test | `... 5 15` | `... 5 11` |
-| ScalarTypeTest | `... QInt8 QUInt8 ...` | 历史回归已修复：`QInt*` / 扩展 `ScalarType` 不再回退为 `UNKNOWN_SCALAR`；仍有 `isQIntType/isBitsType/canCast` 等 helper 缺口 |
-| SelectTest | `... SelectNegativeDim 的真实结果 ...` | `known_crash_on_negative_dim` → 异常消息格式已对齐（但缺少 stack trace） |
-| SparseTensorTest | `... InferSize: 2 2 2 ...` | `... InferSize: 0 2 2 ...` |
-| TensorFactoryTest | `... bool scalar_type=11 ...` | `... bool scalar_type=10 ...` |
-| TensorOptionsTest | `... device_index=-1 ...` | `... device_index=0 ...` |
-| TensorPtrTest | `const_ptr[0], mut_ptr[0]` | `typed_ptr_unavailable_on_paddle_compat ...` |
-| TensorTest | `... device.type=0, get_device=-1 ...` | `... device.type=1, get_device=0 ...` |
+| 测试 | Torch（节选） | Paddle（节选） | 性质 |
+|---|---|---|---|
+| `AbsTest` | `3.000000 2.000000 1.000000 ...` | `3.000000 0.000000 2.000000 ...` | 非连续张量处理策略不同（设计差异） |
+| `ArrayRefTest` | `1 4 <addr> <addr> ...` | `1 4 <different_addr> ...` | 运行时地址差异 |
+| `EqualTest` | `exception: Expected ... for argument #0 'self'\n<stack trace>` | `exception: Expected a proper Tensor ...\n[compat_file_path]` | 缺少 C++ stack trace 与参数名 |
+| `HalfBFloat16Test` | `... 5 15`（已注释不比对） | `... 5 11`（已注释不比对） | ScalarType 枚举值差异 |
+| `OptionalArrayRefTest` | `1 4 <addr> ...` / `0.000000` | `1 4 <different_addr> ...` / `-0.000000` | 地址差异 + 部分 UB 场景随机值 |
+| `StreamTest` | `... sync_ok 1 0 0` | `... sync_ok 1 0 <handle_addr>` | `native_handle` 运行时环境差异 |
+| `ScalarTypeTest` | `... QInt8 QUInt8 ...` | 编译/链接缺 `isQIntType` 等 helper | 仍有 9 个 helper 未接入 compat |
 
 ## 建议跟踪优先级
 
-1. **P0（稳定语义差异）**：`Device*`、`TensorOptionsTest`、`DefaultDtypeTest`、`HalfBFloat16Test`、`TensorFactoryTest`、`TensorTest`。
-2. **P1（稀疏/存储一致性）**：`SparseTensorTest`、`AccumulateTypeTest`、`ScalarTypeTest`。
-3. **P2（环境与实现缺口）**：`EmptyOpsTest`、`EqualTest`、`SelectTest`、`TensorPtrTest`、`OptionalArrayRefTest`。
+1. **P0（稳定语义差异）**：`AbsTest`（非连续策略）、`HalfBFloat16Test`、`TensorFactoryTest`、`DefaultDtypeTest`。
+2. **P1（接口补齐）**：`ScalarTypeTest`（剩余 9 个 helper）、`TensorOptionsTest`（`requires_grad` 创建路径）。
+3. **P2（环境与实现缺口）**：`EmptyOpsTest`、`StreamTest`、`EqualTest`、`OptionalArrayRefTest`。
 
 ---
 

@@ -119,3 +119,4 @@
 3. **主要差异说明**：
    - `C10_API` 导出宏：PyTorch 在 `StreamData3`、`Stream`、`operator<<` 上使用 `C10_API`；Paddle 兼容头未显式标注。
    - 断言宏名不同：`unpack3()` 使用 `PD_CHECK` 替代 `TORCH_CHECK`，不影响接口调用方式。
+   - `native_handle()` 运行时差异：`StreamTest.CudaQuerySynchronizeAndNativeHandle` 在 `result_cmp.sh` 中显示 Paddle 侧输出实际 `cudaStream_t` 句柄地址，而 Torch 侧输出 `0`。该差异属于运行时环境/构建形态差异（Torch 侧可能进入不同的 CUDA 可用性分支），不影响 `native_handle()` 接口本身的语义正确性。
