@@ -1,5 +1,5 @@
 #!/bin/bash
-set -u
+set -u # -u 出错时继续，-e 出错时退出
 
 # using guide: ./result_cmp.sh <BUILD_PATH>
 BUILD_PATH=$1
