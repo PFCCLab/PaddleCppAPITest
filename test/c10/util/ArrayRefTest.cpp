@@ -52,6 +52,14 @@ static bool arrayref_empty_api_probe(const c10::ArrayRef<T>& arr) {
   return arr.empty();
 }
 
+static void write_int64_arrayref(FileManerger* file,
+                                 c10::ArrayRef<int64_t> arr) {
+  *file << std::to_string(arr.size()) << " ";
+  for (const auto& value : arr) {
+    *file << std::to_string(value) << " ";
+  }
+}
+
 // 默认构造（空）
 TEST_F(ArrayRefTest, DefaultConstruction) {
   c10::ArrayRef<int64_t> arr;
@@ -234,15 +242,13 @@ TEST_F(ArrayRefTest, FromCArray) {
 
 // 从 initializer_list 构造
 TEST_F(ArrayRefTest, FromInitializerList) {
-  c10::ArrayRef<int64_t> arr({5, 10, 15});
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
   file << "FromInitializerList ";
-  file << std::to_string(arr.size()) << " ";
-  for (size_t i = 0; i < arr.size(); ++i) {
-    file << std::to_string(arr[i]) << " ";
-  }
+  // Consume the initializer-list-backed ArrayRef within the same full
+  // expression so the backing storage stays alive for the entire read.
+  write_int64_arrayref(&file, c10::ArrayRef<int64_t>({5, 10, 15}));
   file << "\n";
   file.saveFile();
 }
@@ -381,7 +387,8 @@ TEST_F(ArrayRefTest, IntArrayRef) {
 // vector 和 ArrayRef 的比较运算符
 TEST_F(ArrayRefTest, VectorArrayRefComparison) {
   std::vector<int64_t> vec = {1, 2, 3};
-  c10::ArrayRef<int64_t> arr({1, 2, 3});
+  std::array<int64_t, 3> arr_data = {1, 2, 3};
+  c10::ArrayRef<int64_t> arr(arr_data);
 
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
