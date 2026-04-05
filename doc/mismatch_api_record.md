@@ -2,6 +2,32 @@
 
 ---
 
+## 2026-04-05 TensorOptions 命名空间修复与 Mac-CPU 编译兼容
+
+### 本轮修复（Paddle 内部 ctest 验证）
+
+| 测试项 | 修复前 | 修复后 | PyTorch | 状态 |
+|--------|--------|--------|---------|------|
+| Mac-CPU 编译 `torch::TensorOptions` | 编译错误：type hidden by declaration | 编译成功 | 一致 | ✅ 已对齐 |
+| `torch::from_blob` 使用 `torch::TensorOptions` | macOS/Clang 上失败 | 正常编译运行 | 一致 | ✅ 已对齐 |
+
+说明：
+
+- 修复 PR #78580 中的 Mac-CPU 编译问题。
+- 根本原因：`c10/core/TensorOptions.h` 通过 `namespace torch { using namespace c10; }` 导出 `c10::TensorOptions` 到 `torch` 命名空间，与 `ATen/core/TensorBody.h` 中的类型别名产生冲突。
+- 解决方案：移除 `TensorOptions.h` 中的 `torch` 命名空间导出，使 `torch::TensorOptions` 通过 `torch/types.h -> at::TensorOptions` 解析。
+- 验证结果：`ninja -j16` 编译成功，`ctest -R c10` 16/16 通过，`ctest -R ATen` 48/48 通过。
+- 详细记录见：`/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md`
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/TensorOptions.h` - 修复命名空间导出
+- `/home/may/Paddle/paddle/fluid/pybind/torch_compat.h` - 将 `DispatchKey::CPU` 改为 `c10::DispatchKey::CPU`
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 添加详细记录
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 添加本轮汇总
+
+---
+
 ## 2026-04-04 Quantized Types 与 Float4_e2m1fn_x2 语义对齐（Paddle 内部 ctest）
 
 ### 本轮修复（已解决）

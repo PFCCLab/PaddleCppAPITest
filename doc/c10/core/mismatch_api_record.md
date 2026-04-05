@@ -1,3 +1,30 @@
+## 2026-04-05 TensorOptions Mac-CPU 编译修复（Paddle 内部 ctest 已验证）
+
+### 本轮修复
+
+| 测试项 | 修复前 Paddle | 修复后 Paddle | PyTorch | 状态 |
+|--------|---------------|---------------|---------|------|
+| `torch::TensorOptions` 命名空间解析 | `TensorOptions.h` 通过 `using namespace c10` 将 `c10::TensorOptions` 导出到 `torch` 命名空间，导致 macOS/Clang 上 "type hidden by declaration" 编译错误 | 移除 `namespace torch { using namespace c10; }` 导出；`torch::TensorOptions` 现在通过 `torch/types.h -> at::TensorOptions` 解析，与 PyTorch 一致 | 一致 | ✅ 已对齐 |
+| `torch::from_blob` 配合 `torch::TensorOptions` | 在 macOS/Clang 上编译失败 | 使用 `torch::from_blob(..., torch::TensorOptions().dtype(...))` 可正常编译，命名空间解析路径与 PyTorch 一致 | 一致 | ✅ 已对齐 |
+
+说明：
+
+- 修复了 PR #78580 中提到的 Mac-CPU 编译错误：在使用 `torch::from_blob(pp, {3}, torch::TensorOptions().dtype(torch::kInt64))` 时，clang 报告 "a type named 'TensorOptions' is hidden by a declaration in a different namespace"。
+- 根本原因是 `c10/core/TensorOptions.h` 第 377-379 行的 `namespace torch { using namespace c10; }` 将整个 `c10` 命名空间导入 `torch`，与 `ATen/core/TensorBody.h` 中的 `using TensorOptions = c10::TensorOptions;` 产生冲突。
+- 解决方案：移除 `TensorOptions.h` 中的 `torch` 命名空间导出，使 `torch::TensorOptions` 通过 `torch/types.h` 中的 `using at::TensorOptions` 解析，最终指向 `c10::TensorOptions`，与 PyTorch 的解析路径一致。
+- 验证：`ninja -j16` 编译成功，`ctest -R c10` 16/16 通过，`ctest -R ATen` 48/48 通过。
+- 相关文件修改：
+  - `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/TensorOptions.h` - 移除 `namespace torch { using namespace c10; }`
+  - `/home/may/Paddle/paddle/fluid/pybind/torch_compat.h` - 将 `DispatchKey::CPU` 改为 `c10::DispatchKey::CPU`（`torch/library.h` 已间接包含 DispatchKey 头文件）
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/TensorOptions.h` - 移除 `torch` 命名空间对 `c10` 的导出，解决 macOS/Clang 编译错误
+- `/home/may/Paddle/paddle/fluid/pybind/torch_compat.h` - 将 `DispatchKey::CPU` 改为 `c10::DispatchKey::CPU`
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 记录本轮 TensorOptions 命名空间修复
+
+---
+
 ## 2026-04-02 Event 语义补齐（Paddle 内部 ctest 已验证）
 
 ### 本轮复核
