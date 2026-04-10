@@ -1,20 +1,16 @@
-# Paddle compat 层兼容方式架构图
+# Paddle compat 层 Storage 机制学习文档
 
-本文档说明 Paddle compat 层如何将 PyTorch 的 `c10::Storage` / `c10::DataPtr` 接口映射到 Paddle 内部实现。
+本文档结合具体代码，一步步讲解 Paddle compat 层中 `c10::Storage` / `c10::DataPtr` 的架构设计与实现原理。
 
-> **Note**: 本文档已根据 PR #78060 的最新修复更新。主要变更：
-> - 在 `TensorBase` 内维护按 `StorageImpl*` 归一的 canonical storage 缓存（静态弱引用注册表）
-> - `TensorBase::storage()` 改为通过 `DenseTensor::holder_` 上的 compat holder 复用同一个 `StorageImpl`
-> - `storage()` 返回类型改为 `const c10::Storage&`（引用而非值）
-> - `TensorBase` 内部改为共享 canonical `std::shared_ptr<c10::Storage>`，避免 alias wrapper 数量抬高 `Storage::use_count()`
-> - `has_storage()` / `data_ptr()` 均基于 live holder 同步，而不是构造时快照
-> - `use_count()` 以 `Storage` handle 视角计数，并扣除内部 `StorageHolderView` bookkeeping 引用
+> **Note**: 本文档参考 `/home/may/PaddleCppAPITest/doc/c10/core/storage_compat_arch.md` 以及 Paddle 测试代码 `/home/may/Paddle/test/cpp/compat/c10_storage_test.cc` 编写。
 
 ---
 
-## TensorBase::storage() 实现机制
+## 1. 整体架构概览
 
-PyTorch 中，所有 `TensorBase` wrapper 共享同一个 `TensorImpl`，因此 `TensorBase::storage()` 直接返回 `TensorImpl::storage_`。Paddle compat 层中，`at::TensorBase` 维护一个共享的 canonical `std::shared_ptr<c10::Storage>`，并通过 `phi::DenseTensor::holder_` 上挂接的 compat holder 复用同一个 `StorageImpl`。
+Paddle compat 层的目标是让 PyTorch 的 C++ API (`ATen`, `c10`) 能够在 PaddlePaddle 后端上运行。其中 `c10::Storage` 是管理张量底层内存存储的核心抽象。
+
+### 1.1 核心组件关系图
 
 ```mermaid
 flowchart TD
@@ -47,72 +43,408 @@ flowchart TD
     DT --> HV
 ```
 
-### 工作流程说明（PR #78060 修复后）
+### 1.2 关键设计原则
 
-1. **首次同步**：`TensorBase::storage()` / `has_storage()` / `data_ptr()` 调用 `SyncStorageFromTensor()`，读取当前 `phi::DenseTensor::holder_`。
-2. **holder 适配**：如果 holder 还是原始 `phi::Allocation`，compat 层会创建一个共享 `StorageImpl`，再生成 `StorageHolderView` 并回写到 `DenseTensor::holder_`。
-3. **跨 wrapper 共享**：后续 wrapper 通过 holder 恢复同一个 `StorageImpl`，并通过 canonical storage 缓存复用同一个 `Storage` 对象。对于 `t2 = t1` 以及独立从同一底层 tensor 构造 wrapper 的场景，`Storage::use_count()` 都不因 wrapper 数量增加而抬高。
-4. **live 数据指针**：`Storage::set_data_ptr*()` 更新 `StorageImpl` 后，`StorageHolderView::ptr()` 立即反映新地址，`tensor.data_ptr()` 与 `tensor.storage()` 因此保持一致。
+| 设计点 | 说明 |
+|--------|------|
+| **共享 StorageImpl** | 多个 `c10::Storage` 句柄通过 `shared_ptr<StorageImpl>` 共享同一底层状态 |
+| **引用语义** | 通过任一句柄的写操作（`set_data_ptr*`、`set_nbytes`）对所有句柄可见 |
+| **Lazy Storage 创建** | `TensorBase::storage()` 首次调用时才从 `phi::DenseTensor` 同步创建 |
+| **Canonical Storage 缓存** | 按 `StorageImpl*` 归一的弱引用注册表，避免重复创建 Storage 对象 |
 
 ---
 
-## c10::Storage 共享 StorageImpl 设计
+## 2. 核心组件详解
 
-Paddle compat 的 `Storage` 采用与 PyTorch 相同的 **shared handle** 设计：多个 `Storage` 副本共享同一个 `StorageImpl`，通过任意副本的 `set_data_ptr*()`/`set_nbytes()`/`mutable_data_ptr()` 写操作均对所有副本可见。
+### 2.1 StorageImpl - 共享状态容器
 
-```mermaid
-classDiagram
-    class c10_Storage["c10::Storage"] {
-        +shared_ptr~StorageImpl~ impl_
-        +data_ptr() const DataPtr&
-        +mutable_data_ptr() DataPtr&
-        +set_data_ptr(DataPtr&&) DataPtr
-        +set_data_ptr_noswap(DataPtr&&)
-        +set_nbytes(size_t)
-        +use_count() size_t
-        +device() phi::Place
-        +allocation() shared_ptr~phi::Allocation~
-    }
+`StorageImpl` 是所有 Storage 句柄共享的内部状态：
 
-    class StorageImpl["c10::StorageImpl (Paddle compat)"] {
-        +shared_ptr~phi::Allocation~ data_allocation_
-        +phi::Allocator* allocator_
-        +size_t nbytes_
-        +bool resizable_
-        +phi::Place place_
-        +DataPtr data_ptr_
-        +weak_ptr~StorageHolderView~ tensor_holder_
-    }
-
-    class StorageHolderView["StorageHolderView"] {
-        +ptr() void*
-        +size() size_t
-        +place() phi::Place
-    }
-
-    class DataPtr["c10::DataPtr"] {
-        +UniqueVoidPtr ptr_
-        +phi::Place device_
-        +get() void*
-        +get_deleter() DeleterFnPtr
-        +get_context() void*
-        +device() c10::Device
-    }
-
-    class phi_Allocation["phi::Allocation"] {
-        +void* ptr_
-        +phi::Place place_
-        +size_t size_
-    }
-
-    c10_Storage --> "1" StorageImpl : shared_ptr (all copies share one)
-    StorageImpl --> "0..1" phi_Allocation : allocation-backed path
-    StorageImpl --> "1" DataPtr : direct member (non-owning view or external)
-    StorageImpl --> "0..1" StorageHolderView : weak back-reference
-    StorageHolderView --> "1" StorageImpl : shared owner
+```cpp
+// paddle/phi/api/include/compat/c10/core/Storage.h (lines 44-55)
+struct StorageImpl {
+  std::shared_ptr<phi::Allocation> data_allocation_;  // Paddle Allocation 包装
+  phi::Allocator* allocator_ = nullptr;               // 可选分配器
+  size_t nbytes_ = 0;                                 // 字节数
+  bool resizable_ = false;                            // 是否可调整大小
+  phi::Place place_;                                  // 设备位置
+  DataPtr data_ptr_;                                  // DataPtr 直接成员（非 owning view 或外部数据）
+  std::weak_ptr<StorageHolderView> tensor_holder_;    // 弱引用回指 tensor holder
+};
 ```
 
-### 架构说明
+**关键点**：
+- `data_allocation_` 和 `data_ptr_` 是两种数据持有方式：
+  - **Allocation-backed**: 来自 Paddle 内部，通过 `phi::Allocation` 管理
+  - **External DataPtr**: 来自外部，带有自定义 deleter
+
+### 2.2 StorageHolderView - 桥接 Paddle 与 compat 层
+
+`StorageHolderView` 继承自 `phi::Allocation`，作为 `DenseTensor::holder_` 的兼容包装：
+
+```cpp
+// paddle/phi/api/include/compat/c10/core/Storage.h (lines 57-83)
+class StorageHolderView final : public phi::Allocation {
+ public:
+  explicit StorageHolderView(std::shared_ptr<StorageImpl> impl)
+      : impl_(std::move(impl)) {}
+
+  std::shared_ptr<StorageImpl> get_impl() const { return impl_; }
+
+  void* ptr() const noexcept override {
+    if (!impl_) return nullptr;
+    if (impl_->data_allocation_) {
+      return impl_->data_allocation_->ptr();  // Allocation-backed 路径
+    }
+    return impl_->data_ptr_.get();            // External DataPtr 路径
+  }
+
+  size_t size() const noexcept override { return impl_ ? impl_->nbytes_ : 0; }
+
+  const Place& place() const noexcept override {
+    return impl_ ? impl_->place_ : place_;
+  }
+
+ private:
+  std::shared_ptr<StorageImpl> impl_;
+  Place place_;
+};
+```
+
+**工作流程**：
+1. 首次调用 `tensor.storage()` 时，创建 `StorageImpl` 和 `StorageHolderView`
+2. `StorageHolderView` 被设置到 `DenseTensor::holder_` 上
+3. 后续调用通过 `holder_` 恢复同一个 `StorageImpl`
+
+### 2.3 Storage - 用户可见的句柄
+
+`Storage` 是用户直接交互的句柄类，内部通过 `shared_ptr<StorageImpl>` 共享状态：
+
+```cpp
+// paddle/phi/api/include/compat/c10/core/Storage.h (lines 85-118)
+struct Storage {
+ public:
+  struct use_byte_size_t {};
+  struct unsafe_borrow_t { unsafe_borrow_t() = default; };
+
+  // 默认构造：空 storage
+  Storage() : impl_(std::make_shared<StorageImpl>()) {}
+
+  // 拷贝构造：共享 StorageImpl（关键！）
+  Storage(const Storage& other) : impl_(other.impl_) {}
+
+  // 移动构造：转移所有权
+  Storage(Storage&& other) noexcept : impl_(std::move(other.impl_)) {}
+
+  // 从 phi::Allocation 构造（Paddle 内部路径）
+  Storage(std::shared_ptr<phi::Allocation> alloc,
+          std::unique_ptr<phi::StorageProperties> props = nullptr) {
+    impl_ = std::make_shared<StorageImpl>();
+    if (alloc) {
+      syncFromAllocation(std::move(alloc));
+    }
+  }
+
+  // LibTorch 兼容构造：预分配 DataPtr
+  Storage(use_byte_size_t /*use_byte_size*/,
+          size_t size_bytes,
+          DataPtr data_ptr,
+          phi::Allocator* allocator = nullptr,
+          bool resizable = false) {
+    impl_ = std::make_shared<StorageImpl>();
+    impl_->allocator_ = allocator;
+    impl_->nbytes_ = size_bytes;
+    impl_->resizable_ = resizable;
+    syncFromDataPtr(std::move(data_ptr), size_bytes);
+  }
+
+  // ... 更多方法
+
+ private:
+  std::shared_ptr<StorageImpl> impl_;  // 共享状态
+};
+```
+
+---
+
+## 3. TensorBase::storage() 实现机制
+
+### 3.1 源码解析
+
+```cpp
+// paddle/phi/api/include/compat/ATen/core/TensorBase.h (lines 399-475)
+
+// 返回 const 引用，避免不必要的拷贝
+const c10::Storage& storage() const {
+  SyncStorageFromTensor();
+  static const c10::Storage kEmptyStorage;
+  return storage_ ? *storage_ : kEmptyStorage;
+}
+
+// 检查是否有有效 storage
+bool has_storage() const {
+  SyncStorageFromTensor();
+  return tensor_.defined() && storage_ && storage_->valid();
+}
+
+private:
+  // 关键：静态注册表，按 StorageImpl* 复用 Storage 对象
+  static std::shared_ptr<c10::Storage> GetOrCreateCanonicalStorage(
+      c10::Storage&& live_storage) {
+    auto impl = live_storage.get_impl();
+    if (!impl) {
+      return std::make_shared<c10::Storage>(std::move(live_storage));
+    }
+
+    static std::mutex registry_mu;
+    static std::unordered_map<c10::StorageImpl*, std::weak_ptr<c10::Storage>>
+        registry;
+
+    std::lock_guard<std::mutex> guard(registry_mu);
+    auto it = registry.find(impl.get());
+    if (it != registry.end()) {
+      if (auto cached = it->second.lock()) {
+        return cached;  // 复用已存在的 Storage
+      }
+      registry.erase(it);
+    }
+
+    auto created = std::make_shared<c10::Storage>(std::move(live_storage));
+    registry.emplace(impl.get(), created);
+    return created;
+  }
+
+  // 从 DenseTensor 同步 Storage 状态
+  void SyncStorageFromTensor() const {
+    auto dense = std::dynamic_pointer_cast<phi::DenseTensor>(tensor_.impl());
+    if (!dense) {
+      storage_.reset();
+      return;
+    }
+
+    auto holder = dense->Holder();
+    if (!holder) {
+      storage_.reset();
+      return;
+    }
+
+    // 从 holder 创建（或复用）Storage
+    c10::Storage live_storage = c10::Storage::createTensorStorage(holder);
+    auto compat_holder = live_storage.ensureTensorHolder();
+    if (holder != compat_holder) {
+      // 需要替换 DenseTensor 的 holder 为 StorageHolderView
+      MaybeResetHolder(dense.get(), compat_holder, 0);
+    }
+
+    // 使用 canonical storage（避免多个 wrapper 创建多个 Storage 对象）
+    if (!storage_ || storage_->get_impl() != live_storage.get_impl()) {
+      storage_ = GetOrCreateCanonicalStorage(std::move(live_storage));
+    }
+  }
+
+  mutable std::shared_ptr<c10::Storage> storage_;  // 缓存的 canonical Storage
+```
+
+### 3.2 流程图解
+
+```mermaid
+sequenceDiagram
+    participant User as 用户代码
+    participant TB as TensorBase
+    participant Reg as Canonical Registry
+    participant DT as DenseTensor
+    participant SH as StorageHolderView
+    participant SI as StorageImpl
+
+    User->>TB: tensor.storage()
+    TB->>TB: SyncStorageFromTensor()
+    TB->>DT: dense->Holder()
+    alt holder 是 StorageHolderView
+        DT-->>TB: 返回现有 holder
+        TB->>SH: storage_holder->get_impl()
+        SH-->>TB: 返回现有 StorageImpl
+    else holder 是普通 Allocation
+        TB->>TB: Storage::createTensorStorage(holder)
+        TB->>SI: 创建新的 StorageImpl
+        TB->>SH: 创建 StorageHolderView
+        TB->>DT: ResetHolder(compat_holder)
+    end
+    TB->>Reg: GetOrCreateCanonicalStorage(live_storage)
+    Reg-->>TB: 返回 shared_ptr<Storage>
+    TB-->>User: 返回 const Storage&
+```
+
+---
+
+## 4. 测试代码解读
+
+### 4.1 use_count 语义测试
+
+```cpp
+// test/cpp/compat/c10_storage_test.cc (lines 116-125)
+TEST(StorageTest, StorageUseCountIncludesTensorRef) {
+  at::TensorBase tensor = at::ones({2, 3}, at::kFloat);
+  c10::Storage storage = tensor.storage();
+
+  // tensor.storage_ contributes 1, `storage` contributes 1.
+  ASSERT_EQ(storage.use_count(), 2)
+      << "use_count() must include the tensor's own StorageImpl reference";
+  ASSERT_FALSE(storage.unique())
+      << "unique() must be false because tensor also holds a reference";
+}
+```
+
+**说明**：
+- `use_count()` 返回共享 `StorageImpl` 的 `Storage` 句柄数量
+- `TensorBase` 内部持有 `shared_ptr<Storage>`，所以至少为 1
+- 当显式拷贝 `Storage` 时，计数会增加
+
+### 4.2 引用语义测试
+
+```cpp
+// test/cpp/compat/c10_storage_test.cc (lines 840-859)
+TEST(StorageTest, ReferenceSemanticsMutationVisibleThroughCopy) {
+  at::TensorBase tensor1 = at::ones({2, 3}, at::kFloat);
+  at::TensorBase tensor2 = at::ones({4, 5}, at::kFloat);
+
+  c10::Storage storage_a = tensor1.storage();
+  c10::Storage storage_b = storage_a;  // 共享 StorageImpl
+
+  ASSERT_EQ(storage_a.data(), storage_b.data());
+
+  // 通过 storage_a 修改数据指针
+  auto new_alloc = tensor2.storage().allocation();
+  storage_a.set_data_ptr_noswap(new_alloc);
+
+  // storage_b 立即看到修改
+  ASSERT_EQ(storage_b.allocation(), new_alloc)
+      << "storage_b should see the allocation change made through storage_a";
+}
+```
+
+**关键概念**：`Storage b = a` 后，两者共享同一个 `StorageImpl`，所以任一方的修改对另一方可见。
+
+### 4.3 Tensor Wrapper 共享测试
+
+```cpp
+// test/cpp/compat/c10_storage_test.cc (lines 966-980)
+TEST(StorageTest, CopiedTensorWrappersShareStorageImpl) {
+  at::TensorBase tensor = at::ones({2, 3}, at::kFloat);
+  at::TensorBase alias = tensor;  // 拷贝构造，共享同一 DenseTensor
+  at::TensorBase other = at::ones({4, 5}, at::kFloat);
+
+  auto new_alloc = other.storage().allocation();
+
+  c10::Storage storage = tensor.storage();
+  storage.set_data_ptr_noswap(new_alloc);
+
+  // alias 共享同一 StorageImpl，所以能看到修改
+  ASSERT_EQ(tensor.storage().get_impl(), alias.storage().get_impl());
+  ASSERT_EQ(alias.data_ptr(), new_alloc->ptr())
+      << "Copied TensorBase wrappers must observe shared storage mutations";
+}
+```
+
+### 4.4 External DataPtr 测试
+
+```cpp
+// test/cpp/compat/c10_storage_test.cc (lines 455-497)
+TEST(StorageTest, ExternalDataPtrUseCount) {
+  // 自定义 deleter
+  static bool g_test_deleter_called = false;
+  static void TestDeleter(void* ctx) { g_test_deleter_called = true; }
+
+  void* test_ptr = reinterpret_cast<void*>(0x12345678);
+  void* test_ctx = reinterpret_cast<void*>(0xABCDEF00);
+
+  // 创建带自定义 deleter 的 DataPtr
+  c10::DataPtr external_ptr(
+      test_ptr, test_ctx, &TestDeleter, c10::Device(c10::DeviceType::CPU));
+
+  // 从 external DataPtr 创建 Storage
+  c10::Storage storage(c10::Storage::use_byte_size_t{},
+                       1024,
+                       std::move(external_ptr),
+                       nullptr,
+                       false);
+
+  // 单一 Storage 的 use_count 为 1
+  ASSERT_EQ(storage.use_count(), 1);
+  ASSERT_TRUE(storage.unique());
+
+  // 拷贝后 use_count 为 2
+  c10::Storage storage_copy(storage);
+  ASSERT_EQ(storage.use_count(), 2);
+  ASSERT_EQ(storage_copy.use_count(), 2);
+}
+```
+
+---
+
+## 5. 关键 API 使用示例
+
+### 5.1 创建与访问 Storage
+
+```cpp
+#include <ATen/Functions.h>
+#include <c10/core/Storage.h>
+
+// 从 tensor 获取 storage
+at::TensorBase tensor = at::ones({2, 3}, at::kFloat);
+c10::Storage storage = tensor.storage();
+
+// 访问数据指针
+void* data = storage.mutable_data();           // 可变指针
+const void* const_data = storage.data();       // 只读指针
+const c10::DataPtr& data_ptr = storage.data_ptr();  // DataPtr 引用
+
+// 获取字节数
+size_t nbytes = storage.nbytes();
+
+// 检查有效性
+bool valid = storage.valid();  // 或 if (storage) { ... }
+```
+
+### 5.2 Storage 共享与修改
+
+```cpp
+// 拷贝 Storage（共享底层 StorageImpl）
+c10::Storage storage_a = tensor.storage();
+c10::Storage storage_b = storage_a;
+
+// 通过 storage_a 修改 nbytes
+storage_a.set_nbytes(128);
+// storage_b.nbytes() 也变为 128
+
+// 通过 set_data_ptr_noswap 更换底层分配
+at::TensorBase other = at::ones({4, 5}, at::kFloat);
+auto new_alloc = other.storage().allocation();
+storage_a.set_data_ptr_noswap(new_alloc);
+// storage_b.data() 现在指向 new_alloc
+```
+
+### 5.3 检查别名关系
+
+```cpp
+at::TensorBase tensor1 = at::ones({2, 3}, at::kFloat);
+at::TensorBase tensor2 = tensor1.view({3, 2});  // view 共享 storage
+
+// 检查 tensor 是否互为别名
+bool is_alias = tensor1.is_alias_of(tensor2);  // true
+
+// 检查 storage 是否共享底层分配
+c10::Storage s1 = tensor1.storage();
+c10::Storage s2 = tensor2.storage();
+bool storage_alias = s1.is_alias_of(s2);  // true
+
+// 检查 DataPtr 所有权层面的共享
+bool shared_alias = c10::isSharedStorageAlias(s1, s2);
+// 注意：isSharedStorageAlias 根据 deleter 和 context 判断，view 可能为 false
+```
+
+---
+
+## 6. 与 PyTorch 的对比
 
 | 属性 | PyTorch StorageImpl | Paddle compat StorageImpl |
 |------|---------------------|---------------------------|
@@ -125,136 +457,28 @@ classDiagram
 | 引用计数来源 | `intrusive_ptr` 计数 | `impl_.use_count()` 减去 `StorageHolderView` 的 bookkeeping 引用 |
 | copy-on-write | 无（single StorageImpl） | 无（已移除 CoW；共享 impl_ 直接传播写操作） |
 
-### use_count() 计算依据（PR #78060 修复后）
-
-```cpp
-size_t use_count() const {
-    if (!valid()) return 0;
-    size_t count = impl_.use_count();
-    if (!impl_->tensor_holder_.expired() && count > 0) {
-        --count;
-    }
-    return count;
-}
-```
-
-- **减去 holder bookkeeping 引用**：`StorageHolderView` 需要共享 `StorageImpl` 才能让 `DenseTensor` 的 `holder_` 始终反映 live storage，但它不应计入对外暴露的 `use_count()`
-- **典型计数示例**：
-    - 单 wrapper 场景，仅通过 `const auto& s = tensor.storage()` 借用引用：`use_count == 1`
-    - 增加一个显式 `Storage` 复制句柄（如 `Storage s2 = tensor.storage()`）：`use_count == 2`
-    - 额外复制 alias wrapper（`TensorBase alias = tensor`）不应单独再 +1
-- **空/无效 Storage**：`valid()` 返回 false 时返回 0
-
-### Reference Semantics：写操作传播示意
-
-```mermaid
-sequenceDiagram
-    participant A as Storage a
-    participant Impl as StorageImpl (shared)
-    participant B as Storage b = a
-
-    Note over A,B: Storage b = a 后，a 和 b 共享同一 impl_
-
-    A->>Impl: set_data_ptr_noswap(new_ptr)
-    Note over Impl: impl_->data_ptr_ = new_ptr
-
-    B->>Impl: data() / data_ptr()
-    Impl-->>B: new_ptr (可见)
-```
-
 ---
 
-## c10::DataPtr 与 phi::Place 的映射
+## 7. 注意事项
 
-```mermaid
-flowchart LR
-    subgraph DP["c10::DataPtr"]
-        PTR["UniqueVoidPtr ptr_"]
-        DEV["phi::Place device_"]
-    end
-
-    subgraph UV["c10::detail::UniqueVoidPtr"]
-        RAW["void* raw_ptr"]
-        CTX["void* context"]
-        DEL["DeleterFnPtr deleter"]
-    end
-
-    DP --> PTR
-    PTR --> UV
-
-    C2["c10::Device\n\ninner_ = phi::Place\nindex() → GetDeviceId()\ntype() → GetType()"] -.->|"_PD_GetInner()"| DEV
-```
-
----
-
-## at::cuda 接口映射（CUDAContextLight）
-
-```mermaid
-flowchart TD
-    subgraph ATEN["at::cuda 兼容层"]
-        GETBLAS["getCurrentCUDABlasHandle()"]
-        ISAVA["is_available()"]
-        GETALLOC["getCUDADeviceAllocator()"]
-    end
-
-    subgraph ADAPTER["PaddleCUDAAllocatorAdapter (c10::Allocator)"]
-        ALLOCATE["allocate(n)"]
-        COPYDATA["copy_data(dst, src, n)"]
-    end
-
-    subgraph PHI["phi 层"]
-        GPUCTX["phi::DeviceContextPool"]
-        GPUINFO["phi::backends::gpu"]
-        ALLOCFAC["AllocatorFacade"]
-    end
-
-    GETBLAS -->|getCurrentGPUContext| GPUCTX -->|cublas_handle| GETBLAS
-    ISAVA -->|device_count| GPUINFO -->|GetGPUDeviceCount| ISAVA
-    GETALLOC -->|static adapter| ADAPTER
-    ALLOCATE -->|n>0: GetAllocator| ALLOCFAC
-    ALLOCATE -->|n=0: 保留 CUDA device| ALLOCATE
-    COPYDATA -->|cudaMemcpy D2D| COPYDATA
-```
-
-### at::cuda::getCUDADeviceAllocator()
-
-提供 Paddle CUDA Allocator 的 `c10::Allocator` 适配：
-
-```cpp
-c10::Allocator* getCUDADeviceAllocator() {
-    static PaddleCUDAAllocatorAdapter adapter;
-    return &adapter;
-}
-```
-
-`PaddleCUDAAllocatorAdapter` 将 `phi::AllocatorFacade` 的 GPU 分配器包装为 `c10::Allocator` 接口：
-
-| 方法 | 行为 |
-|------|------|
-| `allocate(0)` | 返回 `DataPtr(nullptr, nullptr, nullptr, Device(CUDA, current_device_id))`，保留当前 CUDA 设备信息，不触发实际分配 |
-| `allocate(n>0)` | 通过 `AllocatorFacade` 在当前 GPU 上分配，所有权通过 `deletePaddleCUDAAllocation` deleter 管理 |
-| `copy_data(dst, src, n)` | 使用 `cudaMemcpy(dst, src, n, cudaMemcpyDeviceToDevice)` 实现 GPU-to-GPU 拷贝，兼容 `c10::Allocator::clone()` 语义 |
-| `raw_deleter()` | 返回 `nullptr`，表示 raw API 不可用。`c10::Allocator` raw 契约要求 `allocate(n)` 返回的 DataPtr 满足 `get()==get_context()`，但本实现中 `data=device_ptr`、`context=phi::Allocation*`，两者不等，因此不能宣称 raw API 可用（PR #78060 当轮修复）。 |
-
----
-
-## 注意事项
-
-1. **StorageImpl 共享设计**：`Storage b = a` 后两者共享同一个 `StorageImpl`。任何通过 a 或 b 的写操作（`set_data_ptr*`、`set_nbytes`、`mutable_data_ptr` 返回引用后修改）立即对另一方可见。这与 PyTorch 中 `Storage` 作为 `intrusive_ptr<StorageImpl>` handle 的语义一致。
+1. **StorageImpl 共享设计**：`Storage b = a` 后两者共享同一个 `StorageImpl`。任何通过 a 或 b 的写操作（`set_data_ptr*`、`set_nbytes`、`mutable_data_ptr` 返回引用后修改）立即对另一方可见。
 
 2. **独立 Storage 互不影响**：`Storage a(alloc1); Storage b(alloc2)` 各自持有独立的 `StorageImpl`，写操作不跨越 impl 边界。
 
-    **TensorBase::storage() live 共享设计**（PR #78060 修复后）：`TensorBase` 通过 `DenseTensor::holder_` 恢复 shared `StorageImpl`，并按 `StorageImpl*` 复用 canonical `Storage` 对象（静态弱引用缓存）。这样 wrapper 数量不会额外抬高 owner 计数：
-
-   ```cpp
-   at::TensorBase t1 = paddle::ones({2, 3});
-   at::TensorBase t2 = t1;                    // 同一底层 DenseTensor
-    c10::Storage s1 = t1.storage();
-    c10::Storage s2 = t2.storage();            // s1 / s2 共享同一 StorageImpl
-   s1.set_data_ptr_noswap(new_alloc);
-   // t2.data_ptr() / s2.data() 立即看到相同的新地址
-   ```
-
 3. **phi::Allocation DataPtr 视图**：allocation-backed 路径中，`impl_->data_ptr_` 是对 `phi::Allocation` 的非拥有性视图（只含原始指针 + device，无 deleter），真实所有权由 `impl_->data_allocation_` 维护。
 
-4. **多卡 device index 保留**：`phi::GPUPlace(n)` 的 device id 为 `n`，通过 `phi::Place::GetDeviceId()` 可完整读回，因此 `DataPtr::device().index()` 在多卡场景下返回正确值。
+4. **use_count() 计算**：返回的计数已扣除 `StorageHolderView` 的内部 bookkeeping 引用，反映真实的 Storage 句柄数量。
+
+5. **多卡 device index 保留**：`phi::GPUPlace(n)` 的 device id 为 `n`，通过 `phi::Place::GetDeviceId()` 可完整读回，因此 `DataPtr::device().index()` 在多卡场景下返回正确值。
+
+---
+
+## 8. 参考代码路径
+
+| 文件 | 说明 |
+|------|------|
+| `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Storage.h` | Storage、StorageImpl、StorageHolderView 定义 |
+| `/home/may/Paddle/paddle/phi/api/include/compat/ATen/core/TensorBase.h` | TensorBase::storage() 实现 |
+| `/home/may/Paddle/test/cpp/compat/c10_storage_test.cc` | Storage 功能完整测试 |
+| `/home/may/Paddle/test/cpp/compat/ATen_from_blob_test.cc` | from_blob 相关测试 |
+| `/home/may/Paddle/test/cpp/compat/ATen_memory_test.cc` | 内存操作相关测试 |
