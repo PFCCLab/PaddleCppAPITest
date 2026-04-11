@@ -13,34 +13,68 @@ Paddle compat 层的目标是让 PyTorch 的 C++ API (`ATen`, `c10`) 能够在 P
 ### 1.1 核心组件关系图
 
 ```mermaid
-flowchart TD
-    subgraph WRAPPERS["at::TensorBase wrappers（value 语义）"]
-        W1["TensorBase t1\nstorage_ (shared_ptr<c10::Storage>)"]
-        W2["TensorBase t2 = t1\nstorage_ (same shared_ptr target)"]
-    end
+classDiagram
+    class TensorBase["at::TensorBase"] {
+      -PaddleTensor tensor_
+      -mutable std::shared_ptr<c10::Storage> storage_
+      +storage() const c10::Storage&
+      +has_storage() bool
+    }
 
-    subgraph STORAGE["c10::Storage handles"]
-        S1["Storage s1 (shared_ptr&lt;StorageImpl&gt;)"]
-        S2["Storage s2 (shared_ptr&lt;StorageImpl&gt;)"]
-    end
+    class PaddleTensor["paddle::Tensor"] {
+      -std::shared_ptr<phi::TensorBase> impl_
+    }
 
-    subgraph IMPL["c10::StorageImpl"]
-        SI["data_allocation_ / nbytes_ / data_ptr_ / place_"]
-        HV["StorageHolderView\nphi::Allocation adapter"]
-    end
+    class Storage["c10::Storage"] {
+      -std::shared_ptr<StorageImpl> impl_
+      +data_ptr() DataPtr&
+      +ensureTensorHolder() std::shared_ptr<phi::Allocation>
+    }
 
-    subgraph PHI["Paddle 内部"]
-        DT["phi::DenseTensor\nholder_ (shared_ptr&lt;phi::Allocation&gt;)"]
-        ALLOC["phi::Allocation\nptr_ / place_ / size_"]
-    end
+    class StorageImpl["c10::StorageImpl"] {
+      -std::shared_ptr<phi::Allocation> data_allocation_
+      -phi::Allocator* allocator_
+      -size_t nbytes_
+      -bool resizable_
+      -phi::Place place_
+      -DataPtr data_ptr_
+      -std::weak_ptr<StorageHolderView> tensor_holder_
+    }
 
-    W1 -->|"storage() returns const ref"| S1
-    W2 -->|"storage() returns const ref"| S2
-    S1 --> SI
-    S2 --> SI
-    SI --> ALLOC
-    SI --> HV
-    DT --> HV
+    class StorageHolderView["c10::StorageHolderView"] {
+      -std::shared_ptr<StorageImpl> impl_
+      +ptr() void*
+      +size() size_t
+      +place() const Place&
+    }
+
+    class DenseTensor["phi::DenseTensor"] {
+      -std::shared_ptr<phi::Allocation> holder_
+      +Holder() const std::shared_ptr<phi::Allocation>&
+      +ResetHolder(...)
+    }
+
+    class Allocation["phi::Allocation"] {
+      +ptr() void*
+      +size() size_t
+      +place() const Place&
+    }
+
+    class DataPtr["c10::DataPtr"] {
+      -UniqueVoidPtr ptr_
+      -phi::Place device_
+    }
+
+    TensorBase *-- PaddleTensor : tensor_
+    TensorBase o-- Storage : storage_ cache
+    PaddleTensor --> DenseTensor : impl() downcast
+    Storage *-- StorageImpl : impl_
+    StorageImpl *-- DataPtr : data_ptr_
+    StorageImpl o-- Allocation : data_allocation_
+    StorageHolderView --|> Allocation
+    StorageHolderView --> StorageImpl : impl_
+    DenseTensor o-- Allocation : holder_
+    DenseTensor o-- StorageHolderView : holder_ (compat path)
 ```
 
 ### 1.2 关键设计原则

@@ -20,34 +20,60 @@
 ### 1.1 核心组件关系图
 
 ```mermaid
-flowchart TD
-    subgraph ENTRY["入口"]
-        E1["Allocator::allocate()"]
-        E2["InefficientStdFunctionContext::makeDataPtr()"]
-        E3["Storage::viewDataPtrFrom(phi::Allocation)"]
-    end
+classDiagram
+    class DataPtr["c10::DataPtr"] {
+      -UniqueVoidPtr ptr_
+      -phi::Place device_
+      +get() void*
+      +mutable_get() void*
+      +get_context() void*
+      +release_context() void*
+      +device() Device
+    }
 
-    subgraph DP["c10::DataPtr"]
-        D["ptr_: UniqueVoidPtr\ndevice_: phi::Place"]
-    end
+    class UniqueVoidPtr["c10::detail::UniqueVoidPtr"] {
+      -void* data_
+      -std::unique_ptr<void, DeleterFnPtr> ctx_
+      +get() void*
+      +get_context() void*
+      +release_context() void*
+    }
 
-    subgraph UVP["c10::detail::UniqueVoidPtr"]
-        U["data_ (non-owning raw ptr)\nctx_ (unique_ptr<void, DeleterFnPtr>)"]
-    end
+    class Allocator["c10::Allocator"] {
+      <<abstract>>
+      +allocate(size_t n) DataPtr
+      +is_simple_data_ptr(const DataPtr& data_ptr) bool
+    }
 
-    subgraph UPPER["上层消费方"]
-        S["StorageImpl::data_ptr_"]
-        A["Allocator::clone()/raw_allocate()"]
-        T["Tensor / Storage / alias 判断"]
-    end
+    class InefficientStdFunctionContext["c10::InefficientStdFunctionContext"] {
+      -void* ptr_
+      -std::function deleter_
+      +makeDataPtr(void* ptr, std::function deleter, Device device) DataPtr
+    }
 
-    E1 --> D
-    E2 --> D
-    E3 --> D
-    D --> U
-    D --> S
-    D --> A
-    S --> T
+    class Storage["c10::Storage"] {
+      -std::shared_ptr<StorageImpl> impl_
+      +viewDataPtrFrom(const std::shared_ptr<phi::Allocation>& alloc) DataPtr
+    }
+
+    class StorageImpl["c10::StorageImpl"] {
+      -std::shared_ptr<phi::Allocation> data_allocation_
+      -DataPtr data_ptr_
+    }
+
+    class Allocation["phi::Allocation"] {
+      +ptr() void*
+      +size() size_t
+      +place() const Place&
+    }
+
+    Allocator --> DataPtr : allocate()
+    DataPtr *-- UniqueVoidPtr : ptr_
+    InefficientStdFunctionContext --> DataPtr : makeDataPtr()
+    Storage *-- StorageImpl : impl_
+    StorageImpl *-- DataPtr : data_ptr_
+    Storage --> Allocation : viewDataPtrFrom()
+    StorageImpl o-- Allocation : data_allocation_
 ```
 
 ### 1.2 关键设计原则

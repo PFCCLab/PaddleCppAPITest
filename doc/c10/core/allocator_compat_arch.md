@@ -19,46 +19,57 @@
 ### 1.1 核心组件关系图
 
 ```mermaid
-flowchart TD
-    subgraph API["用户 / Compat API"]
-        U1["allocate(size_t)"]
-        U2["clone(src, n)"]
-        U3["raw_allocate / raw_deallocate"]
-        U4["SetAllocator / GetAllocator"]
-    end
+classDiagram
+    class Allocator["c10::Allocator"] {
+      <<abstract>>
+      +allocate(size_t n) DataPtr
+      +clone(const void* data, size_t n) DataPtr
+      +raw_allocate(size_t n) void*
+      +raw_deallocate(void* ptr) void
+      +is_simple_data_ptr(const DataPtr& data_ptr) bool
+      +raw_deleter() DeleterFnPtr
+      +copy_data(void* dest, const void* src, size_t count) void
+    }
 
-    subgraph REG["Allocator Registry"]
-        R1["g_allocator_array[DeviceType]"]
-        R2["g_allocator_priority[DeviceType]"]
-        R3["REGISTER_ALLOCATOR / AllocatorRegisterer"]
-    end
+    class DataPtr["c10::DataPtr"] {
+      -UniqueVoidPtr ptr_
+      -phi::Place device_
+      +get() void*
+      +get_context() void*
+      +device() Device
+    }
 
-    subgraph ALLOC["c10::Allocator 实现类"]
-        A1["自定义 Allocator 子类"]
-        A2["copy_data() / raw_deleter() 策略"]
-    end
+    class UniqueVoidPtr["c10::detail::UniqueVoidPtr"] {
+      -void* data_
+      -std::unique_ptr<void, DeleterFnPtr> ctx_
+      +get() void*
+      +get_context() void*
+      +release_context() void*
+    }
 
-    subgraph DP["返回值契约"]
-        D1["c10::DataPtr"]
-        D2["UniqueVoidPtr\n(data / context / deleter)"]
-    end
+    class InefficientStdFunctionContext["c10::InefficientStdFunctionContext"] {
+      -void* ptr_
+      -std::function deleter_
+      +makeDataPtr(void* ptr, std::function deleter, Device device) DataPtr
+    }
 
-    subgraph CONSUMERS["消费方"]
-        C1["LibTorch 风格调用方"]
-        C2["Storage external DataPtr path"]
-        C3["测试 / 用户自定义内存包装"]
-    end
+    class AllocatorRegistry["allocator registry globals"] {
+      <<globals>>
+      -std::array<Allocator*> g_allocator_array
+      -std::array<uint8_t> g_allocator_priority
+      +SetAllocator(DeviceType t, Allocator* alloc, uint8_t priority) void
+      +GetAllocator(DeviceType t) Allocator*
+    }
 
-    U4 --> REG
-    REG --> A1
-    U1 --> A1
-    U2 --> A1
-    U3 --> A1
-    A1 --> D1
-    D1 --> D2
-    D1 --> C1
-    D1 --> C2
-    D1 --> C3
+    class AllocatorRegisterer["c10::AllocatorRegisterer<t>"] {
+      +AllocatorRegisterer(Allocator* alloc)
+    }
+
+    Allocator *-- DataPtr : allocate()/clone()
+    DataPtr *-- UniqueVoidPtr : ptr_
+    InefficientStdFunctionContext --> DataPtr : makeDataPtr()
+    AllocatorRegisterer --> AllocatorRegistry : SetAllocator()
+    AllocatorRegistry --> Allocator : stores pointer
 ```
 
 ### 1.2 关键设计原则
