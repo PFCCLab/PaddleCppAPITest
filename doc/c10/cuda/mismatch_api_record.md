@@ -3,22 +3,17 @@
 > Paddle 头文件：`c10/cuda/CUDAGuard.h`、`c10/cuda/CUDAStream.h`、`ATen/cuda/PhiloxCudaState.h`
 > 测试文件：`test/c10/cuda/CUDATest2.cpp`
 
-## 2026-04-02 CUDAStream review blocker 收敛（Paddle 内部 ctest 已验证）
+## 2026-04-04 Stream Pool 实现与 PyTorch 对齐
 
-### 本轮复核
+### 本轮修改
 
-| 测试项 | 当前 Paddle | PyTorch | 结论 |
-|--------|-------------|---------|------|
-| `getStreamFromPool(true)` | bool 重载恢复 `device_index = -1` 默认参数，不再静默落到 `int priority` 重载 | 同签名、同语义 | ✅ 已对齐 |
-| `CUDAStream::raw_stream()` legacy alias | 暂时保留，行为等价于 `stream()`，避免在本轮 misc apis 对齐里引入 breaking change | 上游无该旧入口 | ✅ compat surface 保持稳定 |
+按照 PyTorch 实现方式重写 Paddle Stream Pool：
 
-说明：
-
-- reviewer 指出的两个 blocker 都落在 `paddle/phi/api/include/compat/c10/cuda/CUDAStream.h`：
-  - `getStreamFromPool(const bool isHighPriority = false, DeviceIndex device_index = -1)` 的默认参数缺失会让 `getStreamFromPool(true)` 误绑到 `int` 重载，并错误返回低优先级 stream；
-  - `raw_stream()` 的删除属于 breaking change，应从本轮 “misc apis” 对齐范围中剥离。
-- Paddle 内部新增 `test/cpp/compat/c10_Stream_test.cc` 回归，直接覆盖 `getStreamFromPool(true)` 与 `raw_stream()`。
-- 验证来自 `/home/may/Paddle/build` 下的 `ninja -j16`、`ctest -R c10 --output-on-failure`、`ctest -R ATen --output-on-failure`，当前均通过。
+| 修改项 | 原实现 | 新实现 | 状态 |
+|--------|--------|--------|------|
+| Stream Pool 数据结构 | `struct StreamPoolState` 含高/低两档数组 | 三维数组 `[priority][device][idx]`，最多 4 档 | ✅ 已对齐 |
+| `getStreamFromPool(int, ...)` | 仅区分 `priority < 0` 高/`>= 0` 低 | `std::clamp(-priority, 0, 3)` 映射到多档 | ✅ 已对齐 |
+| `raw_stream()` | legacy alias 保留 | **已删除**（PyTorch 无此接口） | ✅ 已清理 |
 
 ---
 

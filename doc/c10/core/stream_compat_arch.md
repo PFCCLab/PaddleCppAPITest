@@ -18,40 +18,53 @@ graph TD
     end
 
     subgraph "兼容层核心类型"
-        S["c10::Stream\n(device + StreamId)\nStream.h / Stream.cpp"]
-        CS["c10::cuda::CUDAStream\n(CUDA 专用包装)\nCUDAStream.h"]
+        S["c10::Stream(device + StreamId)Stream.h / Stream.cpp"]
+        CS["c10::cuda::CUDAStream
+(CUDA 专用包装)
+CUDAStream.h / CUDAStream.cpp"]
     end
 
     subgraph "Stream ID 编码"
-        ENC["StreamId = reinterpret_cast&lt;intptr_t&gt;(cudaStream_t)\nid=0 ↔ cudaStreamDefault（null stream）\nid≠0 ↔ 实际 CUDA stream 句柄"]
+        ENC["StreamId = reinterpret_cast&lt;intptr_t&gt;(cudaStream_t)
+id=0 ↔ cudaStreamDefault（null stream）
+id≠0 ↔ 实际 CUDA stream 句柄"]
     end
 
     subgraph "线程局部状态（TLS）"
-        TLS["detail::TLSStreamState\n  cudaStream_t streams[kMaxDevices=64]\n  bool has_stream[kMaxDevices]\n线程本地，不影响其他线程"]
+        TLS["thread_local std::vector&lt;cudaStream_t&gt; tls_current_streams
+按线程独立存储当前流
+未设置时返回 default stream"]
     end
 
     subgraph "流池（Stream Pool）"
-        POOL["detail::StreamPoolState[kMaxDevices]\n  low_priority[32] / high_priority[32]\n  懒初始化（std::call_once）\n  round-robin 原子计数器分配"]
+        POOL["std::vector&lt;std::unique_ptr&lt;DevicePools&gt;&gt; g_pools
+  low_priority[32] / high_priority[32]
+  懒初始化（std::call_once）
+  round-robin 原子计数器分配
+  运行时按实际 GPU 数量动态分配"]
     end
 
     subgraph "Paddle phi 层"
-        PHI["phi::backends::gpu::GetCurrentDeviceId()\nphi::GPUPlace(device_index)\nphi::CUDAStream / cudaStream_t"]
+        PHI["phi::backends::gpu::GetCurrentDeviceId()
+phi::GPUPlace(device_index)
+phi::CUDAStream / cudaStream_t"]
         MEM["paddle::memory::RecordStream(holder, stream)"]
     end
 
     U1 --> S
     U2 --> CS
     CS --> |"unwrap() → c10::Stream"| S
-    S --> |"native_handle()\nreinterpret_cast"| PHI
+    S --> |"native_handle()
+reinterpret_cast"| PHI
     PHI --> MEM
 
     U3 --> TLS
-    TLS --> |"has_stream=true: 返回 TLS 中的流"| CS
-    TLS --> |"has_stream=false: 回退"| PHI
+    TLS --> CS
 
     U4 --> TLS
 
-    U5 --> |"始终返回 id=0\n(cudaStreamDefault)"| CS
+    U5 --> |"始终返回 id=0
+(cudaStreamDefault)"| CS
 
     U6 --> POOL
     POOL --> CS
@@ -68,7 +81,7 @@ graph TD
 
 | 函数 | 语义 | 返回值 |
 |------|------|--------|
-| `getCurrentCUDAStream(dev)` | per-thread per-device 当前流 | TLS 中的流，或 Paddle phi 默认流（若未设置） |
+| `getCurrentCUDAStream(dev)` | per-thread per-device 当前流 | TLS 中的流，若未设置则回退到 default stream |
 | `getDefaultCUDAStream(dev)` | 设备固定默认流 | 始终为 null stream（id=0，`cudaStreamDefault`） |
 
 这与 PyTorch 语义完全一致：`getCurrentCUDAStream()` 可变（通过 `setCurrentCUDAStream()` 修改），`getDefaultCUDAStream()` 固定不变。
@@ -96,21 +109,21 @@ cudaStream_t handle = reinterpret_cast<cudaStream_t>(static_cast<intptr_t>(id));
 
 **PyTorch 做法**：有独立的 CUDA 设备跟踪机制（`c10::cuda::current_device()` 内部维护自己的状态）。
 
-**Paddle 做法**：通过 `phi::backends::gpu::GetCurrentDeviceId()` 和 `phi::GPUPlace` 获取当前设备，通过 `paddle::GetCurrentCUDAStream(phi::GPUPlace)` 获取 Paddle 侧管理的 phi 流。
+**Paddle 做法**：通过 `phi::backends::gpu::GetCurrentDeviceId()` 和 `phi::GPUPlace` 获取当前设备。
 
-**必要性**：Paddle 的设备管理和流管理由 `phi` 层统一负责，兼容层必须调用 `phi` 层接口才能与 Paddle 的执行引擎协同。直接访问底层 CUDA API 会绕过 Paddle 的流生命周期管理。
+**必要性**：Paddle 的设备管理由 `phi` 层统一负责，兼容层必须调用 `phi` 层接口才能与 Paddle 的执行引擎协同。直接访问底层 CUDA API 会绕过 Paddle 的流生命周期管理。
 
-### 2. TLS 使用静态数组而非动态结构
+### 2. 流池动态分配
 
-**PyTorch 做法**：内部有完整的 `StreamGuard`/`CUDAGuard` 基础设施，stream 状态存储在更复杂的 per-thread 结构中。
+**PyTorch 做法**：内部使用编译时固定大小的 `std::array`（`C10_COMPILE_TIME_MAX_GPUS`）。
 
-**Paddle 做法**：使用固定大小静态数组（`kMaxDevices=64`）+ `has_stream[device_index]` 标志位，不引入额外依赖。
+**Paddle 做法**：使用 `std::vector<std::unique_ptr<DevicePools>>`，在运行时按实际 GPU 数量动态分配。
 
-**必要性**：减少对 Paddle 内部基础设施的侵入性依赖，保持兼容层轻量独立。代价是设备数上限为 64（覆盖当前所有 CUDA 硬件）。
+**必要性**：Paddle 没有 `C10_COMPILE_TIME_MAX_GPUS` 宏，且无需预先分配固定大小的全局数组。动态分配更轻量，也避免了编译时对最大设备数的硬编码限制。
 
 ### 3. 流池按设备懒初始化
 
-**PyTorch 做法**：有全局 `initCUDAStreamsOnce()` 一次性初始化所有设备的流池。
+**PyTorch 做法**：全局 `initCUDAStreamsOnce()` 一次性初始化，之后通过固定数组访问。
 
 **Paddle 做法**：每个设备的流池通过 `std::call_once` 在首次使用时独立初始化。
 
