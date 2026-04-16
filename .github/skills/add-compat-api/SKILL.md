@@ -62,8 +62,7 @@ ctest -R "ATen|c10|torch"
 ### Step 5. 安装新 wheel
 
 ```bash
-pip uninstall paddlepaddle-gpu -y
-pip install "$PADDLE_ROOT"/build/python/dist/*.whl
+pip install "$PADDLE_ROOT"/build/python/dist/*.whl --force-reinstall --no-deps
 ```
 
 ### Step 6. 回到 PaddleCppAPITest 复编并复测
