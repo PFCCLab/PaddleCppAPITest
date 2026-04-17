@@ -134,6 +134,29 @@
 
 ---
 
+## 2026-04-17 Event 历史归档测试删除
+
+### 本轮复核
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `EventCompatTest.EventDefault` / `EventWithFlag` / `EventRecordThrows` / `EventRecordOnceThrows` / `EventMove` / `EventDevice` | 重新定向执行 `./build/paddle/paddle_EventCompatTest` 与 `./build/torch/torch_EventCompatTest`，结果文件 `diff` 无差异 | 一致 | ✅ 持续对齐 |
+
+说明：
+
+- `test/c10/core/unmatch_EventTest.cpp` 只是历史差异记录文件，且按 `CMakeLists.txt` 规则不会进入常规构建或 `result_cmp`。
+- 当前 Event 回归已完全由 `test/c10/core/EventCompatTest.cpp` 承担；本轮删除 `unmatch_EventTest.cpp`，避免仓库继续保留已失效的“未对齐”暗示。
+- `c10::EventPool` 仍为 Paddle 私有扩展，无对应 libtorch API，因此继续不纳入跨库回归。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/c10/core/unmatch_EventTest.cpp` - 删除已失效的历史归档测试文件
+- `/home/may/PaddleCppAPITest/test/c10/core/EventCompatTest.cpp` - 更新文件头注释
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 更新 Event 详细记录
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 更新顶层汇总
+
+---
+
 ## 2026-04-02 Event 语义补齐（Paddle 内部 ctest）
 
 ### 本轮复核
@@ -172,7 +195,7 @@
 说明：
 
 - 原 `test/c10/core/unmatch_EventTest.cpp` 中记录的历史差异（条件编译包裹、构造函数缺少 `EventFlag`、非 CUDA 构建下 `c10::Event` 不可用）当前 compat 实现已与 PyTorch 对齐。
-- `c10::EventPool` 为 Paddle 私有扩展，不纳入跨库对齐测试；原 `unmatch_EventTest.cpp` 保留为历史归档。
+- `c10::EventPool` 为 Paddle 私有扩展，不纳入跨库对齐测试；对应历史归档文件已在 2026-04-17 删除。
 - 详细记录见 [doc/c10/core/mismatch_api_record.md](/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md)。
 
 ### 本轮修改文件

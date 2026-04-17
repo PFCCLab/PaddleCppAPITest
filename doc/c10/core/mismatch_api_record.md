@@ -1,3 +1,26 @@
+## 2026-04-17 Event 历史归档测试删除
+
+### 本轮复核
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `EventCompatTest.EventDefault` / `EventWithFlag` / `EventRecordThrows` / `EventRecordOnceThrows` / `EventMove` / `EventDevice` | 重新定向执行 `./build/paddle/paddle_EventCompatTest` 与 `./build/torch/torch_EventCompatTest`，结果文件 `diff` 无差异 | 一致 | ✅ 持续对齐 |
+
+说明：
+
+- `test/c10/core/unmatch_EventTest.cpp` 本身仍只是在记录历史差异，且按 `CMakeLists.txt` 中的 `unmatch_*.cpp` 过滤规则并不会参与常规构建或 `result_cmp`。
+- 本轮已再次确认真正承担回归职责的是 `test/c10/core/EventCompatTest.cpp`，因此删除 `test/c10/core/unmatch_EventTest.cpp`，避免“已对齐但仍保留旧 unmatch 文件”造成误导。
+- `c10::EventPool` 仍属于 Paddle 私有扩展，无对应 libtorch API，继续不纳入跨库对齐测试。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/c10/core/unmatch_EventTest.cpp` - 删除已失效的历史归档测试文件
+- `/home/may/PaddleCppAPITest/test/c10/core/EventCompatTest.cpp` - 更新文件头注释，说明旧归档文件已删除
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 增补本轮复核与删除结论
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 同步顶层汇总
+
+---
+
 ## 2026-04-05 TensorOptions Mac-CPU 编译修复（Paddle 内部 ctest 已验证）
 
 ### 本轮修复
@@ -67,7 +90,7 @@
 说明：
 
 - 原 `test/c10/core/unmatch_EventTest.cpp` 中记录的历史差异（`#include <c10/core/Event.h>` 被 `#ifndef USE_PADDLE_API` 包裹、`c10::Event` 缺少 `EventFlag` 构造函数、非 CUDA 构建下 `c10::Event` 不可用）当前 compat 实现已与 PyTorch 对齐。
-- `c10::EventPool` 属于 Paddle 私有扩展，无对应 libtorch API，不纳入跨库对齐测试；原 `unmatch_EventTest.cpp` 保留为历史归档。
+- `c10::EventPool` 属于 Paddle 私有扩展，无对应 libtorch API，不纳入跨库对齐测试；对应历史归档文件已在 2026-04-17 删除。
 - 上述可对齐差异点已通过新建 `EventCompatTest.cpp` 的方式纳入常规回归；`EventCompatTest` 当前在 `result_cmp` 中已完全 `MATCH`。
 
 ### 本轮修改文件
