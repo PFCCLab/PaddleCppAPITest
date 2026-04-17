@@ -113,7 +113,6 @@ TEST_F(ScalarTypeTest, IsSigned) {
 
 // 测试 c10::toString
 TEST_F(ScalarTypeTest, ToString) {
-  // [DIFF] 用例级差异：部分枚举值在不同实现中的字符串映射与可用性存在偏差。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
