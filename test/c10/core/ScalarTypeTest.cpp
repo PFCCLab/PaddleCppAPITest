@@ -165,9 +165,8 @@ TEST_F(ScalarTypeTest, ElementSize) {
   file << std::to_string(c10::elementSize(c10::ScalarType::Bool)) << " ";  // 1
   file << std::to_string(c10::elementSize(c10::ScalarType::BFloat16))
        << " ";  // 2
-#ifndef USE_PADDLE_API
   // [DIFF] 问题行：该分支中的 QInt/UInt 相关 API 在 Paddle
-  // 侧不完整或行为不一致， 因此只能在 Torch 路径执行。
+  // 侧长期缺失；本轮恢复双端对齐测试，直接暴露 compat 缺口。
   file << std::to_string(c10::elementSize(c10::ScalarType::QInt8)) << " ";  // 1
   file << std::to_string(c10::elementSize(c10::ScalarType::QUInt8))
        << " ";  // 1
@@ -179,7 +178,6 @@ TEST_F(ScalarTypeTest, ElementSize) {
        << " ";  // 4
   file << std::to_string(c10::elementSize(c10::ScalarType::UInt64))
        << " ";  // 8
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -223,8 +221,6 @@ TEST_F(ScalarTypeTest, IsIntegralType) {
   file << "\n";
   file.saveFile();
 }
-
-#ifndef USE_PADDLE_API
 
 // 测试 c10::isFloat8Type
 TEST_F(ScalarTypeTest, IsFloat8Type) {
@@ -619,8 +615,6 @@ TEST_F(ScalarTypeTest, NumScalarTypes) {
   file << "\n";
   file.saveFile();
 }
-
-#endif  // USE_PADDLE_API
 
 }  // namespace test
 }  // namespace at
