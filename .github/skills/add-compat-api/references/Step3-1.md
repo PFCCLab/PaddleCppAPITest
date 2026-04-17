@@ -1,6 +1,6 @@
 # Step 3 参考：从声明追踪到 PyTorch 实现
 
-本文用于展开 add-compat-api 中的 Step 3。
+本文用于补充 Step 3 的第 1 步：从声明追踪到 PyTorch 实现。
 
 ## 第1步：先在 libtorch 查声明，再定位真实实现
 
