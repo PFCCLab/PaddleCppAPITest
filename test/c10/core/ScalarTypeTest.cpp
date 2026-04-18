@@ -27,9 +27,6 @@ class ScalarTypeTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
-// [DIFF] 文件级说明：ScalarType 家族在 Paddle/Torch
-// 的枚举覆盖与工具函数可用性不完全一致。
-
 // 测试 is_complex
 TEST_F(ScalarTypeTest, IsComplex) {
   auto file_name = g_custom_param.get();
@@ -164,9 +161,7 @@ TEST_F(ScalarTypeTest, ElementSize) {
        << " ";                                                             // 16
   file << std::to_string(c10::elementSize(c10::ScalarType::Bool)) << " ";  // 1
   file << std::to_string(c10::elementSize(c10::ScalarType::BFloat16))
-       << " ";  // 2
-  // [DIFF] 问题行：该分支中的 QInt/UInt 相关 API 在 Paddle
-  // 侧长期缺失；本轮恢复双端对齐测试，直接暴露 compat 缺口。
+       << " ";                                                              // 2
   file << std::to_string(c10::elementSize(c10::ScalarType::QInt8)) << " ";  // 1
   file << std::to_string(c10::elementSize(c10::ScalarType::QUInt8))
        << " ";  // 1

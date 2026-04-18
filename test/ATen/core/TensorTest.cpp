@@ -35,9 +35,6 @@ class TensorTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
-// [DIFF] 文件级说明：Tensor API 覆盖面广，涉及
-// device/cuda/meta/index/统计等大量边界语义差异。
-
 TEST_F(TensorTest, ConstructFromPaddleTensor) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
@@ -308,7 +305,6 @@ std::string GetTestCaseResultFileName() {
 
 // 测试 cuda
 TEST_F(TensorTest, CudaResult) {
-  // [DIFF] 用例级差异：cuda() 在无 CUDA 或后端实现差异下返回/异常语义不同。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -331,8 +327,6 @@ TEST_F(TensorTest, CudaResult) {
 
 // 测试 record_stream
 TEST_F(TensorTest, RecordStreamResult) {
-  // [DIFF] 用例级差异：record_stream
-  // 参数类型与可用性在两端不一致；本轮恢复真实调用路径。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -699,7 +693,8 @@ TEST_F(TensorTest, ToScalarType) {
 
 // 测试 meta
 TEST_F(TensorTest, MetaMethod) {
-  // [DIFF] 用例级差异：meta() 在两端能力面不同，此处按失败路径记录差异。
+  // [DIFF] Paddle 没有 meta 设备，也不对齐 Tensor::meta() 语义；
+  // 该用例保留为已知剩余差异。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

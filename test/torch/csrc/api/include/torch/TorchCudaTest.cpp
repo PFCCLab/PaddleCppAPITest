@@ -19,12 +19,8 @@ class TorchCudaTest : public ::testing::Test {
   void SetUp() override {}
 };
 
-// [DIFF] 文件级说明：CUDA 可用性判定与运行时依赖在不同构建形态下差异较大，
-// 同一测试在无 GPU 或 CUDA 版本不一致时会出现不可对齐输出。
-
 // device_count
 TEST_F(TorchCudaTest, DeviceCount) {
-  // [DIFF] 用例级差异：device_count 在不同后端/构建下可能抛异常或返回 0。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.createFile();
@@ -109,8 +105,6 @@ TEST_F(TorchCudaTest, AtCudaNamespace) {
 
 // synchronize（仅在 CUDA 可用时有意义）
 TEST_F(TorchCudaTest, Synchronize) {
-  // [DIFF] 用例级差异：synchronize 强依赖可用 CUDA
-  // stream，上下文差异会直接影响结果。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

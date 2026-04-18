@@ -70,10 +70,6 @@ TEST_F(EqualTest, NotEqualShape) {
   file.saveFile();
 }
 
-// [DIFF] Test paddle equal exception when comparing tensors of different types
-// Torch returns false without checking specific data types, whereas Paddle
-// throws: "The type of data we are trying to retrieve (int32) does not match
-// the type of data (float32)..."
 TEST_F(EqualTest, NotEqualDtype) {
   at::Tensor t1 = at::zeros({4}, at::kFloat);
   at::Tensor t2 = at::zeros({4}, at::kInt);

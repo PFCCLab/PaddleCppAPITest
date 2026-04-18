@@ -40,9 +40,6 @@ class TensorAccessorTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
-// [DIFF] 文件级说明：TensorAccessor/packed accessor
-// 在两端的接口族与边界行为存在稳定差异。
-
 // 测试 packed_accessor32
 TEST_F(TensorAccessorTest, PackedAccessor32) {
   auto file_name = g_custom_param.get();
@@ -93,8 +90,6 @@ TEST_F(TensorAccessorTest, GenericPackedAccessor) {
 
 // 测试 deprecated packed_accessor
 TEST_F(TensorAccessorTest, PackedAccessorDeprecated) {
-  // [DIFF] 用例级差异：deprecated packed_accessor
-  // 在不同实现中的行为与兼容承诺不一致；本轮恢复真实对比路径。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -199,8 +194,6 @@ TEST_F(TensorAccessorTest, TensorAccessorConstData) {
 
 // 测试 TensorAccessor 在非连续 tensor 上的行为 (应该失败)
 TEST_F(TensorAccessorTest, TensorAccessorNonContiguous) {
-  // [DIFF] 用例级差异：非连续 tensor 的 accessor
-  // 行为历史上被绕开；本轮直接恢复真实 accessor 访问。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -458,8 +451,6 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorDirect) {
   file << std::to_string(accessor.data()[0]) << " ";
   file << std::to_string(accessor.data()[7]) << " ";
 
-  // [DIFF] operator[] 在该路径上返回层级类型存在实现差异，
-  // 本轮恢复真实 operator[] 访问结果。
   file << std::to_string(accessor[0][0][0]) << " ";
   file << std::to_string(accessor[1][1][1]) << " ";
 
@@ -481,8 +472,6 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessorTranspose) {
   at::GenericPackedTensorAccessor<float, 3, at::DefaultPtrTraits, int64_t>
       accessor(data, sizes, strides);
 
-  // [DIFF] compat 头文件中 transpose 依赖的边界检查宏在两端展开不一致。
-  // 本轮恢复真实 transpose 路径。
   auto transposed = accessor.transpose(0, 2);
   file << std::to_string(transposed.size(0)) << " ";
   file << std::to_string(transposed.size(1)) << " ";
@@ -519,8 +508,6 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessor1D) {
   file << std::to_string(accessor.data()[0]) << " ";
   file << std::to_string(accessor.data()[4]) << " ";
 
-  // [DIFF] 该路径在两端对 1 维 operator[] 返回类型不完全一致，
-  // 本轮恢复真实 operator[] 读写。
   file << std::to_string(accessor[0]) << " ";
   accessor[2] = 99.0f;
   file << std::to_string(accessor[2]) << " ";
@@ -651,7 +638,6 @@ TEST_F(TensorAccessorTest, ConstGenericPackedTensorAccessor) {
   file << std::to_string(accessor.data()[0]) << " ";
   file << std::to_string(accessor.data()[3]) << " ";
 
-  // [DIFF] 与上文一致，本轮恢复 const operator[] 路径。
   file << std::to_string(accessor[0][0]) << " ";
   file << std::to_string(accessor[1][1]) << " ";
 
@@ -697,7 +683,6 @@ TEST_F(TensorAccessorTest, GenericPackedTensorAccessor1DTranspose) {
   at::GenericPackedTensorAccessor<float, 1, at::DefaultPtrTraits, int64_t>
       accessor(data, sizes, strides);
 
-  // [DIFF] 与 transpose 用例同理，本轮恢复 1D transpose 实例化路径。
   auto transposed = accessor.transpose(0, 0);
   file << std::to_string(transposed.size(0)) << " ";
   file << std::to_string(transposed.stride(0)) << " ";
