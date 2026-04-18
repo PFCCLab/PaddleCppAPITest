@@ -39,6 +39,7 @@ function(ExternalProject repourl tag destination)
                -DCMAKE_CXX_STANDARD=17
     PREFIX "${destination}"
     INSTALL_DIR "${destination}"
+    UPDATE_COMMAND ""
     INSTALL_COMMAND "${CMAKE_COMMAND}" --install "<BINARY_DIR>" --prefix
                     "${destination}")
 endfunction()

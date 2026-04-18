@@ -3,8 +3,8 @@
  * @brief: c10::Event 跨库对齐回归测试
  *
  * 覆盖 c10::Event 的核心构造、属性访问与异常行为。
- * 原 unmatch_EventTest.cpp 中记录的历史差异（条件编译包裹、构造函数缺少
- * EventFlag、非 CUDA 构建下 Event 不可用）已通过对齐 Paddle compat 的
+ * 原已删除的 unmatch_EventTest.cpp 中记录的历史差异（条件编译包裹、构造函数
+ * 缺少 EventFlag、非 CUDA 构建下 Event 不可用）已通过对齐 Paddle compat 的
  * c10/core/Event.h 解决，本文件作为常规回归测试纳入 result_cmp。
  *
  * 说明：libtorch 的 CPU backend 不支持 events，因此 CPU 设备上调用 record()

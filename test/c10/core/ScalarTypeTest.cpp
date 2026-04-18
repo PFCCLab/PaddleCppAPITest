@@ -27,9 +27,6 @@ class ScalarTypeTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
-// [DIFF] 文件级说明：ScalarType 家族在 Paddle/Torch
-// 的枚举覆盖与工具函数可用性不完全一致。
-
 // 测试 is_complex
 TEST_F(ScalarTypeTest, IsComplex) {
   auto file_name = g_custom_param.get();
@@ -113,7 +110,6 @@ TEST_F(ScalarTypeTest, IsSigned) {
 
 // 测试 c10::toString
 TEST_F(ScalarTypeTest, ToString) {
-  // [DIFF] 用例级差异：部分枚举值在不同实现中的字符串映射与可用性存在偏差。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();
@@ -165,10 +161,7 @@ TEST_F(ScalarTypeTest, ElementSize) {
        << " ";                                                             // 16
   file << std::to_string(c10::elementSize(c10::ScalarType::Bool)) << " ";  // 1
   file << std::to_string(c10::elementSize(c10::ScalarType::BFloat16))
-       << " ";  // 2
-#ifndef USE_PADDLE_API
-  // [DIFF] 问题行：该分支中的 QInt/UInt 相关 API 在 Paddle
-  // 侧不完整或行为不一致， 因此只能在 Torch 路径执行。
+       << " ";                                                              // 2
   file << std::to_string(c10::elementSize(c10::ScalarType::QInt8)) << " ";  // 1
   file << std::to_string(c10::elementSize(c10::ScalarType::QUInt8))
        << " ";  // 1
@@ -180,7 +173,6 @@ TEST_F(ScalarTypeTest, ElementSize) {
        << " ";  // 4
   file << std::to_string(c10::elementSize(c10::ScalarType::UInt64))
        << " ";  // 8
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -224,8 +216,6 @@ TEST_F(ScalarTypeTest, IsIntegralType) {
   file << "\n";
   file.saveFile();
 }
-
-#ifndef USE_PADDLE_API
 
 // 测试 c10::isFloat8Type
 TEST_F(ScalarTypeTest, IsFloat8Type) {
@@ -620,8 +610,6 @@ TEST_F(ScalarTypeTest, NumScalarTypes) {
   file << "\n";
   file.saveFile();
 }
-
-#endif  // USE_PADDLE_API
 
 }  // namespace test
 }  // namespace at

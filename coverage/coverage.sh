@@ -17,8 +17,8 @@
 set -xe
 
 ROOT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}")/../" && pwd )"
-BUILD_PATH=${2:-$ROOT_PATH/../build}
-OUTOUT_DIR=${BASH_SOURCE[0]}
+BUILD_PATH=${2:-$ROOT_PATH/build}
+OUTOUT_DIR=$ROOT_PATH/coverage
 echo $BUILD_PATH
 function lcov_init(){
     # install lcov
@@ -37,7 +37,7 @@ function lcov_init(){
 function gen_cpp_covinfo(){
     # run paddle coverage
     cd $BUILD_PATH
-    lcov --capture -d ${OUTOUT_DIR} -o coverage.info --rc branch_coverage=0 --ignore-errors inconsistent --ignore-errors source
+    lcov --capture -d ${BUILD_PATH} -o coverage.info --rc branch_coverage=0 --ignore-errors inconsistent,source,mismatch,gcov
 }
 
 gen_cpp_covinfo

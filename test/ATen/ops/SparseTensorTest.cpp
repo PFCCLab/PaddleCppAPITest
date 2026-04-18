@@ -109,7 +109,6 @@ TEST_F(SparseTensorTest, SparseCOOWithOptions) {
 }
 
 // COO 无 size 重载 (推断 size)
-// [DIFF] PyTorch输出: 2 2 2, Paddle输出: 0 2 2 (推断的size第一个维度为0)
 TEST_F(SparseTensorTest, SparseCOOInferSize) {
   auto idx_data = create_tensor_from_list({0L, 1L, 2L, 1L, 2L, 0L});
   at::Tensor indices = idx_data.reshape({2, 3});

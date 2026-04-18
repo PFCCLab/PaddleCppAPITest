@@ -6,6 +6,8 @@
 #include <ATen/ops/new_zeros.h>
 #include <ATen/ops/ones.h>
 #include <ATen/ops/resize.h>
+#include <c10/core/Stream.h>
+#include <c10/cuda/CUDAStream.h>
 #include <gtest/gtest.h>
 #include <torch/all.h>
 
@@ -32,9 +34,6 @@ class TensorTest : public ::testing::Test {
 
   at::Tensor tensor;
 };
-
-// [DIFF] 文件级说明：Tensor API 覆盖面广，涉及
-// device/cuda/meta/index/统计等大量边界语义差异。
 
 TEST_F(TensorTest, ConstructFromPaddleTensor) {
   auto file_name = g_custom_param.get();
@@ -306,8 +305,8 @@ std::string GetTestCaseResultFileName() {
 
 // 测试 cuda
 TEST_F(TensorTest, CudaResult) {
-  // [DIFF] 用例级差异：cuda() 在无 CUDA 或后端实现差异下返回/异常语义不同。
-  FileManerger file(GetTestCaseResultFileName());
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
   file.openAppend();
   file << "CudaResult ";
   try {
@@ -328,14 +327,20 @@ TEST_F(TensorTest, CudaResult) {
 
 // 测试 record_stream
 TEST_F(TensorTest, RecordStreamResult) {
-  // [DIFF] 用例级差异：record_stream
-  // 参数类型与可用性在两端不一致，当前仅做占位输出。
-  FileManerger file(GetTestCaseResultFileName());
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
   file.openAppend();
   file << "RecordStreamResult ";
-  // 覆盖率识别标记：不同兼容层对 stream 参数类型不一致。
-  // cuda_tensor.record_stream(stream);
-  file << "0 ";
+  try {
+    at::Tensor cuda_tensor = tensor.cuda();
+    at::Stream stream = c10::cuda::getCurrentCUDAStream(0);
+    cuda_tensor.record_stream(stream);
+    file << "1 ";
+  } catch (const std::exception&) {
+    file << "0 ";
+  } catch (...) {
+    file << "0 ";
+  }
   file << "\n";
   file.saveFile();
 }
@@ -688,11 +693,23 @@ TEST_F(TensorTest, ToScalarType) {
 
 // 测试 meta
 TEST_F(TensorTest, MetaMethod) {
-  // [DIFF] 用例级差异：meta() 在两端能力面不同，此处按失败路径记录差异。
-  FileManerger file(GetTestCaseResultFileName());
+  // [DIFF] Paddle 没有 meta 设备，也不对齐 Tensor::meta() 语义；
+  // 该用例保留为已知剩余差异。
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
   file.openAppend();
   file << "MetaMethod ";
-  file << "0 ";  // meta() not supported, should throw
+  try {
+    at::Tensor meta_tensor = tensor.meta();
+    file << "1 ";
+    file << std::to_string(static_cast<int>(meta_tensor.device().type()))
+         << " ";
+    file << std::to_string(meta_tensor.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "0 ";
+  } catch (...) {
+    file << "0 ";
+  }
   file << "\n";
   file.saveFile();
 }

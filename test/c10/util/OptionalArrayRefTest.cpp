@@ -79,6 +79,8 @@ TEST_F(OptionalArrayRefTest, FromVector) {
 }
 
 // 从 initializer_list 构造
+// DIFF: initializer_list 构造涉及临时对象，输出的元素值为内存地址
+// 仅保留 has_value 和 size 的稳定输出
 TEST_F(OptionalArrayRefTest, FromInitializerList) {
   c10::OptionalArrayRef<int64_t> arr({1, 2, 3, 4});
   auto file_name = g_custom_param.get();
@@ -87,9 +89,7 @@ TEST_F(OptionalArrayRefTest, FromInitializerList) {
   file << "FromInitializerList ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
+  // 不输出元素值，因为涉及临时对象内存地址
   file << "\n";
   file.saveFile();
 }
@@ -107,7 +107,7 @@ TEST_F(OptionalArrayRefTest, FromOptionalArrayRef) {
   file << "FromOptionalArrayRef ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  file << std::to_string(arr->front()) << " ";
+  // 不输出 front()，因为是悬空引用的随机值
   file << "\n";
   file.saveFile();
 }
@@ -160,6 +160,8 @@ TEST_F(OptionalArrayRefTest, BoolOperator) {
 }
 
 // value() 方法
+// DIFF: 涉及临时对象，front()/back() 输出内存地址
+// 仅保留 size 的稳定输出
 TEST_F(OptionalArrayRefTest, ValueMethod) {
   c10::OptionalArrayRef<int64_t> arr({7, 8, 9});
   auto file_name = g_custom_param.get();
@@ -168,13 +170,14 @@ TEST_F(OptionalArrayRefTest, ValueMethod) {
   file << "ValueMethod ";
   auto& ref = arr.value();
   file << std::to_string(ref.size()) << " ";
-  file << std::to_string(ref.front()) << " ";
-  file << std::to_string(ref.back()) << " ";
+  // 不输出 front()/back()，因为是临时对象内存地址
   file << "\n";
   file.saveFile();
 }
 
 // value() const& 重载
+// DIFF: 涉及临时对象，front()/back() 输出内存地址
+// 仅保留 size 的稳定输出
 TEST_F(OptionalArrayRefTest, ValueMethodConstLValue) {
   const c10::OptionalArrayRef<int64_t> arr({11, 12, 13});
   auto file_name = g_custom_param.get();
@@ -183,13 +186,14 @@ TEST_F(OptionalArrayRefTest, ValueMethodConstLValue) {
   file << "ValueMethodConstLValue ";
   const auto& ref = arr.value();
   file << std::to_string(ref.size()) << " ";
-  file << std::to_string(ref.front()) << " ";
-  file << std::to_string(ref.back()) << " ";
+  // 不输出 front()/back()，因为是临时对象内存地址
   file << "\n";
   file.saveFile();
 }
 
 // value() && 重载
+// DIFF: 涉及临时对象，front()/back() 输出内存地址
+// 仅保留 size 的稳定输出
 TEST_F(OptionalArrayRefTest, ValueMethodRValue) {
   c10::OptionalArrayRef<int64_t> arr({21, 22, 23});
   auto file_name = g_custom_param.get();
@@ -198,13 +202,14 @@ TEST_F(OptionalArrayRefTest, ValueMethodRValue) {
   file << "ValueMethodRValue ";
   auto&& ref = std::move(arr).value();
   file << std::to_string(ref.size()) << " ";
-  file << std::to_string(ref.front()) << " ";
-  file << std::to_string(ref.back()) << " ";
+  // 不输出 front()/back()，因为是临时对象内存地址
   file << "\n";
   file.saveFile();
 }
 
 // value() const&& 重载
+// DIFF: 涉及临时对象，front()/back() 输出内存地址
+// 仅保留 size 的稳定输出
 TEST_F(OptionalArrayRefTest, ValueMethodConstRValue) {
   const c10::OptionalArrayRef<int64_t> arr({31, 32, 33});
   auto file_name = g_custom_param.get();
@@ -213,8 +218,7 @@ TEST_F(OptionalArrayRefTest, ValueMethodConstRValue) {
   file << "ValueMethodConstRValue ";
   auto&& ref = std::move(arr).value();
   file << std::to_string(ref.size()) << " ";
-  file << std::to_string(ref.front()) << " ";
-  file << std::to_string(ref.back()) << " ";
+  // 不输出 front()/back()，因为是临时对象内存地址
   file << "\n";
   file.saveFile();
 }
@@ -291,9 +295,7 @@ TEST_F(OptionalArrayRefTest, EmplaceMethod) {
   arr.emplace(std::initializer_list<int64_t>{1, 2, 3, 4});
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
+  // 不遍历输出元素，因为是悬空引用的随机值
   file << "\n";
   file.saveFile();
 }
@@ -358,6 +360,8 @@ TEST_F(OptionalArrayRefTest, EqualityOperator) {
 }
 
 // OptionalIntArrayRef 别名测试
+// DIFF: 涉及临时对象，元素输出为内存地址
+// 仅保留 has_value 和 size 的稳定输出
 TEST_F(OptionalArrayRefTest, OptionalIntArrayRef) {
   c10::OptionalIntArrayRef arr({10, 20, 30});
   auto file_name = g_custom_param.get();
@@ -366,14 +370,14 @@ TEST_F(OptionalArrayRefTest, OptionalIntArrayRef) {
   file << "OptionalIntArrayRef ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (size_t i = 0; i < arr->size(); ++i) {
-    file << std::to_string((*arr)[i]) << " ";
-  }
+  // 不输出元素值，因为是临时对象内存地址
   file << "\n";
   file.saveFile();
 }
 
 // float 类型 OptionalArrayRef
+// DIFF: 涉及临时对象，元素输出为悬空引用的随机值或零符号差异
+// 仅保留 has_value 和 size 的稳定输出
 TEST_F(OptionalArrayRefTest, FloatOptionalArrayRef) {
   c10::OptionalArrayRef<float> arr({1.5f, 2.5f, 3.5f});
   auto file_name = g_custom_param.get();
@@ -382,16 +386,14 @@ TEST_F(OptionalArrayRefTest, FloatOptionalArrayRef) {
   file << "FloatOptionalArrayRef ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
+  // 不输出元素值，因为是悬空引用的随机值
   file << "\n";
   file.saveFile();
 }
 
 // copy 构造
-// 注意：arr2 内部对象地址在 Paddle 和 PyTorch
-// 间存在差异，此测试仅验证功能正确性
+// DIFF: arr2 内部对象地址在 Paddle 和 PyTorch 间存在差异
+// 仅保留 has_value 和 size 的稳定输出
 TEST_F(OptionalArrayRefTest, CopyConstruction) {
   c10::OptionalArrayRef<int64_t> arr1({5, 6, 7});
   c10::OptionalArrayRef<int64_t> arr2(arr1);
@@ -401,14 +403,14 @@ TEST_F(OptionalArrayRefTest, CopyConstruction) {
   file << "CopyConstruction ";
   file << std::to_string(arr2.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr2->size()) << " ";
-  file << std::to_string(arr2->front()) << " ";
+  // 不输出 front()，因为是内存地址
   file << "\n";
   file.saveFile();
 }
 
 // move 构造
-// 注意：arr2 内部对象地址在 Paddle 和 PyTorch
-// 间存在差异，此测试仅验证功能正确性
+// DIFF: arr2 内部对象地址在 Paddle 和 PyTorch 间存在差异
+// 仅保留 has_value 和 size 的稳定输出
 TEST_F(OptionalArrayRefTest, MoveConstruction) {
   c10::OptionalArrayRef<int64_t> arr1({8, 9, 10});
   c10::OptionalArrayRef<int64_t> arr2(std::move(arr1));
@@ -418,7 +420,7 @@ TEST_F(OptionalArrayRefTest, MoveConstruction) {
   file << "MoveConstruction ";
   file << std::to_string(arr2.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr2->size()) << " ";
-  file << std::to_string(arr2->front()) << " ";
+  // 不输出 front()，因为是内存地址
   file << "\n";
   file.saveFile();
 }
@@ -451,9 +453,7 @@ TEST_F(OptionalArrayRefTest, InPlaceConstruction) {
   file << "InPlaceConstruction ";
   file << std::to_string(arr.has_value() ? 1 : 0) << " ";
   file << std::to_string(arr->size()) << " ";
-  for (const auto& v : *arr) {
-    file << std::to_string(v) << " ";
-  }
+  // 不遍历输出元素，因为是悬空引用的随机值
   file << "\n";
   file.saveFile();
 }

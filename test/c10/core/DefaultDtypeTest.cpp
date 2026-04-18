@@ -99,7 +99,6 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeHalf) {
 }
 
 // set_default_dtype 到 BFloat16
-// [DIFF] PyTorch输出: 11, PaddlePaddle输出: 15
 TEST_F(DefaultDtypeTest, SetDefaultDtypeBFloat16) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
