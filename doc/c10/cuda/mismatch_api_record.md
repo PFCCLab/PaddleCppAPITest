@@ -2,6 +2,7 @@
 
 > Paddle 头文件：`c10/cuda/CUDAGuard.h`、`c10/cuda/CUDAStream.h`、`ATen/cuda/PhiloxCudaState.h`
 > 测试文件：`test/c10/cuda/CUDATest2.cpp`
+> 细分文档：`cuda_guard.md`、`cuda_stream.md`、`cuda_functions.md`
 
 ## 2026-04-04 Stream Pool 实现与 PyTorch 对齐
 
@@ -19,8 +20,8 @@
 
 ## 本轮对齐内容
 
-- `c10::cuda::CUDAGuard` 补齐了 `original_device()`，并把 `current_device()` 语义改成“最近一次由 guard 设置的设备”。
-- `c10::cuda::OptionalCUDAGuard` 补齐了 `original_device()` 和 `reset()`，生命周期与 PyTorch 对齐。
+- `c10::cuda::CUDAGuard` 补齐了 `original_device()`，并把 `current_device()` 语义改成“最近一次由 guard 设置的设备”；同时在析构时显式恢复 `original_device()`，修复了多卡场景下设备切换泄漏问题。
+- `c10::cuda::OptionalCUDAGuard` 补齐了 `original_device()` 和 `reset()`，并在 `reset()` / 析构时恢复原始设备，生命周期与 PyTorch 对齐。
 - `c10::cuda::CUDAStream` 补齐了 `UNCHECKED`、`query()`、`synchronize()`、`priority()`、`priority_range()`、`pack3()`、`unpack3()`、`getStreamFromExternal()`、`operator<<` 和 `std::hash`。
 - `PhiloxCudaState` 保持与 PyTorch 一致的 canonical 路径：只从 `ATen/cuda/PhiloxCudaState.h` 暴露，不在 `c10/cuda` 下新增同名 shim。
 
