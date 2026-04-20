@@ -24,6 +24,17 @@ class EmptyOpsTest : public ::testing::Test {
   void SetUp() override {}
 };
 
+static void write_symint_result_to_file(FileManerger* file,
+                                        const at::Tensor& tensor) {
+  *file << std::to_string(tensor.dim()) << " ";
+  *file << std::to_string(tensor.numel()) << " ";
+  for (int64_t i = 0; i < tensor.dim(); ++i) {
+    *file << std::to_string(tensor.sizes()[i]) << " ";
+  }
+  *file << std::to_string(static_cast<int>(tensor.scalar_type())) << " ";
+  *file << std::to_string(tensor.is_pinned() ? 1 : 0) << " ";
+}
+
 // empty
 TEST_F(EmptyOpsTest, Empty) {
   auto file_name = g_custom_param.get();
@@ -249,6 +260,149 @@ TEST_F(EmptyOpsTest, EmptySizes) {
   // Large
   at::Tensor t3 = at::empty({100, 100}, at::kFloat);
   file << "large " << std::to_string(t3.numel()) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+// full_symint with pin_memory on CPU
+TEST_F(EmptyOpsTest, FullSymintPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "FullSymintPinnedMemoryCPU ";
+
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor t = at::full_symint({2, 3}, 5.0f, options);
+    file << "ok ";
+    write_symint_result_to_file(&file, t);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+// full_symint with pin_memory and CUDA device
+TEST_F(EmptyOpsTest, FullSymintPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "FullSymintPinnedMemoryCUDADevice ";
+
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    (void)at::full_symint({2, 3}, 5.0f, options);
+    file << "handled ";
+  } catch (const std::exception&) {
+    file << "handled ";
+  } catch (...) {
+    file << "handled ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+// ones_symint with pin_memory on CPU
+TEST_F(EmptyOpsTest, OnesSymintPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "OnesSymintPinnedMemoryCPU ";
+
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor t = at::ones_symint({2, 3}, options);
+    file << "ok ";
+    write_symint_result_to_file(&file, t);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+// ones_symint with pin_memory and CUDA device
+TEST_F(EmptyOpsTest, OnesSymintPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "OnesSymintPinnedMemoryCUDADevice ";
+
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor t = at::ones_symint({2, 3}, options);
+    file << "ok ";
+    write_symint_result_to_file(&file, t);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+// zeros_symint with pin_memory on CPU
+TEST_F(EmptyOpsTest, ZerosSymintPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosSymintPinnedMemoryCPU ";
+
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor t = at::zeros_symint({2, 3}, options);
+    file << "ok ";
+    write_symint_result_to_file(&file, t);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+// zeros_symint with pin_memory and CUDA device
+TEST_F(EmptyOpsTest, ZerosSymintPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosSymintPinnedMemoryCUDADevice ";
+
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor t = at::zeros_symint({2, 3}, options);
+    file << "ok ";
+    write_symint_result_to_file(&file, t);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
   file << "\n";
   file.saveFile();
 }
