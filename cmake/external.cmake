@@ -27,6 +27,15 @@ function(ExternalProject repourl tag destination)
     set(cmake_cli_args ${cmake_key} ${cmake_cli_args})
   endforeach()
 
+  set(external_compiler_args)
+  if(CMAKE_CXX_COMPILER)
+    list(APPEND external_compiler_args
+         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
+  endif()
+  if(CMAKE_C_COMPILER)
+    list(APPEND external_compiler_args -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER})
+  endif()
+
   message(STATUS "ARGS for ExternalProject_Add(${name}): ${cmake_cli_args}")
   message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 
@@ -36,8 +45,7 @@ function(ExternalProject repourl tag destination)
     ExternalProject_Add(
       ${_name}
       SOURCE_DIR "${_local_source_dir}"
-      CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-                 -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} ${cmake_cli_args}
+      CMAKE_ARGS ${external_compiler_args} ${cmake_cli_args}
                  -DCMAKE_CXX_STANDARD=17
       PREFIX "${destination}"
       INSTALL_DIR "${destination}"
@@ -50,8 +58,7 @@ function(ExternalProject repourl tag destination)
       ${_name}
       GIT_REPOSITORY ${repourl}
       GIT_TAG ${tag}
-      CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-                 -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} ${cmake_cli_args}
+      CMAKE_ARGS ${external_compiler_args} ${cmake_cli_args}
                  -DCMAKE_CXX_STANDARD=17
       PREFIX "${destination}"
       INSTALL_DIR "${destination}"
