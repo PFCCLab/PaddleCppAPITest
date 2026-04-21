@@ -7,7 +7,20 @@
 #include <ATen/ops/ones.h>
 #include <ATen/ops/resize.h>
 #include <c10/core/Stream.h>
+
+#if defined(__has_include)
+#if __has_include(<c10/cuda/CUDAStream.h>) && \
+    __has_include(<c10/cuda/impl/cuda_cmake_macros.h>)
+#define PCAT_HAS_TORCH_CUDA_STREAM 1
 #include <c10/cuda/CUDAStream.h>
+#else
+#define PCAT_HAS_TORCH_CUDA_STREAM 0
+#endif
+#else
+#define PCAT_HAS_TORCH_CUDA_STREAM 1
+#include <c10/cuda/CUDAStream.h>
+#endif
+
 #include <gtest/gtest.h>
 #include <torch/all.h>
 
@@ -331,6 +344,7 @@ TEST_F(TensorTest, RecordStreamResult) {
   FileManerger file(file_name);
   file.openAppend();
   file << "RecordStreamResult ";
+#if PCAT_HAS_TORCH_CUDA_STREAM
   try {
     at::Tensor cuda_tensor = tensor.cuda();
     at::Stream stream = c10::cuda::getCurrentCUDAStream(0);
@@ -341,6 +355,9 @@ TEST_F(TensorTest, RecordStreamResult) {
   } catch (...) {
     file << "0 ";
   }
+#else
+  file << "0 ";
+#endif
   file << "\n";
   file.saveFile();
 }
