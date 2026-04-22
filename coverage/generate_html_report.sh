@@ -82,9 +82,10 @@ fi
 
 # 步骤4a: 生成 Paddle 覆盖率报告
 echo ""
-echo ">>> 步骤4a: 提取 Paddle compat 覆盖率数据..."
+echo ">>> 步骤4a: 提取 Paddle 覆盖率数据..."
 lcov --extract "${BUILD_PATH}/coverage_merged.info" \
-    "*/miniconda3/*/site-packages/paddle/phi/api/include/compat/*" \
+    "*/miniconda3/*/site-packages/paddle/*" \
+    "${ROOT_PATH}/*" \
     -o "${BUILD_PATH}/coverage_paddle_raw.info" \
     --rc lcov_branch_coverage=1 \
     --ignore-errors inconsistent \
@@ -178,13 +179,13 @@ if [ -f "${BUILD_PATH}/coverage_paddle_filtered.info" ] && [ -s "${BUILD_PATH}/c
         -o "${OUTPUT_DIR}/paddle" \
         --branch-coverage \
         --legend \
-        --title "PaddleCppAPITest Paddle Compat 兼容层覆盖率报告" \
+        --title "PaddleCppAPITest Paddle 兼容层覆盖率报告" \
         --highlight \
         --demangle-cpp
     cp "${BUILD_PATH}/coverage_paddle_filtered.info" "${OUTPUT_DIR}/paddle/coverage.info"
-    echo "✓ Paddle compat 覆盖率报告已生成"
+    echo "✓ Paddle 覆盖率报告已生成"
 else
-    echo "✗ 未找到 Paddle compat 覆盖率数据"
+    echo "✗ 未找到 Paddle 覆盖率数据"
 fi
 
 # 生成 PyTorch 专项报告
