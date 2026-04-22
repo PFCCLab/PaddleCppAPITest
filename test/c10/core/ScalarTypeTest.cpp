@@ -27,6 +27,16 @@ class ScalarTypeTest : public ::testing::Test {
   at::Tensor tensor;
 };
 
+template <typename Fn>
+static bool throws_any(Fn&& fn) {
+  try {
+    fn();
+    return false;
+  } catch (...) {
+    return true;
+  }
+}
+
 // 测试 is_complex
 TEST_F(ScalarTypeTest, IsComplex) {
   auto file_name = g_custom_param.get();
@@ -597,6 +607,25 @@ TEST_F(ScalarTypeTest, CanCast) {
 
   file << "\n";
   file.saveFile();
+}
+
+TEST_F(ScalarTypeTest, AdditionalBranchCoverage) {
+  EXPECT_TRUE(
+      throws_any([] { (void)c10::elementSize(c10::ScalarType::Undefined); }));
+
+  EXPECT_TRUE(c10::isSignedType(c10::ScalarType::Int1));
+  EXPECT_TRUE(c10::isSignedType(c10::ScalarType::Float8_e4m3fn));
+  EXPECT_TRUE(c10::isSignedType(c10::ScalarType::Float8_e5m2fnuz));
+  EXPECT_TRUE(c10::isSignedType(c10::ScalarType::Float8_e4m3fnuz));
+  (void)c10::isSignedType(c10::ScalarType::Float8_e8m0fnu);
+  EXPECT_TRUE(c10::isSignedType(c10::ScalarType::Float4_e2m1fn_x2));
+
+  EXPECT_TRUE(
+      throws_any([] { (void)c10::isSignedType(c10::ScalarType::Undefined); }));
+  EXPECT_TRUE(
+      throws_any([] { (void)c10::isSignedType(c10::ScalarType::NumOptions); }));
+  EXPECT_TRUE(
+      throws_any([] { (void)c10::toComplexType(c10::ScalarType::Int); }));
 }
 
 // 测试 NumScalarTypes 常量

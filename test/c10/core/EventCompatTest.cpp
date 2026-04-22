@@ -13,7 +13,9 @@
  */
 #include <ATen/ATen.h>
 #include <c10/core/Event.h>
+#include <c10/cuda/CUDAStream.h>
 #include <gtest/gtest.h>
+#include <torch/all.h>
 
 #include <string>
 
@@ -39,6 +41,14 @@ static bool throws_any(Fn&& fn) {
     return false;
   } catch (...) {
     return true;
+  }
+}
+
+static bool has_cuda_runtime() {
+  try {
+    return torch::cuda::is_available();
+  } catch (...) {
+    return false;
   }
 }
 
@@ -124,6 +134,54 @@ TEST_F(EventCompatTest, EventDevice) {
   file << (dev.type() == c10::DeviceType::CPU ? "1" : "0") << " ";
   file << dev.index() << "\n";
   file.saveFile();
+}
+
+TEST_F(EventCompatTest, CpuNoopAndPreconditionCoverage) {
+  c10::Event cpu_default(c10::DeviceType::CPU);
+  c10::Event cpu_timed(c10::DeviceType::CPU, c10::EventFlag::BACKEND_DEFAULT);
+  c10::Event cuda_event(c10::DeviceType::CUDA, c10::EventFlag::BACKEND_DEFAULT);
+  c10::Stream cpu_stream(c10::Stream::DEFAULT, c10::Device(c10::kCPU));
+
+  EXPECT_NO_THROW(cpu_default.block(cpu_stream));
+  EXPECT_NO_THROW(cpu_default.synchronize());
+  EXPECT_EQ(cpu_default.eventId(), nullptr);
+  EXPECT_TRUE(cpu_default.query());
+  EXPECT_TRUE(throws_any([&]() { cpu_default.elapsedTime(cuda_event); }));
+  EXPECT_TRUE(throws_any([&]() { cpu_timed.elapsedTime(cpu_default); }));
+}
+
+TEST_F(EventCompatTest, CudaRoundTripCoverage) {
+  if (!has_cuda_runtime()) {
+    GTEST_SKIP() << "CUDA runtime unavailable";
+  }
+
+  auto stream = c10::cuda::getCurrentCUDAStream(0);
+  c10::Event event(c10::DeviceType::CUDA, c10::EventFlag::BACKEND_DEFAULT);
+
+  EXPECT_FALSE(event.was_marked_for_recording());
+  EXPECT_NO_THROW(event.record(stream));
+  EXPECT_TRUE(event.was_marked_for_recording());
+  EXPECT_EQ(event.device_index(), stream.device_index());
+  EXPECT_NE(event.eventId(), nullptr);
+  EXPECT_NO_THROW(event.block(stream.unwrap()));
+  EXPECT_NO_THROW(event.synchronize());
+  EXPECT_TRUE(event.query());
+}
+
+TEST_F(EventCompatTest, CudaElapsedTimeCoverage) {
+  if (!has_cuda_runtime()) {
+    GTEST_SKIP() << "CUDA runtime unavailable";
+  }
+
+  auto stream = c10::cuda::getCurrentCUDAStream(0);
+  c10::Event start(c10::DeviceType::CUDA, c10::EventFlag::BACKEND_DEFAULT);
+  c10::Event end(c10::DeviceType::CUDA, c10::EventFlag::BACKEND_DEFAULT);
+
+  ASSERT_NO_THROW(start.record(stream));
+  ASSERT_NO_THROW(end.record(stream));
+  ASSERT_NO_THROW(start.synchronize());
+  ASSERT_NO_THROW(end.synchronize());
+  EXPECT_GE(start.elapsedTime(end), 0.0);
 }
 
 }  // namespace test

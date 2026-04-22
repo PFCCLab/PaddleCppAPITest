@@ -277,5 +277,43 @@ TEST_F(TensorOptionsTest, DefaultHelperFunctions) {
   file.saveFile();
 }
 
+TEST_F(TensorOptionsTest, AdditionalPublicApiCoverage) {
+  auto cleared = c10::TensorOptions()
+                     .device(c10::Device(c10::kCUDA, 2))
+                     .device(std::optional<c10::Device>{})
+                     .dtype(caffe2::TypeMeta::Make<double>())
+                     .dtype(std::optional<caffe2::TypeMeta>{})
+                     .dtype(c10::ScalarType::Double)
+                     .dtype(std::optional<c10::ScalarType>{})
+                     .layout(c10::kSparse)
+                     .layout(std::optional<c10::Layout>{})
+                     .requires_grad(true)
+                     .requires_grad(std::optional<bool>{})
+                     .pinned_memory(true)
+                     .pinned_memory(std::optional<bool>{})
+                     .memory_format(c10::MemoryFormat::ChannelsLast)
+                     .memory_format(std::optional<c10::MemoryFormat>{});
+
+  EXPECT_FALSE(cleared.has_device());
+  EXPECT_FALSE(cleared.has_dtype());
+  EXPECT_FALSE(cleared.has_layout());
+  EXPECT_FALSE(cleared.has_requires_grad());
+  EXPECT_FALSE(cleared.has_pinned_memory());
+  EXPECT_FALSE(cleared.has_memory_format());
+  EXPECT_FALSE(cleared.device_opt().has_value());
+  EXPECT_FALSE(cleared.dtype_opt().has_value());
+  EXPECT_FALSE(cleared.layout_opt().has_value());
+  EXPECT_FALSE(cleared.requires_grad_opt().has_value());
+  EXPECT_FALSE(cleared.pinned_memory_opt().has_value());
+  EXPECT_FALSE(cleared.memory_format_opt().has_value());
+
+  EXPECT_TRUE(
+      c10::TensorOptions(c10::Layout::SparseCsc).is_sparse_compressed());
+  EXPECT_TRUE(
+      c10::TensorOptions(c10::Layout::SparseBsr).is_sparse_compressed());
+  EXPECT_TRUE(
+      c10::TensorOptions(c10::Layout::SparseBsc).is_sparse_compressed());
+}
+
 }  // namespace test
 }  // namespace at

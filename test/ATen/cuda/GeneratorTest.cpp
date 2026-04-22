@@ -9,18 +9,34 @@
 #include <c10/cuda/CUDAFunctions.h>
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <optional>
 #include <string>
+#include <type_traits>
 
 #include "src/file_manager.h"
 
 extern paddle_api_test::ThreadSafeParam g_custom_param;
+
+namespace at::detail {
+Generator createCPUGenerator(uint64_t seed_val);
+}  // namespace at::detail
 
 namespace at {
 namespace test {
 
 using paddle_api_test::FileManerger;
 using paddle_api_test::ThreadSafeParam;
+
+static at::Generator make_common_cpu_generator(uint64_t seed) {
+  if constexpr (std::is_abstract_v<c10::GeneratorImpl>) {
+    return at::detail::createCPUGenerator(seed);
+  } else {
+    auto gen = at::make_generator<c10::GeneratorImpl>(c10::Device(c10::kCPU));
+    gen.set_current_seed(seed);
+    return gen;
+  }
+}
 
 class GeneratorTest : public ::testing::Test {
  protected:
@@ -135,6 +151,58 @@ TEST_F(GeneratorTest, EqualityOperators) {
   file << std::to_string(test_gen_ != other) << " ";      // 1
   file << "\n";
   file.saveFile();
+}
+
+TEST_F(GeneratorTest, CommonCpuGeneratorPublicCoverage) {
+  at::Generator gen = make_common_cpu_generator(1234);
+
+  ASSERT_TRUE(gen.defined());
+  EXPECT_EQ(gen.device().type(), c10::kCPU);
+  EXPECT_TRUE(gen.key_set().has(c10::DispatchKey::CPU));
+
+  gen.set_current_seed(1234);
+  EXPECT_EQ(gen.current_seed(), 1234U);
+
+  const auto seeded = gen.seed();
+  EXPECT_EQ(gen.current_seed(), seeded);
+
+  try {
+    gen.set_offset(11);
+  } catch (...) {
+  }
+  try {
+    gen.set_offset(4);
+  } catch (...) {
+  }
+  try {
+    (void)gen.get_offset();
+  } catch (...) {
+  }
+
+  EXPECT_NE(gen.unsafeGetGeneratorImpl(), nullptr);
+  EXPECT_TRUE(static_cast<bool>(gen.getIntrusivePtr()));
+  EXPECT_NE(&gen.mutex(), nullptr);
+  EXPECT_NE(gen.get<c10::GeneratorImpl>(), nullptr);
+
+  auto cloned = gen.clone();
+  ASSERT_TRUE(cloned.defined());
+  const auto original_seed = gen.current_seed();
+  cloned.set_current_seed(original_seed + 1);
+  EXPECT_EQ(gen.current_seed(), original_seed);
+  EXPECT_EQ(cloned.current_seed(), original_seed + 1);
+
+  auto* fake_pyobj =
+      reinterpret_cast<PyObject*>(static_cast<uintptr_t>(0x1234));
+  gen.set_pyobj(fake_pyobj);
+  EXPECT_EQ(gen.pyobj(), fake_pyobj);
+
+  at::Generator releasable = make_common_cpu_generator(999);
+  auto* raw_impl = releasable.unsafeReleaseGeneratorImpl();
+  ASSERT_NE(raw_impl, nullptr);
+  at::Generator rebound(
+      c10::intrusive_ptr<c10::GeneratorImpl>::reclaim(raw_impl));
+  EXPECT_TRUE(rebound.defined());
+  EXPECT_EQ(rebound.current_seed(), 999U);
 }
 
 // ============================================================
