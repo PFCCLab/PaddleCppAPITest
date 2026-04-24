@@ -566,6 +566,28 @@ TEST_F(TensorTest, Chunk) {
   file.saveFile();
 }
 
+// [DIFF] This covers the compat branch that emits empty chunks when chunks is
+// larger than the split dimension. Some Torch versions return fewer chunks.
+TEST_F(TensorTest, ChunkMoreChunksThanDimSize) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ChunkMoreChunksThanDimSize ";
+
+  at::Tensor test_tensor = at::ones({2, 3}, at::kFloat);
+  std::vector<at::Tensor> chunks = test_tensor.chunk(5, 0);
+  file << std::to_string(chunks.size()) << " ";
+  for (const auto& chunk : chunks) {
+    file << std::to_string(chunk.dim()) << " ";
+    file << std::to_string(chunk.numel()) << " ";
+    if (chunk.dim() > 0) {
+      file << std::to_string(chunk.sizes()[0]) << " ";
+    }
+  }
+  file << "\n";
+  file.saveFile();
+}
+
 // 测试 rename - Paddle不支持Dimname，返回原tensor
 TEST_F(TensorTest, Rename) {
   auto file_name = g_custom_param.get();
@@ -634,6 +656,86 @@ TEST_F(TensorTest, NewOnes) {
   file.saveFile();
 }
 
+TEST_F(TensorTest, NewOpsPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewOpsPinnedMemoryCPU ";
+
+  auto options = at::TensorOptions()
+                     .dtype(at::kFloat)
+                     .device(at::kCPU)
+                     .pinned_memory(true);
+
+  try {
+    auto result = tensor.new_empty({2, 2}, options);
+    file << "empty_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "empty_exception ";
+  }
+  try {
+    auto result = tensor.new_full({2, 2}, 3.0, options);
+    file << "full_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "full_exception ";
+  }
+  try {
+    auto result = tensor.new_ones({2, 2}, options);
+    file << "ones_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "ones_exception ";
+  }
+  try {
+    auto result = tensor.new_zeros({2, 2}, options);
+    file << "zeros_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "zeros_exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorTest, NewOpsPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewOpsPinnedMemoryCUDADevice ";
+
+  auto options = at::TensorOptions()
+                     .dtype(at::kFloat)
+                     .device(at::kCUDA)
+                     .pinned_memory(true);
+
+  try {
+    (void)tensor.new_empty({2, 2}, options);
+    file << "empty_ok ";
+  } catch (const std::exception&) {
+    file << "empty_exception ";
+  }
+  try {
+    (void)tensor.new_full({2, 2}, 3.0, options);
+    file << "full_ok ";
+  } catch (const std::exception&) {
+    file << "full_exception ";
+  }
+  try {
+    (void)tensor.new_ones({2, 2}, options);
+    file << "ones_ok ";
+  } catch (const std::exception&) {
+    file << "ones_exception ";
+  }
+  try {
+    (void)tensor.new_zeros({2, 2}, options);
+    file << "zeros_ok ";
+  } catch (const std::exception&) {
+    file << "zeros_exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
 // 测试 resize_ - 缩小元素数时应成功并保留前缀数据
 TEST_F(TensorTest, Resize) {
   auto file_name = g_custom_param.get();
@@ -646,6 +748,25 @@ TEST_F(TensorTest, Resize) {
   file << std::to_string(tensor.numel()) << " ";
   file << std::to_string(tensor.data_ptr<float>()[0]) << " ";
   file << std::to_string(tensor.data_ptr<float>()[19]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorTest, ResizeGrowStorage) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ResizeGrowStorage ";
+
+  at::Tensor grow = at::ones({2, 2}, at::kFloat);
+  grow.data_ptr<float>()[0] = 11.0f;
+  grow.data_ptr<float>()[3] = 44.0f;
+  grow.resize_({4, 4});
+
+  file << std::to_string(grow.sizes()[0]) << " ";
+  file << std::to_string(grow.sizes()[1]) << " ";
+  file << std::to_string(grow.numel()) << " ";
+  file << std::to_string(grow.data_ptr<float>()[0]) << " ";
   file << "\n";
   file.saveFile();
 }
@@ -871,6 +992,46 @@ TEST_F(TensorTest, ExpandRankLessFallbackZeroSize) {
   file << std::to_string(expanded.dim()) << " ";
   file << std::to_string(expanded.numel()) << " ";
   file << "empty ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+// [DIFF] This exercises the Paddle compat tile+slice fallback. PyTorch treats
+// shrinking a non-singleton expanded dimension as invalid.
+TEST_F(TensorTest, ExpandSameRankFallbackShrink) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ExpandSameRankFallbackShrink ";
+
+  try {
+    at::Tensor small = at::ones({2, 3}, at::kFloat);
+    at::Tensor expanded = small.expand({2, 2});
+    write_expand_result_to_file(&file, expanded);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
+// [DIFF] This covers the Paddle compat input_rank > target_rank path. PyTorch
+// requires expand sizes to be at least the tensor rank.
+TEST_F(TensorTest, ExpandInputRankGreaterThanTargetRank) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ExpandInputRankGreaterThanTargetRank ";
+
+  try {
+    at::Tensor small = at::ones({1, 2, 3}, at::kFloat);
+    at::Tensor expanded = small.expand({2, 3});
+    write_expand_result_to_file(&file, expanded);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
 
   file << "\n";
   file.saveFile();

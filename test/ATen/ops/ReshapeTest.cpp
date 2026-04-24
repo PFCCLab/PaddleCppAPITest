@@ -348,6 +348,90 @@ TEST_F(ReshapeTest, ZerosLikeWithOptions) {
   file.saveFile();
 }
 
+TEST_F(ReshapeTest, EmptyLikePinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "EmptyLikePinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor result = at::empty_like(original_tensor, options);
+    file << "ok ";
+    file << std::to_string(result.dim()) << " ";
+    file << std::to_string(result.numel()) << " ";
+    file << std::to_string(result.is_pinned() ? 1 : 0) << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ReshapeTest, EmptyLikePinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "EmptyLikePinnedMemoryCUDADevice ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor result = at::empty_like(original_tensor, options);
+    file << "ok ";
+    file << std::to_string(result.dim()) << " ";
+    file << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ReshapeTest, ZerosLikePinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosLikePinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor result = at::zeros_like(original_tensor, options);
+    file << "ok ";
+    write_reshape_result_to_file(&file, result);
+    file << std::to_string(result.is_pinned() ? 1 : 0) << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ReshapeTest, ZerosLikePinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosLikePinnedMemoryCUDADevice ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor result = at::zeros_like(original_tensor, options);
+    file << "ok ";
+    write_reshape_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
 // ========== 异常行为 ==========
 
 // 不兼容的 shape (元素数不匹配)

@@ -2,6 +2,46 @@
 
 ---
 
+## 2026-04-24 Paddle 兼容层低覆盖补测差异归档
+
+### 本轮补测暴露的新增差异
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `IValueTest.TagTypeAndReprBranches` / `IValue::to_repr(Tensor)` | 返回 Tensor repr 字符串 | 抛异常：`repr() not defined on: Tensor` | ⚠️ 新增已知差异 |
+| `IndexTest.IndexEmptyIndicesReturnsSelf` | 空 `TensorIndex` 列表返回原 tensor | 抛异常：空 index list 非法 | ⚠️ 新增已知差异 |
+| `IndexTest.IndexTensorAndNoneIndices` | Tensor/None 混合 indexing 抛异常 | 返回扩维后的 indexed tensor | ⚠️ 新增已知差异 |
+| `SparseTensorTest.SparseCOODtypeCastOptions` | `TensorOptions().dtype(...)` 会将 COO values cast 到目标 dtype | values dtype 与 sparse dtype 不一致时抛异常 | ⚠️ 新增已知差异 |
+| `SparseTensorTest.SparseCSRDtypeCastOptions` | `TensorOptions().dtype(...)` 会将 CSR values cast 到目标 dtype | values dtype 与 sparse dtype 不一致时抛异常 | ⚠️ 新增已知差异 |
+| `SparseTensorTest.SparseCSRValuesAndNnz` | CSR `_values()` 返回 values tensor | `aten::_values` 不支持 `SparseCsrCPU` | ⚠️ 新增已知差异 |
+| `TensorTest.ChunkMoreChunksThanDimSize` | 当 `chunks > dim_size` 时返回包含空 chunk 的 5 个结果 | 返回 2 个非空 chunk | ⚠️ 新增已知差异 |
+| `TensorTest.ExpandSameRankFallbackShrink` | compat fallback 通过 tile+slice 返回缩小结果 | 抛异常：expand 不允许缩小非 singleton 维度 | ⚠️ 新增已知差异 |
+| `TensorTest.ExpandInputRankGreaterThanTargetRank` | compat fallback 允许输入 rank 大于目标 rank 并 slice | 抛异常：expand 目标 rank 小于输入 rank | ⚠️ 新增已知差异 |
+
+说明：
+
+- 本轮只修改 `PaddleCppAPITest` 测试代码，没有修改兼容层实现或 `CMakeLists.txt`。
+- 新增测试均走 Torch/Paddle 共用源码路径；未新增 `#if USE_PADDLE_API` 覆盖率测试。
+- 对上述真实行为差异，测试侧只做稳定异常输出，源码中保留 `[DIFF]` 注释，未把 Paddle-only 分支伪装成双端一致。
+- 本轮 `./test/result_cmp.sh build` 中所有新增 GTest 用例均通过；脚本最终仍因已知 DIFFER 返回非零。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/ATen/ops/CreationOpsTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/ops/ArangeTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/ops/EyeTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/ops/ReshapeTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/core/TensorTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/ops/ItemTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/ops/SparseTensorTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/core/IValueTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/core/JitTypeBaseTest.cpp`
+- `/home/may/PaddleCppAPITest/test/ATen/ops/IndexTest.cpp`
+- `/home/may/PaddleCppAPITest/test/c10/cuda/CUDATest2.cpp`
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md`
+
+---
+
 ## 2026-04-06 XPU 编译修复与测试分类调整
 
 ### 本轮修复（Paddle 内部 ctest 验证）

@@ -1,5 +1,6 @@
 #include <ATen/ATen.h>
 #include <ATen/core/Tensor.h>
+#include <ATen/ops/sparse_coo_tensor.h>
 #include <ATen/ops/zeros.h>
 #include <gtest/gtest.h>
 
@@ -126,6 +127,94 @@ TEST_F(ItemTest, ItemCrossTypeCast) {
 
   float val = scalar_double.item<float>();
   file << std::to_string(val) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ItemTest, ItemAdditionalScalarDtypes) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ItemAdditionalScalarDtypes ";
+
+  try {
+    at::Tensor half_tensor = at::zeros({}, at::kHalf);
+    at::Tensor bfloat_tensor = at::zeros({}, at::kBFloat16);
+    at::Tensor int8_tensor = at::zeros({}, at::kChar);
+    at::Tensor int16_tensor = at::zeros({}, at::kShort);
+    at::Tensor uint8_tensor = at::zeros({}, at::kByte);
+
+    file << std::to_string(half_tensor.item<float>()) << " ";
+    file << std::to_string(bfloat_tensor.item<float>()) << " ";
+    file << std::to_string(static_cast<int>(int8_tensor.item<int8_t>())) << " ";
+    file << std::to_string(static_cast<int>(int16_tensor.item<int16_t>()))
+         << " ";
+    file << std::to_string(static_cast<int>(uint8_tensor.item<uint8_t>()))
+         << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ItemTest, ItemComplexScalarDtypes) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ItemComplexScalarDtypes ";
+
+  try {
+    at::Tensor complex64_tensor = at::zeros({}, at::kComplexFloat);
+    at::Tensor complex128_tensor = at::zeros({}, at::kComplexDouble);
+    (void)complex64_tensor.item();
+    (void)complex128_tensor.item();
+    file << "ok ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ItemTest, ItemSparseScalarPaths) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ItemSparseScalarPaths ";
+
+  try {
+    at::Tensor empty_indices = at::zeros({1, 0}, at::kLong);
+    at::Tensor empty_values = at::zeros({0}, at::kFloat);
+    at::Tensor empty_sparse =
+        at::sparse_coo_tensor(empty_indices, empty_values, {1});
+    file << std::to_string(empty_sparse.item<float>()) << " ";
+  } catch (const std::exception&) {
+    file << "empty_exception ";
+  }
+
+  try {
+    at::Tensor indices = at::zeros({1, 1}, at::kLong);
+    at::Tensor values = at::zeros({1}, at::kFloat);
+    values[0] = 7.0f;
+    at::Tensor sparse = at::sparse_coo_tensor(indices, values, {1});
+    file << std::to_string(sparse.coalesce().item<float>()) << " ";
+  } catch (const std::exception&) {
+    file << "coalesced_exception ";
+  }
+
+  try {
+    at::Tensor duplicate_indices = at::zeros({1, 2}, at::kLong);
+    at::Tensor duplicate_values = at::zeros({2}, at::kFloat);
+    duplicate_values[0] = 2.0f;
+    duplicate_values[1] = 3.0f;
+    at::Tensor duplicate_sparse =
+        at::sparse_coo_tensor(duplicate_indices, duplicate_values, {1});
+    file << std::to_string(duplicate_sparse.item<float>()) << " ";
+  } catch (const std::exception&) {
+    file << "duplicate_exception ";
+  }
+
   file << "\n";
   file.saveFile();
 }

@@ -125,5 +125,65 @@ TEST_F(EyeTest, EyeNMWithExplicitOptionalArgs) {
   file.saveFile();
 }
 
+TEST_F(EyeTest, EyePinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "EyePinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor t = at::eye(3, options);
+    file << "ok ";
+    write_tensor_to_file(&file, t);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(EyeTest, EyeNMPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "EyeNMPinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kDouble)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor t = at::eye(2, 4, options);
+    file << "ok ";
+    write_tensor_to_file(&file, t);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(EyeTest, EyePinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "EyePinnedMemoryCUDADevice ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor t = at::eye(3, options);
+    file << "ok ";
+    write_tensor_to_file(&file, t);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at

@@ -375,5 +375,45 @@ TEST_F(ArangeTest, WrongDirection) {
   file.saveFile();
 }
 
+TEST_F(ArangeTest, PinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "PinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor result = at::arange(0, 4, 1, options);
+    file << "ok ";
+    write_arange_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(ArangeTest, PinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "PinnedMemoryCUDADevice ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor result = at::arange(0, 4, 1, options);
+    file << "ok ";
+    write_arange_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at
