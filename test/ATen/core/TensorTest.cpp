@@ -426,22 +426,12 @@ TEST_F(TensorTest, SymSize) {
   c10::SymInt sym_size_0 = tensor.sym_size(0);
   c10::SymInt sym_size_1 = tensor.sym_size(1);
   c10::SymInt sym_size_2 = tensor.sym_size(2);
-#if USE_PADDLE_API
-  file << std::to_string(sym_size_0) << " ";
-  file << std::to_string(sym_size_1) << " ";
-  file << std::to_string(sym_size_2) << " ";
-#else
   file << std::to_string(sym_size_0.guard_int(__FILE__, __LINE__)) << " ";
   file << std::to_string(sym_size_1.guard_int(__FILE__, __LINE__)) << " ";
   file << std::to_string(sym_size_2.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   // 测试负索引
   c10::SymInt sym_size_neg1 = tensor.sym_size(-1);
-#if USE_PADDLE_API
-  file << std::to_string(sym_size_neg1) << " ";
-#else
   file << std::to_string(sym_size_neg1.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -456,22 +446,12 @@ TEST_F(TensorTest, SymStride) {
   c10::SymInt sym_stride_0 = tensor.sym_stride(0);
   c10::SymInt sym_stride_1 = tensor.sym_stride(1);
   c10::SymInt sym_stride_2 = tensor.sym_stride(2);
-#if USE_PADDLE_API
-  file << std::to_string(sym_stride_0) << " ";
-  file << std::to_string(sym_stride_1) << " ";
-  file << std::to_string(sym_stride_2) << " ";
-#else
   file << std::to_string(sym_stride_0.guard_int(__FILE__, __LINE__)) << " ";
   file << std::to_string(sym_stride_1.guard_int(__FILE__, __LINE__)) << " ";
   file << std::to_string(sym_stride_2.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   // 测试负索引
   c10::SymInt sym_stride_neg1 = tensor.sym_stride(-1);
-#if USE_PADDLE_API
-  file << std::to_string(sym_stride_neg1) << " ";
-#else
   file << std::to_string(sym_stride_neg1.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -486,11 +466,7 @@ TEST_F(TensorTest, SymSizes) {
   c10::SymIntArrayRef sym_sizes = tensor.sym_sizes();
   file << std::to_string(sym_sizes.size()) << " ";
   for (size_t i = 0; i < sym_sizes.size(); ++i) {
-#if USE_PADDLE_API
-    file << std::to_string(sym_sizes[i]) << " ";
-#else
     file << std::to_string(sym_sizes[i].guard_int(__FILE__, __LINE__)) << " ";
-#endif
   }
   file << "\n";
   file.saveFile();
@@ -506,11 +482,7 @@ TEST_F(TensorTest, SymStrides) {
   c10::SymIntArrayRef sym_strides = tensor.sym_strides();
   file << std::to_string(sym_strides.size()) << " ";
   for (size_t i = 0; i < sym_strides.size(); ++i) {
-#if USE_PADDLE_API
-    file << std::to_string(sym_strides[i]) << " ";
-#else
     file << std::to_string(sym_strides[i].guard_int(__FILE__, __LINE__)) << " ";
-#endif
   }
   file << "\n";
   file.saveFile();
@@ -524,11 +496,7 @@ TEST_F(TensorTest, SymNumel) {
   file << "SymNumel ";
   // 获取符号化的元素总数
   c10::SymInt sym_numel = tensor.sym_numel();
-#if USE_PADDLE_API
-  file << std::to_string(sym_numel) << " ";
-#else
   file << std::to_string(sym_numel.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   file << std::to_string(tensor.numel()) << " ";
   file << "\n";
   file.saveFile();
