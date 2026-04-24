@@ -14,11 +14,24 @@ set -e
 ROOT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../" && pwd)"
 BUILD_PATH="${ROOT_PATH}/build"
 OUTPUT_DIR="${BUILD_PATH}/html_output"
+PADDLE_COMPAT_PATTERN="*/paddle/phi/api/include/compat/*"
+LIBTORCH_INCLUDE_PATTERN="*/libtorch/include/*"
+COVERAGE_INCLUDE_PATTERNS=(
+    "${PADDLE_COMPAT_PATTERN}"
+    "${LIBTORCH_INCLUDE_PATTERN}"
+)
+COVERAGE_INCLUDE_ARGS=()
+for pattern in "${COVERAGE_INCLUDE_PATTERNS[@]}"; do
+    COVERAGE_INCLUDE_ARGS+=(--include "${pattern}")
+done
 
 echo "=== 代码覆盖率 HTML 报告生成工具 ==="
 echo "项目路径: ${ROOT_PATH}"
 echo "构建路径: ${BUILD_PATH}"
 echo "输出目录: ${OUTPUT_DIR}"
+echo "覆盖率范围:"
+echo "  - Paddle compat: ${PADDLE_COMPAT_PATTERN}"
+echo "  - LibTorch include: ${LIBTORCH_INCLUDE_PATTERN}"
 
 # 检查 lcov 是否安装
 if ! command -v lcov &> /dev/null; then
@@ -48,6 +61,7 @@ echo ">>> 步骤1: 收集初始覆盖率基线..."
 lcov --capture --initial \
     -d "${BUILD_PATH}" \
     -o "${BUILD_PATH}/coverage_base.info" \
+    "${COVERAGE_INCLUDE_ARGS[@]}" \
     --rc lcov_branch_coverage=1 \
     --ignore-errors inconsistent \
     --ignore-errors source \
@@ -59,6 +73,7 @@ echo ">>> 步骤2: 收集测试覆盖率数据..."
 lcov --capture \
     -d "${BUILD_PATH}" \
     -o "${BUILD_PATH}/coverage_test.info" \
+    "${COVERAGE_INCLUDE_ARGS[@]}" \
     --rc lcov_branch_coverage=1 \
     --ignore-errors inconsistent \
     --ignore-errors source \
@@ -80,76 +95,40 @@ else
     cp "${BUILD_PATH}/coverage_test.info" "${BUILD_PATH}/coverage_merged.info"
 fi
 
-# 步骤4a: 生成 Paddle 覆盖率报告
+# 避免提取失败时复用旧的覆盖率文件
+rm -f "${BUILD_PATH}/coverage_paddle_raw.info" \
+      "${BUILD_PATH}/coverage_torch_raw.info" \
+      "${BUILD_PATH}/coverage_paddle_filtered.info" \
+      "${BUILD_PATH}/coverage_torch_filtered.info" \
+      "${BUILD_PATH}/coverage_filtered.info"
+
+# 步骤4a: 提取 Paddle compat 覆盖率报告
 echo ""
-echo ">>> 步骤4a: 提取 Paddle 覆盖率数据..."
+echo ">>> 步骤4a: 提取 Paddle compat 覆盖率数据..."
 lcov --extract "${BUILD_PATH}/coverage_merged.info" \
-    "*/miniconda3/*/site-packages/paddle/*" \
-    "${ROOT_PATH}/*" \
-    -o "${BUILD_PATH}/coverage_paddle_raw.info" \
+    "${PADDLE_COMPAT_PATTERN}" \
+    -o "${BUILD_PATH}/coverage_paddle_filtered.info" \
     --rc lcov_branch_coverage=1 \
     --ignore-errors inconsistent \
     --ignore-errors source \
     --ignore-errors unused 2>/dev/null || true
 
-# 过滤 Paddle 覆盖率（移除测试文件和不需要的目录）
-echo ">>> 过滤 Paddle 覆盖率数据..."
-if [ -f "${BUILD_PATH}/coverage_paddle_raw.info" ]; then
-    lcov --remove "${BUILD_PATH}/coverage_paddle_raw.info" \
-        '*/googletest/*' \
-        '*/gtest/*' \
-        '*/gmock/*' \
-        '*/3rd_party/*' \
-        '/usr/*' \
-        '/opt/*' \
-        -o "${BUILD_PATH}/coverage_paddle_filtered.info" \
-        --rc lcov_branch_coverage=1 \
-        --ignore-errors inconsistent \
-        --ignore-errors source \
-        --ignore-errors unused 2>/dev/null || true
-fi
-
-# 步骤4b: 生成 PyTorch 覆盖率报告
+# 步骤4b: 提取 LibTorch 覆盖率报告
 echo ""
-echo ">>> 步骤4b: 提取 PyTorch 覆盖率数据..."
+echo ">>> 步骤4b: 提取 LibTorch 覆盖率数据..."
 lcov --extract "${BUILD_PATH}/coverage_merged.info" \
-    "*/libtorch/*" \
-    "${ROOT_PATH}/*" \
-    -o "${BUILD_PATH}/coverage_torch_raw.info" \
+    "${LIBTORCH_INCLUDE_PATTERN}" \
+    -o "${BUILD_PATH}/coverage_torch_filtered.info" \
     --rc lcov_branch_coverage=1 \
     --ignore-errors inconsistent \
     --ignore-errors source \
     --ignore-errors unused 2>/dev/null || true
 
-# 过滤 PyTorch 覆盖率
-echo ">>> 过滤 PyTorch 覆盖率数据..."
-if [ -f "${BUILD_PATH}/coverage_torch_raw.info" ]; then
-    lcov --remove "${BUILD_PATH}/coverage_torch_raw.info" \
-        '*/googletest/*' \
-        '*/gtest/*' \
-        '*/gmock/*' \
-        '*/3rd_party/*' \
-        '/usr/*' \
-        '/opt/*' \
-        -o "${BUILD_PATH}/coverage_torch_filtered.info" \
-        --rc lcov_branch_coverage=1 \
-        --ignore-errors inconsistent \
-        --ignore-errors source \
-        --ignore-errors unused 2>/dev/null || true
-fi
-
-# 步骤4c: 过滤综合覆盖率（去除系统和第三方库）
+# 步骤4c: 生成目标范围综合覆盖率
 echo ""
-echo ">>> 步骤4c: 生成综合覆盖率数据..."
-lcov --remove "${BUILD_PATH}/coverage_merged.info" \
-    '/usr/*' \
-    '/opt/*' \
-    '*/3rd_party/*' \
-    '*/googletest/*' \
-    '*/gtest/*' \
-    '*/gmock/*' \
-    '*/c++/*' \
-    '*/_deps/*' \
+echo ">>> 步骤4c: 生成目标范围综合覆盖率数据..."
+lcov --extract "${BUILD_PATH}/coverage_merged.info" \
+    "${COVERAGE_INCLUDE_PATTERNS[@]}" \
     -o "${BUILD_PATH}/coverage_filtered.info" \
     --rc lcov_branch_coverage=1 \
     --ignore-errors inconsistent \
@@ -159,17 +138,15 @@ lcov --remove "${BUILD_PATH}/coverage_merged.info" \
 # 步骤5: 生成 HTML 报告
 echo ""
 echo ">>> 步骤5: 生成 HTML 可视化报告..."
-mkdir -p "${OUTPUT_DIR}"
-mkdir -p "${OUTPUT_DIR}/paddle"
-mkdir -p "${OUTPUT_DIR}/torch"
-mkdir -p "${OUTPUT_DIR}/all"
+rm -rf "${OUTPUT_DIR}/paddle" "${OUTPUT_DIR}/torch" "${OUTPUT_DIR}/all"
+mkdir -p "${OUTPUT_DIR}/paddle" "${OUTPUT_DIR}/torch" "${OUTPUT_DIR}/all"
 
-# 生成综合报告
+# 生成目标范围综合报告
 genhtml "${BUILD_PATH}/coverage_filtered.info" \
     -o "${OUTPUT_DIR}/all" \
     --branch-coverage \
     --legend \
-    --title "PaddleCppAPITest 代码覆盖率报告（综合）" \
+    --title "Paddle compat + LibTorch 覆盖率报告" \
     --highlight \
     --demangle-cpp
 
@@ -188,19 +165,19 @@ else
     echo "✗ 未找到 Paddle 覆盖率数据"
 fi
 
-# 生成 PyTorch 专项报告
+# 生成 LibTorch 专项报告
 if [ -f "${BUILD_PATH}/coverage_torch_filtered.info" ] && [ -s "${BUILD_PATH}/coverage_torch_filtered.info" ]; then
     genhtml "${BUILD_PATH}/coverage_torch_filtered.info" \
         -o "${OUTPUT_DIR}/torch" \
         --branch-coverage \
         --legend \
-        --title "PaddleCppAPITest PyTorch/LibTorch 覆盖率报告" \
+        --title "LibTorch include 覆盖率报告" \
         --highlight \
         --demangle-cpp
     cp "${BUILD_PATH}/coverage_torch_filtered.info" "${OUTPUT_DIR}/torch/coverage.info"
-    echo "✓ PyTorch 覆盖率报告已生成"
+    echo "✓ LibTorch 覆盖率报告已生成"
 else
-    echo "✗ 未找到 PyTorch 覆盖率数据"
+    echo "✗ 未找到 LibTorch 覆盖率数据"
 fi
 
 # 复制综合的 info 文件到 html_output 目录
@@ -220,7 +197,7 @@ if [ -f "${OUTPUT_DIR}/paddle/coverage.info" ]; then
     echo ""
 fi
 if [ -f "${OUTPUT_DIR}/torch/coverage.info" ]; then
-    echo "【PyTorch 覆盖率】"
+    echo "【LibTorch 覆盖率】"
     lcov --list "${OUTPUT_DIR}/torch/coverage.info" --rc lcov_branch_coverage=1 | tail -5
     echo ""
 fi
@@ -236,7 +213,7 @@ if [ -f "${OUTPUT_DIR}/paddle/index.html" ]; then
     echo "  - Paddle 报告: ${OUTPUT_DIR}/paddle/index.html"
 fi
 if [ -f "${OUTPUT_DIR}/torch/index.html" ]; then
-    echo "  - PyTorch 报告: ${OUTPUT_DIR}/torch/index.html"
+    echo "  - LibTorch 报告: ${OUTPUT_DIR}/torch/index.html"
 fi
 echo ""
 echo "或运行以下命令查看:"
