@@ -3,6 +3,7 @@
 #include <ATen/ops/sparse_coo_tensor.h>
 #include <ATen/ops/sparse_csr_tensor.h>
 #include <ATen/ops/zeros.h>
+#include <ATen/ops/zeros_like.h>
 #include <gtest/gtest.h>
 
 #include <string>
@@ -109,7 +110,6 @@ TEST_F(SparseTensorTest, SparseCOOWithOptions) {
 }
 
 // COO 无 size 重载 (推断 size)
-// [DIFF] PyTorch输出: 2 2 2, Paddle输出: 0 2 2 (推断的size第一个维度为0)
 TEST_F(SparseTensorTest, SparseCOOInferSize) {
   auto idx_data = create_tensor_from_list({0L, 1L, 2L, 1L, 2L, 0L});
   at::Tensor indices = idx_data.reshape({2, 3});
@@ -305,6 +305,121 @@ TEST_F(SparseTensorTest, SparseCSRLargeShape) {
   file.openAppend();
   file << "SparseCSRLargeShape ";
   write_sparse_info_to_file(&file, sparse);
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(SparseTensorTest, SparseCOODtypeCastOptions) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "SparseCOODtypeCastOptions ";
+
+  // [DIFF] Paddle casts values to the TensorOptions dtype here; PyTorch
+  // requires values dtype to already match sparse tensor dtype.
+  try {
+    at::Tensor indices =
+        create_tensor_from_list({0L, 1L, 0L, 1L}).reshape({2, 2});
+    at::Tensor values = create_tensor_from_float_list({1.5f, 2.5f});
+    auto options = at::TensorOptions().dtype(at::kDouble).layout(c10::kSparse);
+
+    at::Tensor sparse = at::sparse_coo_tensor(indices, values, {2, 3}, options);
+    at::Tensor dense_values = sparse._values();
+
+    write_sparse_info_to_file(&file, sparse);
+    file << std::to_string(dense_values.numel()) << " ";
+    file << std::to_string(dense_values.data_ptr<double>()[0]) << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(SparseTensorTest, SparseCSRDtypeCastOptions) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "SparseCSRDtypeCastOptions ";
+
+  // [DIFF] Paddle accepts TensorOptions dtype conversion for CSR values;
+  // PyTorch rejects mismatched values dtype during CSR construction.
+  try {
+    at::Tensor crow_indices = create_tensor_from_list({0L, 1L, 2L});
+    at::Tensor col_indices = create_tensor_from_list({0L, 1L});
+    at::Tensor values = create_tensor_from_float_list({3.5f, 4.5f});
+    auto options =
+        at::TensorOptions().dtype(at::kDouble).layout(c10::kSparseCsr);
+
+    at::Tensor sparse = at::sparse_csr_tensor(
+        crow_indices, col_indices, values, {2, 3}, options);
+    at::Tensor dense_values = sparse._values();
+
+    write_sparse_info_to_file(&file, sparse);
+    file << std::to_string(sparse._nnz()) << " ";
+    file << std::to_string(dense_values.numel()) << " ";
+    file << std::to_string(dense_values.data_ptr<double>()[1]) << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(SparseTensorTest, SparseCSRValuesAndNnz) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "SparseCSRValuesAndNnz ";
+
+  try {
+    at::Tensor crow_indices = create_tensor_from_list({0L, 2L, 3L});
+    at::Tensor col_indices = create_tensor_from_list({0L, 1L, 1L});
+    at::Tensor values = create_tensor_from_float_list({1.0f, 2.0f, 3.0f});
+
+    at::Tensor sparse = at::sparse_csr_tensor(
+        crow_indices, col_indices, values, {2, 3}, at::kFloat);
+    file << std::to_string(sparse._nnz()) << " ";
+    // [DIFF] Paddle maps CSR _values() to the values tensor; PyTorch does not
+    // dispatch aten::_values for SparseCsrCPU.
+    try {
+      at::Tensor dense_values = sparse._values();
+      file << std::to_string(dense_values.dim()) << " ";
+      file << std::to_string(dense_values.numel()) << " ";
+      file << std::to_string(dense_values.data_ptr<float>()[0]) << " ";
+      file << std::to_string(dense_values.data_ptr<float>()[2]) << " ";
+    } catch (const std::exception&) {
+      file << "values_exception ";
+    }
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(SparseTensorTest, SparseZerosLikeKeepsLayout) {
+  at::Tensor indices =
+      create_tensor_from_list({0L, 1L, 0L, 1L}).reshape({2, 2});
+  at::Tensor values = create_tensor_from_float_list({1.0f, 2.0f});
+  at::Tensor sparse = at::sparse_coo_tensor(indices, values, {2, 3});
+  at::Tensor zero_sparse = at::zeros_like(sparse);
+
+  at::Tensor crow_indices = create_tensor_from_list({0L, 1L, 2L});
+  at::Tensor col_indices = create_tensor_from_list({0L, 1L});
+  at::Tensor csr_values = create_tensor_from_float_list({5.0f, 6.0f});
+  at::Tensor csr = at::sparse_csr_tensor(
+      crow_indices, col_indices, csr_values, {2, 3}, at::kFloat);
+  at::Tensor zero_csr = at::zeros_like(csr);
+
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "SparseZerosLikeKeepsLayout ";
+  file << std::to_string(zero_sparse.is_sparse() ? 1 : 0) << " ";
+  file << std::to_string(zero_sparse._nnz()) << " ";
+  file << std::to_string(zero_csr.is_sparse_csr() ? 1 : 0) << " ";
+  file << std::to_string(zero_csr._nnz()) << " ";
   file << "\n";
   file.saveFile();
 }

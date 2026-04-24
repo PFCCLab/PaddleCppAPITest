@@ -149,7 +149,6 @@ TEST_F(HalfBFloat16Test, BFloat16Namespace) {
 }
 
 // ScalarType 对应关系
-// [DIFF] PyTorch输出: 5 11, PaddlePaddle输出: 5 15 (BFloat16枚举值不同)
 TEST_F(HalfBFloat16Test, ScalarTypeMapping) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);

@@ -32,9 +32,6 @@ class AllocatorTest : public ::testing::Test {
   void* test_ctx_ = nullptr;
 };
 
-// [DIFF] 文件级说明：DataPtr 在构造签名、拷贝语义、deleter 生命周期、device
-// 类型上 存在稳定差异；本文件保留这些差异并通过条件分支输出可比结果。
-
 // 自定义 deleter 函数用于测试（不真正释放，由测试管理）
 static bool g_deleter_called = false;
 static void test_deleter(void* ptr) { g_deleter_called = true; }
@@ -91,7 +88,6 @@ TEST_F(AllocatorTest, DefaultConstructor) {
 
 // 测试带数据和设备的构造函数
 TEST_F(AllocatorTest, ConstructorWithDataAndDevice) {
-  // [DIFF] 用例级差异：相同语义在两端构造签名不同。
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);
   file.openAppend();

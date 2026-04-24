@@ -6,6 +6,21 @@
 #include <ATen/ops/new_zeros.h>
 #include <ATen/ops/ones.h>
 #include <ATen/ops/resize.h>
+#include <c10/core/Stream.h>
+
+#if defined(__has_include)
+#if __has_include(<c10/cuda/CUDAStream.h>) && \
+    __has_include(<c10/cuda/impl/cuda_cmake_macros.h>)
+#define PCAT_HAS_TORCH_CUDA_STREAM 1
+#include <c10/cuda/CUDAStream.h>
+#else
+#define PCAT_HAS_TORCH_CUDA_STREAM 0
+#endif
+#else
+#define PCAT_HAS_TORCH_CUDA_STREAM 1
+#include <c10/cuda/CUDAStream.h>
+#endif
+
 #include <gtest/gtest.h>
 #include <torch/all.h>
 
@@ -32,9 +47,6 @@ class TensorTest : public ::testing::Test {
 
   at::Tensor tensor;
 };
-
-// [DIFF] 文件级说明：Tensor API 覆盖面广，涉及
-// device/cuda/meta/index/统计等大量边界语义差异。
 
 TEST_F(TensorTest, ConstructFromPaddleTensor) {
   auto file_name = g_custom_param.get();
@@ -306,8 +318,8 @@ std::string GetTestCaseResultFileName() {
 
 // 测试 cuda
 TEST_F(TensorTest, CudaResult) {
-  // [DIFF] 用例级差异：cuda() 在无 CUDA 或后端实现差异下返回/异常语义不同。
-  FileManerger file(GetTestCaseResultFileName());
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
   file.openAppend();
   file << "CudaResult ";
   try {
@@ -328,14 +340,24 @@ TEST_F(TensorTest, CudaResult) {
 
 // 测试 record_stream
 TEST_F(TensorTest, RecordStreamResult) {
-  // [DIFF] 用例级差异：record_stream
-  // 参数类型与可用性在两端不一致，当前仅做占位输出。
-  FileManerger file(GetTestCaseResultFileName());
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
   file.openAppend();
   file << "RecordStreamResult ";
-  // 覆盖率识别标记：不同兼容层对 stream 参数类型不一致。
-  // cuda_tensor.record_stream(stream);
+#if PCAT_HAS_TORCH_CUDA_STREAM
+  try {
+    at::Tensor cuda_tensor = tensor.cuda();
+    at::Stream stream = c10::cuda::getCurrentCUDAStream(0);
+    cuda_tensor.record_stream(stream);
+    file << "1 ";
+  } catch (const std::exception&) {
+    file << "0 ";
+  } catch (...) {
+    file << "0 ";
+  }
+#else
   file << "0 ";
+#endif
   file << "\n";
   file.saveFile();
 }
@@ -404,22 +426,12 @@ TEST_F(TensorTest, SymSize) {
   c10::SymInt sym_size_0 = tensor.sym_size(0);
   c10::SymInt sym_size_1 = tensor.sym_size(1);
   c10::SymInt sym_size_2 = tensor.sym_size(2);
-#if USE_PADDLE_API
-  file << std::to_string(sym_size_0) << " ";
-  file << std::to_string(sym_size_1) << " ";
-  file << std::to_string(sym_size_2) << " ";
-#else
   file << std::to_string(sym_size_0.guard_int(__FILE__, __LINE__)) << " ";
   file << std::to_string(sym_size_1.guard_int(__FILE__, __LINE__)) << " ";
   file << std::to_string(sym_size_2.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   // 测试负索引
   c10::SymInt sym_size_neg1 = tensor.sym_size(-1);
-#if USE_PADDLE_API
-  file << std::to_string(sym_size_neg1) << " ";
-#else
   file << std::to_string(sym_size_neg1.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -434,22 +446,12 @@ TEST_F(TensorTest, SymStride) {
   c10::SymInt sym_stride_0 = tensor.sym_stride(0);
   c10::SymInt sym_stride_1 = tensor.sym_stride(1);
   c10::SymInt sym_stride_2 = tensor.sym_stride(2);
-#if USE_PADDLE_API
-  file << std::to_string(sym_stride_0) << " ";
-  file << std::to_string(sym_stride_1) << " ";
-  file << std::to_string(sym_stride_2) << " ";
-#else
   file << std::to_string(sym_stride_0.guard_int(__FILE__, __LINE__)) << " ";
   file << std::to_string(sym_stride_1.guard_int(__FILE__, __LINE__)) << " ";
   file << std::to_string(sym_stride_2.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   // 测试负索引
   c10::SymInt sym_stride_neg1 = tensor.sym_stride(-1);
-#if USE_PADDLE_API
-  file << std::to_string(sym_stride_neg1) << " ";
-#else
   file << std::to_string(sym_stride_neg1.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -464,11 +466,7 @@ TEST_F(TensorTest, SymSizes) {
   c10::SymIntArrayRef sym_sizes = tensor.sym_sizes();
   file << std::to_string(sym_sizes.size()) << " ";
   for (size_t i = 0; i < sym_sizes.size(); ++i) {
-#if USE_PADDLE_API
-    file << std::to_string(sym_sizes[i]) << " ";
-#else
     file << std::to_string(sym_sizes[i].guard_int(__FILE__, __LINE__)) << " ";
-#endif
   }
   file << "\n";
   file.saveFile();
@@ -484,11 +482,7 @@ TEST_F(TensorTest, SymStrides) {
   c10::SymIntArrayRef sym_strides = tensor.sym_strides();
   file << std::to_string(sym_strides.size()) << " ";
   for (size_t i = 0; i < sym_strides.size(); ++i) {
-#if USE_PADDLE_API
-    file << std::to_string(sym_strides[i]) << " ";
-#else
     file << std::to_string(sym_strides[i].guard_int(__FILE__, __LINE__)) << " ";
-#endif
   }
   file << "\n";
   file.saveFile();
@@ -502,11 +496,7 @@ TEST_F(TensorTest, SymNumel) {
   file << "SymNumel ";
   // 获取符号化的元素总数
   c10::SymInt sym_numel = tensor.sym_numel();
-#if USE_PADDLE_API
-  file << std::to_string(sym_numel) << " ";
-#else
   file << std::to_string(sym_numel.guard_int(__FILE__, __LINE__)) << " ";
-#endif
   file << std::to_string(tensor.numel()) << " ";
   file << "\n";
   file.saveFile();
@@ -540,6 +530,28 @@ TEST_F(TensorTest, Chunk) {
   file << std::to_string(chunks.size()) << " ";
   file << std::to_string(chunks[0].sizes()[0]) << " ";
   file << std::to_string(chunks[1].sizes()[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+// [DIFF] This covers the compat branch that emits empty chunks when chunks is
+// larger than the split dimension. Some Torch versions return fewer chunks.
+TEST_F(TensorTest, ChunkMoreChunksThanDimSize) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ChunkMoreChunksThanDimSize ";
+
+  at::Tensor test_tensor = at::ones({2, 3}, at::kFloat);
+  std::vector<at::Tensor> chunks = test_tensor.chunk(5, 0);
+  file << std::to_string(chunks.size()) << " ";
+  for (const auto& chunk : chunks) {
+    file << std::to_string(chunk.dim()) << " ";
+    file << std::to_string(chunk.numel()) << " ";
+    if (chunk.dim() > 0) {
+      file << std::to_string(chunk.sizes()[0]) << " ";
+    }
+  }
   file << "\n";
   file.saveFile();
 }
@@ -612,6 +624,86 @@ TEST_F(TensorTest, NewOnes) {
   file.saveFile();
 }
 
+TEST_F(TensorTest, NewOpsPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewOpsPinnedMemoryCPU ";
+
+  auto options = at::TensorOptions()
+                     .dtype(at::kFloat)
+                     .device(at::kCPU)
+                     .pinned_memory(true);
+
+  try {
+    auto result = tensor.new_empty({2, 2}, options);
+    file << "empty_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "empty_exception ";
+  }
+  try {
+    auto result = tensor.new_full({2, 2}, 3.0, options);
+    file << "full_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "full_exception ";
+  }
+  try {
+    auto result = tensor.new_ones({2, 2}, options);
+    file << "ones_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "ones_exception ";
+  }
+  try {
+    auto result = tensor.new_zeros({2, 2}, options);
+    file << "zeros_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "zeros_exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorTest, NewOpsPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewOpsPinnedMemoryCUDADevice ";
+
+  auto options = at::TensorOptions()
+                     .dtype(at::kFloat)
+                     .device(at::kCUDA)
+                     .pinned_memory(true);
+
+  try {
+    (void)tensor.new_empty({2, 2}, options);
+    file << "empty_ok ";
+  } catch (const std::exception&) {
+    file << "empty_exception ";
+  }
+  try {
+    (void)tensor.new_full({2, 2}, 3.0, options);
+    file << "full_ok ";
+  } catch (const std::exception&) {
+    file << "full_exception ";
+  }
+  try {
+    (void)tensor.new_ones({2, 2}, options);
+    file << "ones_ok ";
+  } catch (const std::exception&) {
+    file << "ones_exception ";
+  }
+  try {
+    (void)tensor.new_zeros({2, 2}, options);
+    file << "zeros_ok ";
+  } catch (const std::exception&) {
+    file << "zeros_exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
 // 测试 resize_ - 缩小元素数时应成功并保留前缀数据
 TEST_F(TensorTest, Resize) {
   auto file_name = g_custom_param.get();
@@ -624,6 +716,25 @@ TEST_F(TensorTest, Resize) {
   file << std::to_string(tensor.numel()) << " ";
   file << std::to_string(tensor.data_ptr<float>()[0]) << " ";
   file << std::to_string(tensor.data_ptr<float>()[19]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorTest, ResizeGrowStorage) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ResizeGrowStorage ";
+
+  at::Tensor grow = at::ones({2, 2}, at::kFloat);
+  grow.data_ptr<float>()[0] = 11.0f;
+  grow.data_ptr<float>()[3] = 44.0f;
+  grow.resize_({4, 4});
+
+  file << std::to_string(grow.sizes()[0]) << " ";
+  file << std::to_string(grow.sizes()[1]) << " ";
+  file << std::to_string(grow.numel()) << " ";
+  file << std::to_string(grow.data_ptr<float>()[0]) << " ";
   file << "\n";
   file.saveFile();
 }
@@ -688,11 +799,23 @@ TEST_F(TensorTest, ToScalarType) {
 
 // 测试 meta
 TEST_F(TensorTest, MetaMethod) {
-  // [DIFF] 用例级差异：meta() 在两端能力面不同，此处按失败路径记录差异。
-  FileManerger file(GetTestCaseResultFileName());
+  // [DIFF] Paddle 没有 meta 设备，也不对齐 Tensor::meta() 语义；
+  // 该用例保留为已知剩余差异。
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
   file.openAppend();
   file << "MetaMethod ";
-  file << "0 ";  // meta() not supported, should throw
+  try {
+    at::Tensor meta_tensor = tensor.meta();
+    file << "1 ";
+    file << std::to_string(static_cast<int>(meta_tensor.device().type()))
+         << " ";
+    file << std::to_string(meta_tensor.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "0 ";
+  } catch (...) {
+    file << "0 ";
+  }
   file << "\n";
   file.saveFile();
 }
@@ -732,6 +855,24 @@ TEST_F(TensorTest, ItemTemplate) {
   file.saveFile();
 }
 
+static void write_expand_result_to_file(FileManerger* file,
+                                        const at::Tensor& result) {
+  *file << std::to_string(result.dim()) << " ";
+  *file << std::to_string(result.numel()) << " ";
+  for (int64_t i = 0; i < result.dim(); ++i) {
+    *file << std::to_string(result.sizes()[i]) << " ";
+  }
+  if (result.numel() == 0) {
+    *file << "empty ";
+    return;
+  }
+  at::Tensor cont = result.contiguous();
+  float* data = cont.data_ptr<float>();
+  *file << std::to_string(data[0]) << " ";
+  *file << std::to_string(data[cont.numel() - 1]) << " ";
+  *file << std::to_string(cont.sum().item<float>()) << " ";
+}
+
 // 测试 expand
 TEST_F(TensorTest, Expand) {
   auto file_name = g_custom_param.get();
@@ -758,6 +899,108 @@ TEST_F(TensorTest, ExpandAs) {
   at::Tensor expanded = small.expand_as(target);
   file << std::to_string(expanded.sizes()[0]) << " ";
   file << std::to_string(expanded.sizes()[1]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+// 覆盖 input_rank < target_rank 且可直接 expand 的路径。
+TEST_F(TensorTest, ExpandRankLessCanUseExpand) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ExpandRankLessCanUseExpand ";
+
+  at::Tensor small = at::ones({1}, at::kFloat);
+  at::Tensor expanded = small.expand({2, 3});
+  write_expand_result_to_file(&file, expanded);
+
+  file << "\n";
+  file.saveFile();
+}
+
+// 覆盖 input_rank < target_rank 的 tile+slice fallback（target > input）。
+TEST_F(TensorTest, ExpandRankLessFallbackGrowTarget) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ExpandRankLessFallbackGrowTarget ";
+
+  at::Tensor small = at::ones({1, 2}, at::kFloat);
+  at::Tensor expanded = small.expand({2, 3, 2});
+  write_expand_result_to_file(&file, expanded);
+
+  file << "\n";
+  file.saveFile();
+}
+
+// 覆盖 input_rank < target_rank 的 tile+slice fallback（target <= input）。
+TEST_F(TensorTest, ExpandRankLessFallbackShrinkTarget) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ExpandRankLessFallbackShrinkTarget ";
+
+  at::Tensor small = at::ones({1, 2}, at::kFloat);
+  at::Tensor expanded = small.expand({2, 1, 2});
+  write_expand_result_to_file(&file, expanded);
+
+  file << "\n";
+  file.saveFile();
+}
+
+// 覆盖 fallback 中 in_size==0 / target_size==0 的 repeat_times 分支。
+TEST_F(TensorTest, ExpandRankLessFallbackZeroSize) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ExpandRankLessFallbackZeroSize ";
+
+  at::Tensor small = at::ones({1, 0}, at::kFloat);
+  at::Tensor expanded = small.expand({2, 3, 0});
+  file << std::to_string(expanded.dim()) << " ";
+  file << std::to_string(expanded.numel()) << " ";
+  file << "empty ";
+
+  file << "\n";
+  file.saveFile();
+}
+
+// [DIFF] This exercises the Paddle compat tile+slice fallback. PyTorch treats
+// shrinking a non-singleton expanded dimension as invalid.
+TEST_F(TensorTest, ExpandSameRankFallbackShrink) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ExpandSameRankFallbackShrink ";
+
+  try {
+    at::Tensor small = at::ones({2, 3}, at::kFloat);
+    at::Tensor expanded = small.expand({2, 2});
+    write_expand_result_to_file(&file, expanded);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
+// [DIFF] This covers the Paddle compat input_rank > target_rank path. PyTorch
+// requires expand sizes to be at least the tensor rank.
+TEST_F(TensorTest, ExpandInputRankGreaterThanTargetRank) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ExpandInputRankGreaterThanTargetRank ";
+
+  try {
+    at::Tensor small = at::ones({1, 2, 3}, at::kFloat);
+    at::Tensor expanded = small.expand({2, 3});
+    write_expand_result_to_file(&file, expanded);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+
   file << "\n";
   file.saveFile();
 }

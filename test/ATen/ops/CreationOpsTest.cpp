@@ -336,5 +336,187 @@ TEST_F(CreationOpsTest, OnesInt64) {
   file.saveFile();
 }
 
+// ========== pin_memory 分支覆盖 ==========
+
+TEST_F(CreationOpsTest, ZerosPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosPinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor result = at::zeros({2, 3}, options);
+    file << "ok ";
+    file << std::to_string(result.is_pinned() ? 1 : 0) << " ";
+    write_creation_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(CreationOpsTest, ZerosPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosPinnedMemoryCUDADevice ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor result = at::zeros({2, 3}, options);
+    file << "ok ";
+    write_creation_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(CreationOpsTest, OnesPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "OnesPinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor result = at::ones({2, 3}, options);
+    file << "ok ";
+    file << std::to_string(result.is_pinned() ? 1 : 0) << " ";
+    write_creation_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(CreationOpsTest, OnesPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "OnesPinnedMemoryCUDADevice ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor result = at::ones({2, 3}, options);
+    file << "ok ";
+    write_creation_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(CreationOpsTest, FullPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "FullPinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor result = at::full({2, 3}, 7.0f, options);
+    file << "ok ";
+    file << std::to_string(result.is_pinned() ? 1 : 0) << " ";
+    write_creation_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(CreationOpsTest, FullPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "FullPinnedMemoryCUDADevice ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor result = at::full({2, 3}, 7.0f, options);
+    file << "ok ";
+    write_creation_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(CreationOpsTest, EmptyPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "EmptyPinnedMemoryCPU ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCPU)
+                       .pinned_memory(true);
+    at::Tensor result = at::empty({2, 3}, options);
+    file << "ok ";
+    file << std::to_string(result.is_pinned() ? 1 : 0) << " ";
+    write_creation_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(CreationOpsTest, EmptyPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "EmptyPinnedMemoryCUDADevice ";
+  try {
+    auto options = at::TensorOptions()
+                       .dtype(at::kFloat)
+                       .device(at::kCUDA)
+                       .pinned_memory(true);
+    at::Tensor result = at::empty({2, 3}, options);
+    file << "ok ";
+    write_creation_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at

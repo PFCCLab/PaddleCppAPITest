@@ -91,6 +91,31 @@ bool iv_is_bool(const T& iv) {
 }
 
 template <typename T, typename = void>
+struct has_is_none_snake : std::false_type {};
+template <typename T>
+struct has_is_none_snake<
+    T,
+    std::void_t<decltype(std::declval<const T&>().is_none())>>
+    : std::true_type {};
+
+template <typename T, typename = void>
+struct has_is_none_camel : std::false_type {};
+template <typename T>
+struct has_is_none_camel<
+    T,
+    std::void_t<decltype(std::declval<const T&>().isNone())>> : std::true_type {
+};
+
+template <typename T>
+bool iv_is_none(const T& iv) {
+  if constexpr (has_is_none_snake<T>::value) {
+    return iv.is_none();
+  } else {
+    return iv.isNone();
+  }
+}
+
+template <typename T, typename = void>
 struct has_is_int_snake : std::false_type {};
 template <typename T>
 struct has_is_int_snake<
@@ -941,6 +966,128 @@ TEST_F(IValueTest, ReprAndTypeStringMethods) {
                              ? 1
                              : 0)
        << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(IValueTest, TagTypeAndReprBranches) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "TagTypeAndReprBranches ";
+
+  CompatIValue iv_none;
+  CompatIValue iv_optional_none(std::optional<int64_t>{});
+  CompatIValue iv_bool(false);
+  CompatIValue iv_double(8.5);
+  CompatIValue iv_tensor(at::zeros({1}, at::TensorOptions().dtype(at::kFloat)));
+  CompatIValue iv_list(std::vector<int64_t>{4, 5});
+  CompatIValue iv_tuple(std::tuple<int64_t, double>{9, 1.25});
+
+  file << std::to_string(iv_is_none(iv_none) ? 1 : 0) << " ";
+  file << std::to_string(iv_is_none(iv_optional_none) ? 1 : 0) << " ";
+  file << std::to_string(contains_token_ci(iv_none.tagKind(), "none") ? 1 : 0)
+       << " ";
+  file << std::to_string(contains_token_ci(iv_bool.tagKind(), "bool") ? 1 : 0)
+       << " ";
+  file << std::to_string(contains_token_ci(iv_double.tagKind(), "double") ? 1
+                                                                          : 0)
+       << " ";
+  file << std::to_string(
+              contains_token_ci(iv_type_string(iv_tensor), "tensor") ? 1 : 0)
+       << " ";
+  file << std::to_string(contains_token_ci(iv_type_string(iv_list), "list") ? 1
+                                                                            : 0)
+       << " ";
+  file << std::to_string(
+              contains_token_ci(iv_type_string(iv_tuple), "tuple") ? 1 : 0)
+       << " ";
+  file << std::to_string(contains_token_ci(iv_to_repr(iv_none), "none") ? 1 : 0)
+       << " ";
+  file << std::to_string(contains_token_ci(iv_to_repr(iv_bool), "false") ? 1
+                                                                         : 0)
+       << " ";
+  file << std::to_string(contains_token_ci(iv_to_repr(iv_double), "8") ? 1 : 0)
+       << " ";
+  // [DIFF] PyTorch IValue::repr() throws for Tensor; Paddle returns a Tensor
+  // repr string. Keep the branch covered without normalizing the behavior.
+  try {
+    file << std::to_string(
+                contains_token_ci(iv_to_repr(iv_tensor), "tensor") ? 1 : 0)
+         << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  try {
+    file << std::to_string(
+                iv_to_repr(iv_list).find('[') != std::string::npos ? 1 : 0)
+         << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+  try {
+    file << std::to_string(
+                iv_to_repr(iv_tuple).find('(') != std::string::npos ? 1 : 0)
+         << " ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(IValueTest, FailedConversionBranches) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "FailedConversionBranches ";
+
+  CompatIValue iv_string(std::string("not_numeric"));
+  CompatIValue iv_bool(false);
+  CompatIValue iv_tuple(std::tuple<int64_t, double, std::string>{1, 2.0, "x"});
+
+  bool bool_failed = false;
+  bool int_failed = false;
+  bool double_failed = false;
+  bool tensor_failed = false;
+  bool tuple_size_failed = false;
+  bool vector_convert_failed = false;
+
+  try {
+    (void)iv_to_bool(iv_string);
+  } catch (const std::exception&) {
+    bool_failed = true;
+  }
+  try {
+    (void)iv_to_int(iv_string);
+  } catch (const std::exception&) {
+    int_failed = true;
+  }
+  try {
+    (void)iv_to_double(iv_string);
+  } catch (const std::exception&) {
+    double_failed = true;
+  }
+  try {
+    (void)iv_to_tensor(iv_string);
+  } catch (const std::exception&) {
+    tensor_failed = true;
+  }
+  try {
+    (void)iv_tuple.to<std::tuple<int64_t, double>>();
+  } catch (const std::exception&) {
+    tuple_size_failed = true;
+  }
+  std::vector<int64_t> out_vector;
+  vector_convert_failed = !iv_try_convert_to(iv_bool, &out_vector);
+
+  file << std::to_string(bool_failed ? 1 : 0) << " ";
+  file << std::to_string(int_failed ? 1 : 0) << " ";
+  file << std::to_string(double_failed ? 1 : 0) << " ";
+  file << std::to_string(tensor_failed ? 1 : 0) << " ";
+  file << std::to_string(tuple_size_failed ? 1 : 0) << " ";
+  file << std::to_string(vector_convert_failed ? 1 : 0) << " ";
   file << "\n";
   file.saveFile();
 }

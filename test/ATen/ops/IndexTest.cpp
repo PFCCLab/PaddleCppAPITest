@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "src/file_manager.h"
@@ -31,6 +32,22 @@ class IndexTest : public ::testing::Test {
 
   at::Tensor tensor;
 };
+
+template <typename T, typename = void>
+struct has_expect_int : std::false_type {};
+
+template <typename T>
+struct has_expect_int<T, std::void_t<decltype(std::declval<T>().expect_int())>>
+    : std::true_type {};
+
+template <typename T>
+static int64_t slice_bound_to_int64(const T& value) {
+  if constexpr (has_expect_int<T>::value) {
+    return value.expect_int();
+  } else {
+    return static_cast<int64_t>(value);
+  }
+}
 
 // 输出 shape、numel、stride、is_contiguous
 static void write_index_result_to_file(FileManerger* file,
@@ -58,21 +75,12 @@ TEST_F(IndexTest, SliceConstruction) {
   FileManerger file(file_name);
   file.createFile();
   file << "SliceConstruction ";
-#if USE_PADDLE_API
-  file << std::to_string(s1.start()) << " ";
-  file << std::to_string(s1.stop()) << " ";
-  file << std::to_string(s1.step()) << " ";
-  file << std::to_string(s2.start()) << " ";
-  file << std::to_string(s2.stop()) << " ";
-  file << std::to_string(s2.step()) << " ";
-#else
-  file << std::to_string(s1.start().expect_int()) << " ";
-  file << std::to_string(s1.stop().expect_int()) << " ";
-  file << std::to_string(s1.step().expect_int()) << " ";
-  file << std::to_string(s2.start().expect_int()) << " ";
-  file << std::to_string(s2.stop().expect_int()) << " ";
-  file << std::to_string(s2.step().expect_int()) << " ";
-#endif
+  file << std::to_string(slice_bound_to_int64(s1.start())) << " ";
+  file << std::to_string(slice_bound_to_int64(s1.stop())) << " ";
+  file << std::to_string(slice_bound_to_int64(s1.step())) << " ";
+  file << std::to_string(slice_bound_to_int64(s2.start())) << " ";
+  file << std::to_string(slice_bound_to_int64(s2.stop())) << " ";
+  file << std::to_string(slice_bound_to_int64(s2.step())) << " ";
   file << "\n";
   file.saveFile();
 }
@@ -295,6 +303,53 @@ TEST_F(IndexTest, SliceIndexKeepsStride) {
 
   file << std::to_string(result_data[0]) << " ";
   file << std::to_string(result_data[1]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(IndexTest, IndexEmptyIndicesReturnsSelf) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "IndexEmptyIndicesReturnsSelf ";
+
+  // [DIFF] PyTorch rejects an empty TensorIndex list; Paddle currently returns
+  // the original tensor.
+  try {
+    std::vector<at::indexing::TensorIndex> indices;
+    at::Tensor result = tensor.index(indices);
+    write_index_result_to_file(&file, result);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(IndexTest, IndexTensorAndNoneIndices) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "IndexTensorAndNoneIndices ";
+
+  at::Tensor base =
+      at::arange(0, 12, at::TensorOptions().dtype(at::kFloat)).reshape({4, 3});
+  at::Tensor index_tensor =
+      at::arange(0, 2, at::TensorOptions().dtype(at::kLong));
+
+  // [DIFF] PyTorch accepts Tensor/None mixed indexing here; Paddle currently
+  // throws from the compat indexing path.
+  try {
+    at::Tensor tensor_only = base.index({index_tensor});
+    at::Tensor with_none =
+        base.index({index_tensor, at::indexing::None, at::indexing::Slice()});
+    write_index_result_to_file(&file, tensor_only);
+    write_index_result_to_file(&file, with_none);
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
+
   file << "\n";
   file.saveFile();
 }

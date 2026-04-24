@@ -27,18 +27,43 @@ function(ExternalProject repourl tag destination)
     set(cmake_cli_args ${cmake_key} ${cmake_cli_args})
   endforeach()
 
+  set(external_compiler_args)
+  if(CMAKE_CXX_COMPILER)
+    list(APPEND external_compiler_args
+         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
+  endif()
+  if(CMAKE_C_COMPILER)
+    list(APPEND external_compiler_args -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER})
+  endif()
+
   message(STATUS "ARGS for ExternalProject_Add(${name}): ${cmake_cli_args}")
   message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 
-  ExternalProject_Add(
-    ${_name}
-    GIT_REPOSITORY ${repourl}
-    GIT_TAG ${tag}
-    CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-               -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} ${cmake_cli_args}
-               -DCMAKE_CXX_STANDARD=17
-    PREFIX "${destination}"
-    INSTALL_DIR "${destination}"
-    INSTALL_COMMAND "${CMAKE_COMMAND}" --install "<BINARY_DIR>" --prefix
-                    "${destination}")
+  set(_local_source_dir "${PROJECT_SOURCE_DIR}/build/3rd_party/src/${_name}")
+  if(EXISTS "${_local_source_dir}/CMakeLists.txt")
+    message(STATUS "Reuse local external source: ${_local_source_dir}")
+    ExternalProject_Add(
+      ${_name}
+      SOURCE_DIR "${_local_source_dir}"
+      CMAKE_ARGS ${external_compiler_args} ${cmake_cli_args}
+                 -DCMAKE_CXX_STANDARD=17
+      PREFIX "${destination}"
+      INSTALL_DIR "${destination}"
+      DOWNLOAD_COMMAND ""
+      UPDATE_COMMAND ""
+      INSTALL_COMMAND "${CMAKE_COMMAND}" --install "<BINARY_DIR>" --prefix
+                      "${destination}")
+  else()
+    ExternalProject_Add(
+      ${_name}
+      GIT_REPOSITORY ${repourl}
+      GIT_TAG ${tag}
+      CMAKE_ARGS ${external_compiler_args} ${cmake_cli_args}
+                 -DCMAKE_CXX_STANDARD=17
+      PREFIX "${destination}"
+      INSTALL_DIR "${destination}"
+      UPDATE_COMMAND ""
+      INSTALL_COMMAND "${CMAKE_COMMAND}" --install "<BINARY_DIR>" --prefix
+                      "${destination}")
+  endif()
 endfunction()

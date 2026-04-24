@@ -29,11 +29,7 @@ static int dtype_to_int(const DType& dtype) {
 }
 
 static void set_default_dtype_compat(c10::ScalarType dtype) {
-#if USE_PADDLE_API
-  c10::set_default_dtype(dtype);
-#else
   c10::set_default_dtype(c10::scalarTypeToTypeMeta(dtype));
-#endif
 }
 
 class DefaultDtypeTest : public ::testing::Test {
@@ -99,7 +95,6 @@ TEST_F(DefaultDtypeTest, SetDefaultDtypeHalf) {
 }
 
 // set_default_dtype 到 BFloat16
-// [DIFF] PyTorch输出: 11, PaddlePaddle输出: 15
 TEST_F(DefaultDtypeTest, SetDefaultDtypeBFloat16) {
   auto file_name = g_custom_param.get();
   FileManerger file(file_name);

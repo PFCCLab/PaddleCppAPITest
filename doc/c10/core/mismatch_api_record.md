@@ -1,3 +1,53 @@
+## 2026-04-17 Event 历史归档测试删除
+
+### 本轮复核
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `EventCompatTest.EventDefault` / `EventWithFlag` / `EventRecordThrows` / `EventRecordOnceThrows` / `EventMove` / `EventDevice` | 重新定向执行 `./build/paddle/paddle_EventCompatTest` 与 `./build/torch/torch_EventCompatTest`，结果文件 `diff` 无差异 | 一致 | ✅ 持续对齐 |
+
+说明：
+
+- `test/c10/core/unmatch_EventTest.cpp` 本身仍只是在记录历史差异，且按 `CMakeLists.txt` 中的 `unmatch_*.cpp` 过滤规则并不会参与常规构建或 `result_cmp`。
+- 本轮已再次确认真正承担回归职责的是 `test/c10/core/EventCompatTest.cpp`，因此删除 `test/c10/core/unmatch_EventTest.cpp`，避免“已对齐但仍保留旧 unmatch 文件”造成误导。
+- `c10::EventPool` 仍属于 Paddle 私有扩展，无对应 libtorch API，继续不纳入跨库对齐测试。
+
+### 本轮修改文件
+
+- `/home/may/PaddleCppAPITest/test/c10/core/unmatch_EventTest.cpp` - 删除已失效的历史归档测试文件
+- `/home/may/PaddleCppAPITest/test/c10/core/EventCompatTest.cpp` - 更新文件头注释，说明旧归档文件已删除
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 增补本轮复核与删除结论
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md` - 同步顶层汇总
+
+---
+
+## 2026-04-05 TensorOptions Mac-CPU 编译修复（Paddle 内部 ctest 已验证）
+
+### 本轮修复
+
+| 测试项 | 修复前 Paddle | 修复后 Paddle | PyTorch | 状态 |
+|--------|---------------|---------------|---------|------|
+| `torch::TensorOptions` 命名空间解析 | `TensorOptions.h` 通过 `using namespace c10` 将 `c10::TensorOptions` 导出到 `torch` 命名空间，导致 macOS/Clang 上 "type hidden by declaration" 编译错误 | 移除 `namespace torch { using namespace c10; }` 导出；`torch::TensorOptions` 现在通过 `torch/types.h -> at::TensorOptions` 解析，与 PyTorch 一致 | 一致 | ✅ 已对齐 |
+| `torch::from_blob` 配合 `torch::TensorOptions` | 在 macOS/Clang 上编译失败 | 使用 `torch::from_blob(..., torch::TensorOptions().dtype(...))` 可正常编译，命名空间解析路径与 PyTorch 一致 | 一致 | ✅ 已对齐 |
+
+说明：
+
+- 修复了 PR #78580 中提到的 Mac-CPU 编译错误：在使用 `torch::from_blob(pp, {3}, torch::TensorOptions().dtype(torch::kInt64))` 时，clang 报告 "a type named 'TensorOptions' is hidden by a declaration in a different namespace"。
+- 根本原因是 `c10/core/TensorOptions.h` 第 377-379 行的 `namespace torch { using namespace c10; }` 将整个 `c10` 命名空间导入 `torch`，与 `ATen/core/TensorBody.h` 中的 `using TensorOptions = c10::TensorOptions;` 产生冲突。
+- 解决方案：移除 `TensorOptions.h` 中的 `torch` 命名空间导出，使 `torch::TensorOptions` 通过 `torch/types.h` 中的 `using at::TensorOptions` 解析，最终指向 `c10::TensorOptions`，与 PyTorch 的解析路径一致。
+- 验证：`ninja -j16` 编译成功，`ctest -R c10` 16/16 通过，`ctest -R ATen` 48/48 通过。
+- 相关文件修改：
+  - `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/TensorOptions.h` - 移除 `namespace torch { using namespace c10; }`
+  - `/home/may/Paddle/paddle/fluid/pybind/torch_compat.h` - 将 `DispatchKey::CPU` 改为 `c10::DispatchKey::CPU`（`torch/library.h` 已间接包含 DispatchKey 头文件）
+
+### 本轮修改文件
+
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/TensorOptions.h` - 移除 `torch` 命名空间对 `c10` 的导出，解决 macOS/Clang 编译错误
+- `/home/may/Paddle/paddle/fluid/pybind/torch_compat.h` - 将 `DispatchKey::CPU` 改为 `c10::DispatchKey::CPU`
+- `/home/may/PaddleCppAPITest/doc/c10/core/mismatch_api_record.md` - 记录本轮 TensorOptions 命名空间修复
+
+---
+
 ## 2026-04-02 Event 语义补齐（Paddle 内部 ctest 已验证）
 
 ### 本轮复核
@@ -20,7 +70,7 @@
 ### 本轮修改文件
 
 - `/home/may/Paddle/paddle/phi/api/include/compat/c10/core/Event.h` - 改为 lazy-create，补齐 device index 与 timing 语义
-- `/home/may/Paddle/paddle/phi/api/include/compat/c10/cuda/CUDAStream.h` - 恢复 `raw_stream()` 兼容入口
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/cuda/CUDAStream.h` - ~~恢复 `raw_stream()` 兼容入口~~ 已删除（PyTorch 无此接口）
 - `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/record_stream.h` - 恢复 `record_stream(cudaStream_t)` 兼容重载
 - `/home/may/Paddle/test/cpp/compat/c10_Event_test.cc` - 新增 Event 语义回归
 - `/home/may/Paddle/test/cpp/compat/ATen_record_stream_test.cc` - 补充 raw-stream 兼容路径验证
@@ -40,7 +90,7 @@
 说明：
 
 - 原 `test/c10/core/unmatch_EventTest.cpp` 中记录的历史差异（`#include <c10/core/Event.h>` 被 `#ifndef USE_PADDLE_API` 包裹、`c10::Event` 缺少 `EventFlag` 构造函数、非 CUDA 构建下 `c10::Event` 不可用）当前 compat 实现已与 PyTorch 对齐。
-- `c10::EventPool` 属于 Paddle 私有扩展，无对应 libtorch API，不纳入跨库对齐测试；原 `unmatch_EventTest.cpp` 保留为历史归档。
+- `c10::EventPool` 属于 Paddle 私有扩展，无对应 libtorch API，不纳入跨库对齐测试；对应历史归档文件已在 2026-04-17 删除。
 - 上述可对齐差异点已通过新建 `EventCompatTest.cpp` 的方式纳入常规回归；`EventCompatTest` 当前在 `result_cmp` 中已完全 `MATCH`。
 
 ### 本轮修改文件
