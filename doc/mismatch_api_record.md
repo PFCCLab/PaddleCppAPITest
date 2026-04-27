@@ -2,30 +2,84 @@
 
 ---
 
-## 2026-04-24 Paddle 兼容层低覆盖补测差异归档
+## 2026-04-27 兼容层接口差异对齐（Paddle 内部 ctest + PaddleCppAPITest 回归）
 
-### 本轮补测暴露的新增差异
+### 本轮修复（已解决）
 
-| 测试项 | 当前 Paddle | PyTorch | 结论 |
-|--------|-------------|---------|------|
-| `IValueTest.TagTypeAndReprBranches` / `IValue::to_repr(Tensor)` | 返回 Tensor repr 字符串 | 抛异常：`repr() not defined on: Tensor` | ⚠️ 新增已知差异 |
-| `IndexTest.IndexEmptyIndicesReturnsSelf` | 空 `TensorIndex` 列表返回原 tensor | 抛异常：空 index list 非法 | ⚠️ 新增已知差异 |
-| `IndexTest.IndexTensorAndNoneIndices` | Tensor/None 混合 indexing 抛异常 | 返回扩维后的 indexed tensor | ⚠️ 新增已知差异 |
-| `SparseTensorTest.SparseCOODtypeCastOptions` | `TensorOptions().dtype(...)` 会将 COO values cast 到目标 dtype | values dtype 与 sparse dtype 不一致时抛异常 | ⚠️ 新增已知差异 |
-| `SparseTensorTest.SparseCSRDtypeCastOptions` | `TensorOptions().dtype(...)` 会将 CSR values cast 到目标 dtype | values dtype 与 sparse dtype 不一致时抛异常 | ⚠️ 新增已知差异 |
-| `SparseTensorTest.SparseCSRValuesAndNnz` | CSR `_values()` 返回 values tensor | `aten::_values` 不支持 `SparseCsrCPU` | ⚠️ 新增已知差异 |
-| `TensorTest.ChunkMoreChunksThanDimSize` | 当 `chunks > dim_size` 时返回包含空 chunk 的 5 个结果 | 返回 2 个非空 chunk | ⚠️ 新增已知差异 |
-| `TensorTest.ExpandSameRankFallbackShrink` | compat fallback 通过 tile+slice 返回缩小结果 | 抛异常：expand 不允许缩小非 singleton 维度 | ⚠️ 新增已知差异 |
-| `TensorTest.ExpandInputRankGreaterThanTargetRank` | compat fallback 允许输入 rank 大于目标 rank 并 slice | 抛异常：expand 目标 rank 小于输入 rank | ⚠️ 新增已知差异 |
+| 测试项 | 修复前 Paddle | 修复后 Paddle | PyTorch | 状态 |
+|--------|---------------|---------------|---------|------|
+| `IValueTest.TagTypeAndReprBranches` / `IValue::to_repr(Tensor)` | 返回 Tensor repr 字符串 | 抛异常：`repr() not defined on: Tensor` | 抛异常 | ✅ 已对齐 |
+| `IndexTest.IndexEmptyIndicesReturnsSelf` | 空 `TensorIndex` 列表返回原 tensor | 抛异常：空 index list 非法 | 抛异常 | ✅ 已对齐 |
+| `SparseTensorTest.SparseCOODtypeCastOptions` | `TensorOptions().dtype(...)` 会将 COO values cast 到目标 dtype | 忽略 dtype 不匹配，使用 values 原始 dtype | 忽略 dtype 不匹配 | ✅ 已对齐 |
+| `SparseTensorTest.SparseCSRDtypeCastOptions` | `TensorOptions().dtype(...)` 会将 CSR values cast 到目标 dtype | values dtype 与 sparse dtype 不一致时抛异常 | 抛异常 | ✅ 已对齐 |
+| `SparseTensorTest.SparseCSRValuesAndNnz` | CSR `_values()` 返回 values tensor | `aten::_values` 不支持 `SparseCsrCPU`，抛异常 | 抛异常 | ✅ 已对齐 |
+| `TensorTest.ChunkMoreChunksThanDimSize` | 当 `chunks > dim_size` 时返回包含空 chunk 的 5 个结果 | 返回 2 个非空 chunk（与 dim_size 相同） | 返回 2 个非空 chunk | ✅ 已对齐 |
+| `TensorTest.ExpandSameRankFallbackShrink` | compat fallback 通过 tile+slice 返回缩小结果 | 抛异常：expand 不允许缩小非 singleton 维度 | 抛异常 | ✅ 已对齐 |
+| `TensorTest.ExpandInputRankGreaterThanTargetRank` | compat fallback 允许输入 rank 大于目标 rank 并 slice | 抛异常：expand 目标 rank 小于输入 rank | 抛异常 | ✅ 已对齐 |
+| `TensorTest.RecordStreamResult` | 因缺少 `<c10/cuda/impl/cuda_cmake_macros.h>` 导致宏未定义，测试跳过 | 补充缺失头文件，测试正常执行 | 正常执行 | ✅ 已对齐 |
+| `TensorTest.ExpandRankLessFallbackGrowTarget` / `ExpandRankLessFallbackShrinkTarget` / `ExpandRankLessFallbackZeroSize` | `input_rank < target_rank` 时 reshape_vec 在末尾补 1，导致右对齐语义错误 | 修正为在开头补 1，符合 PyTorch 右对齐语义 | 一致 | ✅ 已对齐 |
+
+### 本轮未解决（已知差距）
+
+| 测试项 | 差距描述 | 原因分析 |
+|--------|----------|----------|
+| `IndexTest.IndexTensorAndNoneIndices` | Paddle 缺少混合 slice + tensor/None indexing 实现 | 需要新增混合 indexing 路径，工作量较大 |
+| `TensorTest.MetaMethod` | Paddle 没有 meta 设备，`Tensor::meta()` 无条件抛异常 | 需要 Paddle 底层支持 meta 设备，属重大功能缺口 |
+| `StreamTest.CudaQuerySynchronizeAndNativeHandle` | `native_handle` 地址值不同 | 运行时环境差异（Paddle 返回实际 CUDA stream 指针，Torch 返回 0） |
 
 说明：
 
-- 本轮只修改 `PaddleCppAPITest` 测试代码，没有修改兼容层实现或 `CMakeLists.txt`。
-- 新增测试均走 Torch/Paddle 共用源码路径；未新增 `#if USE_PADDLE_API` 覆盖率测试。
-- 对上述真实行为差异，测试侧只做稳定异常输出，源码中保留 `[DIFF]` 注释，未把 Paddle-only 分支伪装成双端一致。
-- 本轮 `./test/result_cmp.sh build` 中所有新增 GTest 用例均通过；脚本最终仍因已知 DIFFER 返回非零。
+- 本轮修改了 Paddle compat 层实现（`expand.h`、`chunk.h`、`index.h`、`ivalue.h`、`sparse_coo_tensor.h`、`sparse_csr_tensor.h`、`_values.h`）并补充了缺失的头文件 `c10/cuda/impl/cuda_cmake_macros.h`。
+- 同步修改了 Paddle 内部回归测试（`ATen_chunk_test.cc`、`ATen_expand_test.cc`、`ATen_index_test.cc`、`ATen_values_test.cc`），使其期望与 PyTorch 一致的新行为。
+- 验证结果：`ninja -j$(nproc)` 编译成功；`ctest -R "ATen\|c10\|torch"` 67/67 全部通过；`bash test/result_cmp.sh ./build/` 剩余 3 项已知差异。
+- 本轮之后，`result_cmp.sh` 中未解决的 DIFFER 剩余 **3 项**（`IndexTensorAndNoneIndices`、`MetaMethod`、`CudaQuerySynchronizeAndNativeHandle`）。
 
 ### 本轮修改文件
+
+**Paddle compat 层：**
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/index.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/core/ivalue.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/sparse_coo_tensor.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/sparse_csr_tensor.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/_values.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/expand.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/ATen/ops/chunk.h`
+- `/home/may/Paddle/paddle/phi/api/include/compat/c10/cuda/impl/cuda_cmake_macros.h`
+
+**Paddle 内部回归测试：**
+- `/home/may/Paddle/test/cpp/compat/ATen_chunk_test.cc`
+- `/home/may/Paddle/test/cpp/compat/ATen_expand_test.cc`
+- `/home/may/Paddle/test/cpp/compat/ATen_index_test.cc`
+- `/home/may/Paddle/test/cpp/compat/ATen_values_test.cc`
+
+**PaddleCppAPITest 文档：**
+- `/home/may/PaddleCppAPITest/doc/mismatch_api_record.md`
+
+---
+
+## 2026-04-24 Paddle 兼容层低覆盖补测差异归档
+
+### 本轮补测暴露的新增差异（已归档，详见 2026-04-27 修复记录）
+
+| 测试项 | 当前 Paddle | PyTorch | 结论 |
+|--------|-------------|---------|------|
+| `IValueTest.TagTypeAndReprBranches` / `IValue::to_repr(Tensor)` | ~~返回 Tensor repr 字符串~~ 已对齐 | 抛异常 | ✅ 2026-04-27 已对齐 |
+| `IndexTest.IndexEmptyIndicesReturnsSelf` | ~~空 `TensorIndex` 列表返回原 tensor~~ 已对齐 | 抛异常 | ✅ 2026-04-27 已对齐 |
+| `IndexTest.IndexTensorAndNoneIndices` | Tensor/None 混合 indexing 抛异常 | 返回扩维后的 indexed tensor | ⚠️ 已知差异（待实现混合 indexing） |
+| `SparseTensorTest.SparseCOODtypeCastOptions` | ~~cast 到目标 dtype~~ 已对齐 | 忽略 dtype 不匹配 | ✅ 2026-04-27 已对齐 |
+| `SparseTensorTest.SparseCSRDtypeCastOptions` | ~~cast 到目标 dtype~~ 已对齐 | 抛异常 | ✅ 2026-04-27 已对齐 |
+| `SparseTensorTest.SparseCSRValuesAndNnz` | ~~返回 values tensor~~ 已对齐 | 抛异常 | ✅ 2026-04-27 已对齐 |
+| `TensorTest.ChunkMoreChunksThanDimSize` | ~~返回包含空 chunk~~ 已对齐 | 返回 2 个非空 chunk | ✅ 2026-04-27 已对齐 |
+| `TensorTest.ExpandSameRankFallbackShrink` | ~~compat fallback 缩小~~ 已对齐 | 抛异常 | ✅ 2026-04-27 已对齐 |
+| `TensorTest.ExpandInputRankGreaterThanTargetRank` | ~~compat fallback 允许 rank 缩小~~ 已对齐 | 抛异常 | ✅ 2026-04-27 已对齐 |
+
+说明：
+
+- 2026-04-24 本轮只修改 `PaddleCppAPITest` 测试代码，没有修改兼容层实现。
+- 2026-04-27 对上述差异中的 8 项完成了 Paddle compat 层修复与回归验证，剩余 3 项为已知差距。
+- 原始测试文件中的 `[DIFF]` 注释已保留，便于回溯历史差异背景。
+
+### 本轮（2026-04-24）修改文件
 
 - `/home/may/PaddleCppAPITest/test/ATen/ops/CreationOpsTest.cpp`
 - `/home/may/PaddleCppAPITest/test/ATen/ops/ArangeTest.cpp`
@@ -436,7 +490,7 @@
 | 环境差异（运行时条件相关） | `EmptyOpsTest`、`StreamTest` | CUDA 可用性、构建形态、运行时句柄值影响输出分支 |
 | 实现缺口/兼容层行为差异 | `EqualTest`、`OptionalArrayRefTest` | 异常 stack trace 基础设施缺口、typed ptr 能力缺口或悬空引用行为差异 |
 
-## 关键差异摘要（节选，2026-04-03 基线）
+## 关键差异摘要（节选，2026-04-27 基线）
 
 | 测试 | Torch（节选） | Paddle（节选） | 性质 |
 |---|---|---|---|
@@ -445,12 +499,14 @@
 | `OptionalArrayRefTest` | `1 4 <addr> ...` / `0.000000` | `1 4 <different_addr> ...` / `-0.000000` | 地址差异 + 部分 UB 场景随机值 |
 | `StreamTest` | `... sync_ok 1 0 0` | `... sync_ok 1 0 <handle_addr>` | `native_handle` 运行时环境差异 |
 | `ScalarTypeTest` | `... QInt8 QUInt8 ...` | 编译/链接缺 `isQIntType` 等 helper | 仍有 9 个 helper 未接入 compat |
+| `MetaMethod` | `1 14 24` | `0`（抛异常） | Paddle 无 meta 设备支持（重大功能缺口） |
+| `IndexTensorAndNoneIndices` | 返回扩维 indexed tensor | `exception` | 缺少混合 slice + tensor/None indexing 实现 |
 
 ## 建议跟踪优先级
 
 1. **P0（稳定语义差异）**：`AbsTest`（非连续策略）、`HalfBFloat16Test`、`TensorFactoryTest`、`DefaultDtypeTest`。
-2. **P1（接口补齐）**：`ScalarTypeTest`（剩余 9 个 helper）、`TensorOptionsTest`（`requires_grad` 创建路径）。
-3. **P2（环境与实现缺口）**：`EmptyOpsTest`、`StreamTest`、`EqualTest`、`OptionalArrayRefTest`。
+2. **P1（接口补齐）**：`ScalarTypeTest`（剩余 9 个 helper）、`TensorOptionsTest`（`requires_grad` 创建路径）、`IndexTensorAndNoneIndices`（混合 indexing）。
+3. **P2（环境与实现缺口）**：`EmptyOpsTest`、`StreamTest`、`EqualTest`、`OptionalArrayRefTest`、`MetaMethod`（meta 设备）。
 
 ---
 
