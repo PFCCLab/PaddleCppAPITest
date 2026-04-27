@@ -69,23 +69,10 @@ TEST_F(CUDABlasTest, HandleNonNull) {
     file.saveFile();
     return;
   }
-#if USE_PADDLE_API
-  // 【差异点3】Paddle 的 getCurrentCUDABlasHandle() 实现依赖框架全局状态
-  // Paddle 内部调用 phi::DeviceContextPool::Instance().Get(GPUPlace())，
-  // 该调用要求事先通过 paddle::framework::InitDevices() 初始化
-  // DeviceContextPool。 在独立 C++ 测试二进制中框架未初始化，Paddle 抛出
-  // PreconditionNotMet 异常。 PyTorch 无此约束，只需 CUDA
-  // 分配器初始化即可正常返回 handle。 输出 "exception_needs_pool_init"
-  // 记录该行为差异。
-  try {
-    auto handle = at::cuda::getCurrentCUDABlasHandle();
-    file << std::to_string(handle != nullptr ? 1 : 0) << " ";
-  } catch (const std::exception&) {
-    file << "exception_needs_pool_init ";
-  }
-#else
-  // PyTorch 在首次创建 cuBLAS handle 前要求 CUDA 缓存分配器已初始化。
-  // 分配一个 dummy GPU tensor 是触发该初始化的标准方式。
+  // PyTorch requires the CUDA caching allocator to be live before the first
+  // cuBLAS handle is created; allocating a dummy GPU tensor is the canonical
+  // trigger. Paddle compat self-initializes phi::DeviceContextPool inside
+  // getCurrentCUDABlasHandle(), so the dummy allocation is harmless there.
   {
     auto _init = at::zeros({1}, at::kFloat).cuda();
     (void)_init;
@@ -93,10 +80,9 @@ TEST_F(CUDABlasTest, HandleNonNull) {
   try {
     auto handle = at::cuda::getCurrentCUDABlasHandle();
     file << std::to_string(handle != nullptr ? 1 : 0) << " ";
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     file << "exception ";
   }
-#endif
   file << "\n";
   file.saveFile();
 }
@@ -114,17 +100,6 @@ TEST_F(CUDABlasTest, HandleConsistency) {
     file.saveFile();
     return;
   }
-#if USE_PADDLE_API
-  // 与 HandleNonNull 相同的 pool-init 限制（见差异点3），
-  // Paddle 在 DeviceContextPool 未初始化时抛出异常。
-  try {
-    auto handle1 = at::cuda::getCurrentCUDABlasHandle();
-    auto handle2 = at::cuda::getCurrentCUDABlasHandle();
-    file << std::to_string(handle1 == handle2 ? 1 : 0) << " ";
-  } catch (const std::exception&) {
-    file << "exception_needs_pool_init ";
-  }
-#else
   {
     auto _init = at::zeros({1}, at::kFloat).cuda();
     (void)_init;
@@ -133,10 +108,9 @@ TEST_F(CUDABlasTest, HandleConsistency) {
     auto handle1 = at::cuda::getCurrentCUDABlasHandle();
     auto handle2 = at::cuda::getCurrentCUDABlasHandle();
     file << std::to_string(handle1 == handle2 ? 1 : 0) << " ";
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     file << "exception ";
   }
-#endif
   file << "\n";
   file.saveFile();
 }
