@@ -66,6 +66,25 @@ ctest
 cd .. && ./test/result_cmp.sh build
 ```
 
+## Paddle custom-kernel 兼容测试
+
+默认构建不会给 Paddle 侧测试传 `PADDLE_WITH_CUSTOM_KERNEL`。如需复现或验证
+custom-kernel 外部头文件路径，可使用独立构建目录开启：
+
+```bash
+cmake -S . -B build_custom_kernel -G Ninja \
+  -DTORCH_DIR=<libtorch path> \
+  -DENABLE_PADDLE_CUSTOM_KERNEL_COMPAT_TESTS=ON
+ninja -C build_custom_kernel
+```
+
+该开关只影响 Paddle 侧 gtest target，Torch 侧仍保持默认编译定义，便于继续做
+Torch/Paddle 输出对比。完整验证流程：
+
+```bash
+bash test/result_cmp.sh build_custom_kernel
+```
+
 ## 代码风格
 
 项目已配置以下代码风格工具：
