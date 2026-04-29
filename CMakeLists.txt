@@ -70,6 +70,8 @@ file(GLOB_RECURSE TEST_SRC_FILES CONFIGURE_DEPENDS
      ${PROJECT_SOURCE_DIR}/test/*.cpp)
 # 排除各级子目录下以 unmatch_ 开头的测试文件
 list(FILTER TEST_SRC_FILES EXCLUDE REGEX "/unmatch_[^/]+\\.cpp$")
+set(CUDA_TEST_FILE_REGEX
+    "/(ATen|c10)/cuda/|/torch/csrc/api/include/torch/TorchCudaTest\\.cpp$")
 
 file(GLOB_RECURSE TEST_BASE_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 set(PADDLE_TARGET_FOLDER ${CMAKE_BINARY_DIR}/paddle)
@@ -110,10 +112,24 @@ if(CUDAToolkit_FOUND)
   list(APPEND TORCH_INCLUDE_DIR "${CUDAToolkit_INCLUDE_DIRS}")
 endif()
 
+set(TORCH_TEST_SRC_FILES ${TEST_SRC_FILES})
+set(TORCH_HAS_CUDA_SUPPORT OFF)
+if(EXISTS "${TORCH_DIR}/lib/libtorch_cuda.so"
+   AND EXISTS "${TORCH_DIR}/include/c10/cuda/impl/cuda_cmake_macros.h")
+  set(TORCH_HAS_CUDA_SUPPORT ON)
+endif()
+if(NOT TORCH_HAS_CUDA_SUPPORT)
+  message(
+    STATUS
+      "Torch CUDA runtime or headers not found under ${TORCH_DIR}; excluding CUDA-focused torch tests."
+  )
+  list(FILTER TORCH_TEST_SRC_FILES EXCLUDE REGEX "${CUDA_TEST_FILE_REGEX}")
+endif()
+
 set(TORCH_TARGET_FOLDER ${CMAKE_BINARY_DIR}/torch)
 set(BIN_PREFIX "torch_")
 create_paddle_tests(
-  "${BIN_PREFIX}" "${TEST_SRC_FILES}" "${TORCH_TARGET_FOLDER}"
+  "${BIN_PREFIX}" "${TORCH_TEST_SRC_FILES}" "${TORCH_TARGET_FOLDER}"
   "${TORCH_LIBRARIES}" "${TORCH_INCLUDE_DIR}" 0)
 
 # ---------------------------------------------------------------------------
@@ -145,22 +161,36 @@ if(CUDAToolkit_FOUND)
   list(APPEND PADDLE_INCLUDE_DIR "${CUDAToolkit_INCLUDE_DIRS}/cccl")
 endif()
 
+set(PADDLE_GPU_LIBRARY "${PADDLE_DIR}/libs/libphi_gpu.so")
+set(PADDLE_HAS_GPU_RUNTIME OFF)
+if(EXISTS "${PADDLE_GPU_LIBRARY}")
+  set(PADDLE_HAS_GPU_RUNTIME ON)
+endif()
+
 set(PADDLE_LIBRARIES
     "${PADDLE_DIR}/base/libpaddle.so" "${PADDLE_DIR}/libs/libcommon.so"
-    "${PADDLE_DIR}/libs/libphi.so" "${PADDLE_DIR}/libs/libphi_core.so"
-    "${PADDLE_DIR}/libs/libphi_gpu.so")
-if(CUDAToolkit_FOUND)
-  list(APPEND PADDLE_LIBRARIES CUDA::cudart)
+    "${PADDLE_DIR}/libs/libphi.so" "${PADDLE_DIR}/libs/libphi_core.so")
+if(PADDLE_HAS_GPU_RUNTIME)
+  list(APPEND PADDLE_LIBRARIES "${PADDLE_GPU_LIBRARY}")
 endif()
 link_directories("${PADDLE_DIR}/base")
 link_directories("${PADDLE_DIR}/libs")
 
+set(PADDLE_TEST_SRC_FILES ${TEST_SRC_FILES})
+if(NOT PADDLE_HAS_GPU_RUNTIME)
+  message(
+    STATUS
+      "Installed Paddle package has no GPU runtime; excluding CUDA-focused paddle tests."
+  )
+  list(FILTER PADDLE_TEST_SRC_FILES EXCLUDE REGEX "${CUDA_TEST_FILE_REGEX}")
+endif()
+
 set(BIN_PREFIX "paddle_")
 
-# Detect CUDA toolkit to enable PADDLE_WITH_CUDA for Paddle tests that need
-# CUDA-specific Paddle compat headers (e.g. CUDAGeneratorImpl).
-find_package(CUDAToolkit QUIET)
-if(CUDAToolkit_FOUND)
+# Enable Paddle CUDA-only test paths only when the installed Paddle package
+# actually ships the GPU runtime and the local toolkit is available.
+if(PADDLE_HAS_GPU_RUNTIME AND CUDAToolkit_FOUND)
+  message(STATUS "Paddle GPU runtime found: ${PADDLE_GPU_LIBRARY}")
   message(STATUS "CUDAToolkit found: ${CUDAToolkit_INCLUDE_DIRS}")
   # CUDA 13+ ships Thrust inside cccl/; add it so <thrust/...> resolves.
   set(_paddle_cuda_incs "${CUDAToolkit_INCLUDE_DIRS}"
@@ -169,13 +199,19 @@ if(CUDAToolkit_FOUND)
   # CUDA runtime is needed by Paddle GPU compat headers.
   list(APPEND PADDLE_LIBRARIES CUDA::cudart)
 else()
+  if(CUDAToolkit_FOUND AND NOT PADDLE_HAS_GPU_RUNTIME)
+    message(
+      STATUS
+        "CUDA toolkit found, but the installed Paddle package has no libphi_gpu.so; building Paddle tests in CPU-only mode."
+    )
+  endif()
   set(_paddle_cuda_incs "")
   set(_paddle_cuda_defs "")
 endif()
 
 create_paddle_tests(
   "${BIN_PREFIX}"
-  "${TEST_SRC_FILES}"
+  "${PADDLE_TEST_SRC_FILES}"
   "${PADDLE_TARGET_FOLDER}"
   "${PADDLE_LIBRARIES}"
   "${PADDLE_INCLUDE_DIR}"

@@ -34,9 +34,6 @@ function(
       target_include_directories(${_test_name} PRIVATE ${_CPT_EXTRA_INCS})
     endif()
     message(STATUS "USE_PADDLE_API: ${USE_PADDLE_API}")
-    if(USE_PADDLE_API AND CUDAToolkit_FOUND)
-      target_compile_definitions(${_test_name} PRIVATE PADDLE_WITH_CUDA)
-    endif()
     if(NOT USE_PADDLE_API)
       # libtorch_cuda.so registers CUDA hooks via static initializers. Linux's
       # --as-needed would normally strip it from DT_NEEDED since no symbols are

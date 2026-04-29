@@ -1,6 +1,7 @@
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
 #include <ATen/cuda/PhiloxCudaState.h>
+#include <c10/cuda/CUDAException.h>
 #include <c10/cuda/CUDAFunctions.h>
 #include <c10/cuda/CUDAGuard.h>
 #include <c10/cuda/CUDAStream.h>
@@ -238,6 +239,22 @@ TEST_F(CUDATest2, PhiloxCudaStateConstructors) {
   file << plain_state.offset_.val << " ";
   file << captured_state.captured_ << " ";
   file << captured_state.offset_intragraph_ << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(CUDATest2, CudaCheckFailurePath) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "CudaCheckFailurePath ";
+
+  try {
+    C10_CUDA_CHECK(cudaErrorInvalidValue);
+    file << "ok ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  }
   file << "\n";
   file.saveFile();
 }

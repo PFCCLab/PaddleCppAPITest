@@ -196,24 +196,12 @@ TEST_F(StreamTest, NativeHandleCPU) {
   file.openAppend();
   file << "NativeHandleCPU ";
 
-#if USE_PADDLE_API
   try {
     (void)cpu_stream_default->native_handle();
     file << "ok ";
-  } catch (const std::exception& e) {
-    // Output the exception message for comparison with Torch
-    std::string msg = e.what();
-    // Check if it contains "not supported" to match Torch behavior
-    if (msg.find("not supported") != std::string::npos ||
-        msg.find("not_supported") != std::string::npos) {
-      file << "not_supported ";
-    } else {
-      file << "exception: " << msg;
-    }
+  } catch (const std::exception&) {
+    file << "exception ";
   }
-#else
-  file << "not_supported ";
-#endif
 
   file << "\n";
   file.saveFile();
@@ -234,9 +222,7 @@ TEST_F(StreamTest, CudaQuerySynchronizeAndNativeHandle) {
 
   try {
     c10::Stream stream = c10::cuda::getCurrentCUDAStream(0);
-#if USE_PADDLE_API
     (void)stream.native_handle();
-#endif
     file << std::to_string(stream.query()) << " ";
     stream.synchronize();
     file << "sync_ok ";

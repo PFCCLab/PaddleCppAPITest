@@ -1,5 +1,5 @@
 # Build directories
-build/
+build*/
 cmake-build-*/
 out/
 
@@ -36,6 +36,13 @@ out/
 *.swo
 *~
 
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Paddle cpp extension generated loader
+resize_repro/resize_repro.py
+
 # CMake
 CMakeCache.txt
 CMakeFiles/
@@ -49,3 +56,4 @@ Thumbs.db
 .humanize
 .codex
 .codex_tmp
+coverage/html_report/

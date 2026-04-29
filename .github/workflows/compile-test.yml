@@ -1,0 +1,105 @@
+name: compile-test
+
+on:
+  pull_request:
+    branches: ["master"]
+  workflow_dispatch:
+
+jobs:
+  check-bypass:
+    name: Check bypass
+    uses: ./.github/workflows/check-bypass.yml
+    with:
+      workflow-name: "compile-test"
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  linux-cpu:
+    name: Linux-CPU
+    needs: check-bypass
+    if: ${{ github.repository_owner == 'PFCCLab' && needs.check-bypass.outputs.can-skip != 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build unzip
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Install Paddle nightly cpu
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --pre paddlepaddle -i https://www.paddlepaddle.org.cn/packages/nightly/cpu/
+
+      - name: Download and extract libtorch cpu
+        run: |
+          mkdir -p third_party
+          curl -L "https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-2.11.0%2Bcpu.zip" -o third_party/libtorch-cpu.zip
+          unzip -q third_party/libtorch-cpu.zip -d third_party
+
+      - name: Configure with CMake
+        run: |
+          cmake -S . -B build -G Ninja -DTORCH_DIR=${{ github.workspace }}/third_party/libtorch
+
+      - name: Build
+        run: |
+          cmake --build build -j
+
+      - name: Run ctest
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/third_party/libtorch/lib:${{ env.LD_LIBRARY_PATH }}
+        run: |
+          ctest --test-dir build --output-on-failure
+
+  linux-cuda:
+    name: Linux-CUDA
+    needs: check-bypass
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build unzip
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Install Paddle nightly cu130
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --pre paddlepaddle-gpu -i https://www.paddlepaddle.org.cn/packages/nightly/cu130/
+
+      - name: Download and extract libtorch cu130
+        run: |
+          mkdir -p third_party
+          curl -L "https://download.pytorch.org/libtorch/cu130/libtorch-shared-with-deps-2.11.0%2Bcu130.zip" -o third_party/libtorch-cu130.zip
+          unzip -q third_party/libtorch-cu130.zip -d third_party
+
+      - name: Configure with CMake
+        run: |
+          cmake -S . -B build -G Ninja -DTORCH_DIR=${{ github.workspace }}/third_party/libtorch
+
+      - name: Build
+        run: |
+          cmake --build build -j
+
+      - name: Run ctest
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/third_party/libtorch/lib:${{ env.LD_LIBRARY_PATH }}
+        run: |
+          ctest --test-dir build --output-on-failure
