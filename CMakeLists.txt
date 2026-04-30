@@ -130,9 +130,19 @@ endif()
 
 set(TORCH_TARGET_FOLDER ${CMAKE_BINARY_DIR}/torch)
 set(BIN_PREFIX "torch_")
+set(_torch_cuda_defs "")
+if(TORCH_HAS_CUDA_SUPPORT)
+  list(APPEND _torch_cuda_defs "USE_CUDA")
+endif()
 create_paddle_tests(
-  "${BIN_PREFIX}" "${TORCH_TEST_SRC_FILES}" "${TORCH_TARGET_FOLDER}"
-  "${TORCH_LIBRARIES}" "${TORCH_INCLUDE_DIR}" 0)
+  "${BIN_PREFIX}"
+  "${TORCH_TEST_SRC_FILES}"
+  "${TORCH_TARGET_FOLDER}"
+  "${TORCH_LIBRARIES}"
+  "${TORCH_INCLUDE_DIR}"
+  0
+  EXTRA_DEFS
+  ${_torch_cuda_defs})
 
 # ---------------------------------------------------------------------------
 # Build Paddle test case

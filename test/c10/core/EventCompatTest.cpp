@@ -13,7 +13,9 @@
  */
 #include <ATen/ATen.h>
 #include <c10/core/Event.h>
+#ifdef USE_CUDA
 #include <c10/cuda/CUDAStream.h>
+#endif
 #include <gtest/gtest.h>
 #include <torch/all.h>
 
@@ -44,6 +46,7 @@ static bool throws_any(Fn&& fn) {
   }
 }
 
+#ifdef USE_CUDA
 static bool has_cuda_runtime() {
   try {
     return torch::cuda::is_available();
@@ -51,6 +54,7 @@ static bool has_cuda_runtime() {
     return false;
   }
 }
+#endif
 
 // Event default constructor with single DeviceType argument
 TEST_F(EventCompatTest, EventDefault) {
@@ -139,17 +143,20 @@ TEST_F(EventCompatTest, EventDevice) {
 TEST_F(EventCompatTest, CpuNoopAndPreconditionCoverage) {
   c10::Event cpu_default(c10::DeviceType::CPU);
   c10::Event cpu_timed(c10::DeviceType::CPU, c10::EventFlag::BACKEND_DEFAULT);
-  c10::Event cuda_event(c10::DeviceType::CUDA, c10::EventFlag::BACKEND_DEFAULT);
   c10::Stream cpu_stream(c10::Stream::DEFAULT, c10::Device(c10::kCPU));
 
   EXPECT_NO_THROW(cpu_default.block(cpu_stream));
   EXPECT_NO_THROW(cpu_default.synchronize());
   EXPECT_EQ(cpu_default.eventId(), nullptr);
   EXPECT_TRUE(cpu_default.query());
-  EXPECT_TRUE(throws_any([&]() { cpu_default.elapsedTime(cuda_event); }));
   EXPECT_TRUE(throws_any([&]() { cpu_timed.elapsedTime(cpu_default); }));
+#ifdef USE_CUDA
+  c10::Event cuda_event(c10::DeviceType::CUDA, c10::EventFlag::BACKEND_DEFAULT);
+  EXPECT_TRUE(throws_any([&]() { cpu_default.elapsedTime(cuda_event); }));
+#endif
 }
 
+#ifdef USE_CUDA
 TEST_F(EventCompatTest, CudaRoundTripCoverage) {
   if (!has_cuda_runtime()) {
     GTEST_SKIP() << "CUDA runtime unavailable";
@@ -183,6 +190,7 @@ TEST_F(EventCompatTest, CudaElapsedTimeCoverage) {
   ASSERT_NO_THROW(end.synchronize());
   EXPECT_GE(start.elapsedTime(end), 0.0);
 }
+#endif
 
 }  // namespace test
 }  // namespace at
