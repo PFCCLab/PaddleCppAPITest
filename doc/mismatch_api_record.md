@@ -2,6 +2,53 @@
 
 ---
 
+## 2026-05-01 兼容层接口修复（PR #78837 discussion_r3168106304）
+
+### 输入链接
+- 链接类型：PR review comment
+- 原始链接：https://github.com/PaddlePaddle/Paddle/pull/78837#discussion_r3168106304
+- 关联 PR：#78837 [Cpp API Compatibility] Align some other APIs
+
+### 问题与根因
+
+| # | 问题接口 | 触发场景 | 根因说明 |
+|---|---------|---------|---------|
+| 1 | `at::chunk` | `dim` 为负数或超出范围 | `pd_tensor.dims()[dim]` 直接索引，未验证/归一化 `dim`，导致未定义行为 |
+| 2 | `at::chunk` | tensor 的 `rank == 0` | 未检查 rank，直接访问 `dims()[dim]`，应抛出与 PyTorch 对齐的错误 |
+| 3 | `at::chunk` | `dim_size == 0` | 返回空 vector，但 PyTorch 返回 `chunks` 个空 tensor |
+
+### 修复内容
+
+**Paddle compat 改动文件：**
+- `paddle/phi/api/include/compat/ATen/ops/chunk.h`
+  - 在 `dims()[dim]` 前添加 rank 检查：`rank == 0` 时 `PD_THROW("chunk expects at least a 1-dimensional tensor")`
+  - 添加 dim 归一化：`dim < 0` 时 `dim += rank`
+  - 添加 dim 范围检查：归一化后 `dim < 0 || dim >= rank` 时抛出 PyTorch 对齐错误消息
+  - `dim_size == 0` 分支：改为返回 `chunks` 个空 tensor（使用 `slice(..., 0, 0)` 循环生成），与 PyTorch 行为对齐
+
+**新增/修改测试：**
+- `test/cpp/compat/ATen_chunk_test.cc`
+  - 修复 `ChunkZeroDim`：断言改为 `chunks.size() == 2` 并验证每个 chunk 的 size(0) == 0
+  - 新增 `ChunkNegativeDim`：验证负维度索引等价于正维度索引
+  - 新增 `ChunkOutOfRangeDim`：验证 `dim >= rank` 和 `dim < -rank` 时抛异常
+  - 新增 `ChunkZeroRankTensor`：验证 0-dim scalar tensor 调用 chunk 时抛异常
+
+**PyTorch 对齐依据：**
+- PyTorch `chunk()` 在 `self.dim() == 0` 时抛 `"chunk expects at least a 1-dimensional tensor"`
+- PyTorch `chunk()` 自动归一化负维度（`maybe_wrap_dim`），越界时抛 `"Dimension out of range ..."`
+- PyTorch `chunk()` 在 `dim_size == 0` 时通过 `split_with_sizes` 返回 `chunks` 个空 tensor
+
+### 验证结果
+- `ninja -j$(nproc)`：通过
+- `ctest -R "ATen|c10|torch"`：67/67 全部通过
+- `result_cmp.sh`：chunk 相关测试无 DIFFER，未引入新的差异
+
+### 风险与后续
+- 已知风险：无。改动为最小修复，严格对齐 PyTorch 行为
+- 后续待办：无
+
+---
+
 ## 2026-04-30 兼容层接口修复（PR #78837 Copilot Review）
 
 ### 输入链接
