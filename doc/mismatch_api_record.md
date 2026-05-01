@@ -2,6 +2,147 @@
 
 ---
 
+## 2026-04-30 兼容层接口修复（PR #78837 Copilot Review）
+
+### 输入链接
+- 链接类型：PR review comment
+- 原始链接：https://github.com/PaddlePaddle/Paddle/pull/78837
+- 关联 PR：#78837 [Cpp API Compatibility] Align some other APIs
+
+### 问题与根因
+
+| # | 问题接口 | 触发场景 | 根因说明 |
+|---|---------|---------|---------|
+| 1 | `at::expand` | `input_rank < target_rank` 且无法直接 expand 时 | 错误消息硬编码 `dimension 0`，与实际首个不匹配维度不符 |
+| 2 | `at::expand` | `input_rank == target_rank` 且无法直接 expand 时 | 同上，错误消息硬编码 `dimension 0` |
+| 3 | `at::expand` | 编译时开启 `-Werror` | `tile_and_slice_to_target` lambda 定义后从未调用，成为死代码，触发 `-Wunused-variable` |
+| 4 | `torch::IValue::to_repr()` | `TypeTag::Tensor` 时调用 `to_repr()` 或 `operator<<` | `to_repr()` 对 Tensor 抛出异常，但 `operator<<` 委托给它，流式输出意外抛异常 |
+| 5 | `at::sparse_csr_tensor` | `TensorOptions.dtype` 与 `values.scalar_type()` 不一致 | 严格检查并抛出，但同 PR 的 `sparse_coo_tensor` 忽略 dtype 不匹配，导致 CSR/COO 行为不一致 |
+| 6 | `at::chunk` | `dim_size == 0` 或 `chunks <= 0` | `chunks > dim_size` 使 `chunks` 被设为 0，后续 `chunk_size` 计算除零；`chunks <= 0` 未校验 |
+
+### 修复内容
+
+**Paddle compat 改动文件：**
+- `paddle/phi/api/include/compat/ATen/ops/expand.h`
+  - 删除死代码 `tile_and_slice_to_target` lambda (lines 42-76)
+  - `input_rank < target_rank` 分支：记录首个失败维度索引 `fail_dim`，错误消息使用该索引和对应尺寸
+  - `input_rank == target_rank` 分支：同上，记录 `fail_dim` 并用于错误消息
+- `paddle/phi/api/include/compat/ATen/core/ivalue.h`
+  - `to_repr()` 的 `TypeTag::Tensor` 分支：将 `throw` 改为 `return "Tensor";`，避免 `operator<<` 意外抛异常
+- `paddle/phi/api/include/compat/ATen/ops/sparse_csr_tensor.h`
+  - 删除 dtype 严格检查（lines 39-42），与 `sparse_coo_tensor` 行为一致：忽略 dtype 不匹配，使用 values 原始 dtype
+- `paddle/phi/api/include/compat/ATen/ops/chunk.h`
+  - 函数开头添加 `chunks <= 0` 校验，`PD_THROW`（PyTorch 行为）
+  - 计算 `chunk_size` 前检查 `dim_size == 0`，直接返回空 `result`
+
+**新增/修改测试：**
+- `test/cpp/compat/ATen_chunk_test.cc`
+  - 新增 `ChunkZeroDim`：验证 0-size 维度 chunk 不崩溃
+  - 新增 `ChunkZeroChunks`：验证 `chunks <= 0` 时抛异常
+- `test/cpp/compat/c10_layout_test.cc`
+  - 将 `SparseCsrTensorMismatchedOptionsDtypeThrows` 改为 `SparseCsrTensorMismatchedOptionsDtypeIgnored`：验证 dtype 不匹配时不抛异常，结果使用 values 的 float dtype
+
+**PyTorch 对齐依据：**
+- PyTorch `expand()` 错误消息报告实际失败维度
+- PyTorch `IValue::repr()` 对 Tensor 返回 `"Tensor"` 占位符而非抛异常
+- PyTorch `sparse_coo_tensor` / `sparse_csr_tensor` 均忽略 dtype 不匹配
+- PyTorch `chunk()` 在 `chunks <= 0` 时抛异常，在 0-size 维度返回空列表
+
+### 验证结果
+- `ninja -j$(nproc)`：通过
+- `ctest -R "ATen|c10|torch"`：67/67 全部通过
+- `result_cmp.sh`：未引入新的 DIFFER，所有差异为已有不相关差异
+
+### 风险与后续
+- 已知风险：无。所有改动均为最小修复，与 PyTorch 行为对齐
+- 后续待办：无
+
+---
+
+## 2026-04-30 兼容层接口修复（PR #78826 Copilot Review）
+
+### 输入链接
+- 链接类型：PR review comment
+- 原始链接：https://github.com/PaddlePaddle/Paddle/pull/78826
+- 关联 PR：#78826 [Cpp API Compatibility] Fix MaybeResetHolder
+
+### 问题与根因
+
+| # | 问题接口 | 触发场景 | 根因说明 |
+|---|---------|---------|---------|
+| 1 | `TensorBase::MaybeResetHolder` fallback | `numel() == 0` 时通过 `set_meta` 更新 offset | `set_meta` 在 `meta.strides.size() == -1` 时会调用 `calc_strides(meta_.dims)`，当 `dims.size() == -1` 时存在潜在异常风险 |
+| 2 | `TensorBase::MaybeResetHolder` fallback | `holder == nullptr` 时触发 TORCH_CHECK | null holder 检查与后续 size 检查复用了同一错误消息，异常信息具有误导性 |
+
+### 修复内容
+
+**Paddle compat 改动文件：**
+- `paddle/phi/api/include/compat/ATen/core/TensorBase.h`
+  - `numel() == 0` 分支：将 `dense->set_meta(meta)` 替换为 `const_cast` 直接修改 `meta().offset`，与 PyTorch `ResetHolder()` 行为对齐，避免 `calc_strides` 的潜在异常
+  - null holder 检查：错误消息从 "The size of Holder is not enough to store the Tensor." 改为 "Holder must not be null."，与 size 检查分离
+
+**新增/修改测试：**
+- 无新增测试，现有测试覆盖：
+  - `test/cpp/compat/c10_storage_test.cc` — 覆盖 Storage 引用语义和 resize 后的 storage 同步
+  - `test/cpp/compat/ATen_resize_test.cc` — 覆盖 resize_ 各种场景
+
+**PyTorch 对齐依据：**
+- PyTorch `ResetHolder()` 在空 tensor 时直接重置 offset 和 holder，不经过 `set_meta`
+- 异常消息应准确反映失败原因，便于诊断
+
+### 验证结果
+- `ninja -j$(nproc)`：通过
+- `ctest -R "c10_storage_test|ATen_resize_test"`：2/2 全部通过
+- `result_cmp.sh`：paddle_StorageTest 与 torch_StorageTest MATCH，其余 DIFFER 为已有不相关差异
+
+### 风险与后续
+- 已知风险：无。改动仅为更安全的 offset 更新方式和更准确的错误消息
+- 后续待办：无
+
+---
+
+## 2026-04-30 兼容层接口修复（PR #78808 Copilot Review）
+
+### 输入链接
+- 链接类型：PR review comment
+- 原始链接：https://github.com/PaddlePaddle/Paddle/pull/78808
+- Copilot review 时间：2026-04-30
+
+### 问题与根因
+
+| # | 问题接口 | 触发场景 | 根因说明 |
+|---|---------|---------|---------|
+| 1 | `torch::cuda::synchronize` | 传入 `-2` 等无效负值 | `device_index < 0` 过于宽松，允许非 `-1` 的负值传入 `CUDAGuard` |
+| 2 | `c10::cuda::CUDAGuard` | 外部 API 修改当前设备后 guard 析构 | 析构基于 `current_device_` 判断，该值未反映外部修改，导致设备泄漏 |
+| 3 | `c10::cuda::OptionalCUDAGuard` | 外部 API 修改当前设备后调用 `reset()` | `reset()` 基于过时的 `current_device_` 判断，跳过恢复原始设备 |
+
+### 修复内容
+
+**Paddle compat 改动文件：**
+- `paddle/phi/api/include/compat/torch/csrc/api/include/torch/cuda.cpp`
+  - `synchronize` 参数校验改为 `device_index == -1 || (device_index >= 0 && device_index < num_gpus)`
+- `paddle/phi/api/include/compat/c10/cuda/CUDAGuard.h`
+  - `CUDAGuard` 析构函数：无条件恢复到 `original_device_`
+  - `OptionalCUDAGuard::reset()`：当 `original_device_` 有值时无条件恢复
+
+**新增/修改测试：**
+- `test/cpp/compat/ATen_CUDAContext_test.cc`
+  - 新增 `SynchronizeRejectsInvalidNegativeDevice`：验证 `synchronize(-2)` 抛异常
+
+**PyTorch 对齐依据：**
+- PyTorch `InlineDeviceGuard::~InlineDeviceGuard()` 直接调用 `impl_.uncheckedSetDevice(original_device_)`，总是恢复原始设备
+- PyTorch `OptionalDeviceGuard` 的 reset 通过 `std::optional` 析构隐式恢复原始设备
+
+### 验证结果
+- `ninja -j$(nproc)`：通过
+- `ctest -R "ATen|c10|torch"`：67/67 全部通过
+- `result_cmp.sh`：CUDATest2、TorchCudaTest 均为 MATCH，其余 DIFFER 为已有不相关差异
+
+### 风险与后续
+- 已知风险：无。CUDAGuard 析构和 reset 的 unconditional restore 在设备未改变时是多余但无害的 `SetDeviceId` 调用
+- 后续待办：无
+
+---
+
 ## 2026-04-27 兼容层接口差异对齐（Paddle 内部 ctest + PaddleCppAPITest 回归）
 
 ### 本轮修复（已解决）
