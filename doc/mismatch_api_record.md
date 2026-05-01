@@ -49,6 +49,56 @@
 
 ---
 
+## 2026-05-01 兼容层接口修复（PR #78808 Copilot R5 + ABI 验证 cherry-pick）
+
+### 输入链接
+- 链接类型：PR
+- 原始链接：https://github.com/PaddlePaddle/Paddle/pull/78808
+- Copilot review comment ID：3168115261（R5）
+- SigureMo review comment ID：3170270248（ABI 兼容性确认）
+
+### 问题与根因
+
+| # | 问题接口 | 触发场景 | 根因说明 |
+|---|---------|---------|---------|
+| 1 | `c10::cuda::device_count()` / `torch::cuda::device_count()` | CPU-only 构建 | 原实现 `PADDLE_THROW("Cannot visit device count")`，导致 `is_available()` 不可调用,`synchronize()` 报错链路绕过 `TORCH_CHECK(is_available(), ...)` 而显示错误信息 |
+| 2 | PR 自身 ABI 兼容性 | CI 流水线 | 缺少自动化的 ABI symbol 比较,无法在 CI 中向 reviewer 证明 PR 不破坏 compat 符号 |
+
+### 修复内容
+
+**Paddle compat 改动文件：**
+- `paddle/phi/api/include/compat/torch/csrc/api/include/torch/cuda.cpp`
+  - `device_count()` CPU-only 分支由 `PADDLE_THROW` 改为 `return 0`,匹配 PyTorch `c10::cuda::device_count()` 在 CPU-only 返回 0 的语义
+  - `synchronize()` 删除不可达的 `#else PADDLE_THROW` 分支(已被开头的 `TORCH_CHECK(is_available(), "No CUDA GPUs are available")` 拦截)
+
+**新增/修改测试：**
+- `test/cpp/compat/ATen_CUDAContext_test.cc`
+  - `DeviceCountReturnsZeroInCpuOnly`：CPU-only 下 `c10::cuda::device_count()` 与 `torch::cuda::device_count()` 返回 0 且不抛异常
+  - `IsAvailableFalseAndNoThrowInCpuOnly`：CPU-only 下 `is_available()` 返回 false 且不抛异常
+  - `SynchronizeReportsNoGpuMessageInCpuOnly`：CPU-only 下 `torch::cuda::synchronize()` 报 "No CUDA GPUs are available"(走 PyTorch 一致路径),不再报旧的 "Cannot visit device count"
+
+**ABI 验证 cherry-pick(从 `test-abi-check-compat-delete` 分支):**
+- `26d249b70d` Add ABI symbol compatibility check：新增 `tools/check_abi_compatibility.py`、`tools/test_check_abi_compatibility.py`,以及 `ci/static_check.sh` 中的 `exec_abi_compatibility_check` 函数与主流程调用
+- `bd6fff7b36` Restrict ABI check to compat symbols：将 ABI 比较范围限制到 `at::/c10::/torch::/caffe2::` 命名空间下的 compat 符号
+- 故意不带入 `d4accca2c3` / `358f1324f4` / `a163512f64` / `e1e6db7e22` / `2ba1b7e3ba`(它们是 ABI 检查自验证用的故意删除/inline 实验性 commit)
+
+**PyTorch 对齐依据：**
+- `~/pytorch/c10/cuda/CUDAFunctions.cpp:107` `c10::cuda::device_count()` 标记为 `noexcept` 且失败时返回 0,通过 `TORCH_WARN` 输出诊断信息
+- `~/pytorch/torch/csrc/api/src/cuda.cpp` `torch::cuda::synchronize` 在 CPU-only 下统一通过 `TORCH_CHECK(is_available(), "No CUDA GPUs are available")` 报错
+
+### 验证结果
+- `cd ~/Paddle/build && ninja -j16`：通过
+- `ctest -R "ATen|c10|torch"`：67/67 全部通过
+- `python -m unittest tools/test_check_abi_compatibility.py -v`：10 个 test 全部通过
+- `bash test/result_cmp.sh ./build/`：`paddle_TorchCudaTest` MATCH(本 PR 直接相关);其它 DIFFER(StreamTest 句柄地址、TensorTest 等)为历史遗留差异,与本 PR 无关
+
+### 风险与后续
+- 已知风险:CPU-only 下 `synchronize()` 抛出的异常由 `PADDLE_THROW(common::errors::Unavailable)` 变为 `TORCH_CHECK` 路径下的 `c10::Error`(仍继承自 `std::exception`)。新增测试用 `std::exception` 捕获后核对消息,不依赖具体异常类型
+- 已知风险:cherry-pick 的 ABI check 脚本会在 PR CI 上运行。本轮仅改 `device_count()` 函数体,无导出符号增删、mangling 不变,理论上不会误报"removed symbol"
+- 后续待办:在 PR 评论上回复 Copilot R4(comment 3168115223),说明 `phi::SetDeviceId` 内部已有 `cudaGetDevice` 短路,与 PyTorch `InlineDeviceGuard` 行为一致(已发,id 3173350006)
+
+---
+
 ## 2026-04-30 兼容层接口修复（PR #78837 Copilot Review）
 
 ### 输入链接
