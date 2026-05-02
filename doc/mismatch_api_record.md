@@ -178,9 +178,12 @@
   - null holder 检查：错误消息从 "The size of Holder is not enough to store the Tensor." 改为 "Holder must not be null."，与 size 检查分离
 
 **新增/修改测试：**
-- 无新增测试，现有测试覆盖：
-  - `test/cpp/compat/c10_storage_test.cc` — 覆盖 Storage 引用语义和 resize 后的 storage 同步
-  - `test/cpp/compat/ATen_resize_test.cc` — 覆盖 resize_ 各种场景
+- `test/cpp/compat/ATen_resize_custom_kernel_test.cc`（新增）
+  - 本 TU 顶部 `#define PADDLE_WITH_CUSTOM_KERNEL`，强制 `dense_tensor.inl` 不被包含，`ResetHolder()` 对编译器不可见，SFINAE 模板失败，fallback 路径被选中 — 与外部 custom-kernel 扩展的编译路径一致
+  - `ResizeGrowsStorageInFallbackPath`：验证 `resize_({4})` 后 `storage().nbytes() >= 16u`，覆盖 `numel() != 0 && contiguous` 分支
+  - `EmptyTensorOffsetResetInFallbackPath`：先 resize 到 `{0}` 再调用 `storage()`，触发 `numel() == 0` 分支的 offset reset 逻辑；补充该测试以修复 Codecov patch 覆盖率 71.42% → 目标 90%+
+- `test/cpp/compat/c10_storage_test.cc` — 覆盖 Storage 引用语义
+- `test/cpp/compat/ATen_resize_test.cc` — 覆盖 resize_ 常规场景
 
 **PyTorch 对齐依据：**
 - PyTorch `ResetHolder()` 在空 tensor 时直接重置 offset 和 holder，不经过 `set_meta`
@@ -188,11 +191,11 @@
 
 ### 验证结果
 - `ninja -j$(nproc)`：通过
-- `ctest -R "c10_storage_test|ATen_resize_test"`：2/2 全部通过
+- `ctest -R "c10_storage_test|ATen_resize_test|ATen_resize_custom_kernel_test"`：3/3 全部通过
 - `result_cmp.sh`：paddle_StorageTest 与 torch_StorageTest MATCH，其余 DIFFER 为已有不相关差异
 
 ### 风险与后续
-- 已知风险：无。改动仅为更安全的 offset 更新方式和更准确的错误消息
+- 已知风险：无。改动仅为更安全的 offset 更新方式、更准确的错误消息，以及 fallback 路径的完整分支覆盖
 - 后续待办：无
 
 ---
