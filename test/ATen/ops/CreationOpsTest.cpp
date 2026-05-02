@@ -518,5 +518,39 @@ TEST_F(CreationOpsTest, EmptyPinnedMemoryCUDADevice) {
   file.saveFile();
 }
 
+// 间接触发 _PD_AtenScalarTypeToPhiDataType 的 case Undefined (L30-31)
+TEST_F(CreationOpsTest, ZerosUndefinedDtype) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosUndefinedDtype ";
+  try {
+    at::Tensor result =
+        at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::Undefined));
+    file << "success ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
+// 间接触发 _PD_AtenScalarTypeToPhiDataType 的 default (L32-34)
+TEST_F(CreationOpsTest, ZerosNumOptionsDtype) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosNumOptionsDtype ";
+  try {
+    at::Tensor result =
+        at::zeros({1}, at::TensorOptions().dtype(c10::ScalarType::QInt8));
+    file << "success ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at
