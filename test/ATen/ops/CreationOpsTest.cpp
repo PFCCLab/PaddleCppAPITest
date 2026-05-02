@@ -552,5 +552,24 @@ TEST_F(CreationOpsTest, ZerosNumOptionsDtype) {
   file.saveFile();
 }
 
+// 间接触发 _PD_ConvertToSparseIfNeeded 的 default 分支 (L43-46)
+TEST_F(CreationOpsTest, ZerosInvalidLayout) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ZerosInvalidLayout ";
+  try {
+    at::Tensor result =
+        at::zeros({2, 3}, at::TensorOptions().layout(c10::Layout::NumOptions));
+    file << "success ";
+  } catch (const std::exception&) {
+    file << "exception ";
+  } catch (...) {
+    file << "exception ";
+  }
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at
