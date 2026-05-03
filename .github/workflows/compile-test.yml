@@ -27,7 +27,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build unzip
+          sudo apt-get install -y ninja-build unzip lcov
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -47,17 +47,52 @@ jobs:
 
       - name: Configure with CMake
         run: |
-          cmake -S . -B build -G Ninja -DTORCH_DIR=${{ github.workspace }}/third_party/libtorch
+          cmake -S . -B build -G Ninja -DTORCH_DIR=${{ github.workspace }}/third_party/libtorch -DENABLE_COVERAGE=ON
 
       - name: Build
         run: |
           cmake --build build -j
 
-      - name: Run ctest
+      - name: Run comparison tests
         env:
           LD_LIBRARY_PATH: ${{ github.workspace }}/third_party/libtorch/lib:${{ env.LD_LIBRARY_PATH }}
         run: |
-          ctest --test-dir build --output-on-failure
+          bash test/result_cmp.sh build
+
+      - name: Generate coverage report
+        run: |
+          bash coverage/generate_html_report.sh
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-cpu
+          path: build/html_output/
+
+      - name: Coverage summary
+        run: |
+          echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f "build/html_output/all/coverage.info" ]; then
+            echo "### Overall Coverage" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            lcov --list build/html_output/all/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "build/html_output/paddle/coverage.info" ]; then
+            echo "### Paddle Compat Coverage" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            lcov --list build/html_output/paddle/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "build/html_output/torch/coverage.info" ]; then
+            echo "### LibTorch Coverage" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            lcov --list build/html_output/torch/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
 
   linux-cuda:
     name: Linux-CUDA
@@ -72,7 +107,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build unzip
+          sudo apt-get install -y ninja-build unzip lcov
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -92,14 +127,49 @@ jobs:
 
       - name: Configure with CMake
         run: |
-          cmake -S . -B build -G Ninja -DTORCH_DIR=${{ github.workspace }}/third_party/libtorch
+          cmake -S . -B build -G Ninja -DTORCH_DIR=${{ github.workspace }}/third_party/libtorch -DENABLE_COVERAGE=ON
 
       - name: Build
         run: |
           cmake --build build -j
 
-      - name: Run ctest
+      - name: Run comparison tests
         env:
           LD_LIBRARY_PATH: ${{ github.workspace }}/third_party/libtorch/lib:${{ env.LD_LIBRARY_PATH }}
         run: |
-          ctest --test-dir build --output-on-failure
+          bash test/result_cmp.sh build
+
+      - name: Generate coverage report
+        run: |
+          bash coverage/generate_html_report.sh
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-cuda
+          path: build/html_output/
+
+      - name: Coverage summary
+        run: |
+          echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f "build/html_output/all/coverage.info" ]; then
+            echo "### Overall Coverage" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            lcov --list build/html_output/all/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "build/html_output/paddle/coverage.info" ]; then
+            echo "### Paddle Compat Coverage" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            lcov --list build/html_output/paddle/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "build/html_output/torch/coverage.info" ]; then
+            echo "### LibTorch Coverage" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            lcov --list build/html_output/torch/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
