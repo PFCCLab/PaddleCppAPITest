@@ -36,13 +36,6 @@ out/
 *.swo
 *~
 
-# Python generated files
-__pycache__/
-*.py[cod]
-
-# Paddle cpp extension generated loader
-resize_repro/resize_repro.py
-
 # CMake
 CMakeCache.txt
 CMakeFiles/

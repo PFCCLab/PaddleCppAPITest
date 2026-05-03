@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
 
 option(ENABLE_COVERAGE "Enable converage detection" OFF)
+option(ENABLE_PADDLE_CUSTOM_KERNEL_COMPAT_TESTS
+       "Build Paddle compat tests with PADDLE_WITH_CUSTOM_KERNEL" OFF)
 if(ENABLE_COVERAGE)
   message(
     STATUS "Coverage build enabled via ENABLE_COVERAGE environment variable.")
@@ -128,9 +130,19 @@ endif()
 
 set(TORCH_TARGET_FOLDER ${CMAKE_BINARY_DIR}/torch)
 set(BIN_PREFIX "torch_")
+set(_torch_cuda_defs "")
+if(TORCH_HAS_CUDA_SUPPORT)
+  list(APPEND _torch_cuda_defs "USE_CUDA")
+endif()
 create_paddle_tests(
-  "${BIN_PREFIX}" "${TORCH_TEST_SRC_FILES}" "${TORCH_TARGET_FOLDER}"
-  "${TORCH_LIBRARIES}" "${TORCH_INCLUDE_DIR}" 0)
+  "${BIN_PREFIX}"
+  "${TORCH_TEST_SRC_FILES}"
+  "${TORCH_TARGET_FOLDER}"
+  "${TORCH_LIBRARIES}"
+  "${TORCH_INCLUDE_DIR}"
+  0
+  EXTRA_DEFS
+  ${_torch_cuda_defs})
 
 # ---------------------------------------------------------------------------
 # Build Paddle test case
@@ -207,6 +219,13 @@ else()
   endif()
   set(_paddle_cuda_incs "")
   set(_paddle_cuda_defs "")
+endif()
+
+if(ENABLE_PADDLE_CUSTOM_KERNEL_COMPAT_TESTS)
+  message(
+    STATUS
+      "Paddle compat tests enabled with PADDLE_WITH_CUSTOM_KERNEL definition.")
+  list(APPEND _paddle_cuda_defs "PADDLE_WITH_CUSTOM_KERNEL")
 endif()
 
 create_paddle_tests(

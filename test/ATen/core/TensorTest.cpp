@@ -24,6 +24,7 @@
 #include <gtest/gtest.h>
 #include <torch/all.h>
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -737,6 +738,32 @@ TEST_F(TensorTest, ResizeGrowStorage) {
   file << std::to_string(grow.data_ptr<float>()[0]) << " ";
   file << "\n";
   file.saveFile();
+}
+
+TEST_F(TensorTest, ResizeGrowStorageNbytes) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ResizeGrowStorageNbytes ";
+
+  at::Tensor grow = at::ones({2}, at::kInt);
+  const size_t before_bytes = grow.storage().nbytes();
+
+  grow.resize_({4});
+
+  const size_t after_bytes = grow.storage().nbytes();
+  const size_t expected_bytes = 4 * sizeof(int32_t);
+  const bool shape_ok = grow.numel() == 4;
+  const bool storage_ok = after_bytes >= expected_bytes;
+
+  file << std::to_string(before_bytes >= 2 * sizeof(int32_t) ? 1 : 0) << " ";
+  file << std::to_string(shape_ok ? 1 : 0) << " ";
+  file << std::to_string(storage_ok ? 1 : 0) << " ";
+  file << "\n";
+  file.saveFile();
+
+  EXPECT_EQ(grow.numel(), 4);
+  EXPECT_GE(after_bytes, expected_bytes);
 }
 
 // 测试 cpu()
