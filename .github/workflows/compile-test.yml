@@ -72,28 +72,30 @@ jobs:
 
       - name: Coverage summary
         run: |
-          echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f "build/html_output/all/coverage.info" ]; then
-            echo "### Overall Coverage" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            lcov --list build/html_output/all/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ -f "build/html_output/paddle/coverage.info" ]; then
-            echo "### Paddle Compat Coverage" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            lcov --list build/html_output/paddle/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ -f "build/html_output/torch/coverage.info" ]; then
-            echo "### LibTorch Coverage" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            lcov --list build/html_output/torch/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          fi
+          {
+            echo "## Coverage Summary"
+            echo ""
+            if [ -f "build/html_output/all/coverage.info" ]; then
+              echo "### Overall Coverage"
+              echo '```'
+              lcov --list build/html_output/all/coverage.info --rc branch_coverage=1 | tail -5
+              echo '```'
+              echo ""
+            fi
+            if [ -f "build/html_output/paddle/coverage.info" ]; then
+              echo "### Paddle Compat Coverage"
+              echo '```'
+              lcov --list build/html_output/paddle/coverage.info --rc branch_coverage=1 | tail -5
+              echo '```'
+              echo ""
+            fi
+            if [ -f "build/html_output/torch/coverage.info" ]; then
+              echo "### LibTorch Coverage"
+              echo '```'
+              lcov --list build/html_output/torch/coverage.info --rc branch_coverage=1 | tail -5
+              echo '```'
+            fi
+          } | tee -a $GITHUB_STEP_SUMMARY
 
   linux-cuda:
     name: Linux-CUDA
@@ -153,25 +155,27 @@ jobs:
 
       - name: Coverage summary
         run: |
-          echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f "build/html_output/all/coverage.info" ]; then
-            echo "### Overall Coverage" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            lcov --list build/html_output/all/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ -f "build/html_output/paddle/coverage.info" ]; then
-            echo "### Paddle Compat Coverage" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            lcov --list build/html_output/paddle/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ -f "build/html_output/torch/coverage.info" ]; then
-            echo "### LibTorch Coverage" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            lcov --list build/html_output/torch/coverage.info --rc lcov_branch_coverage=1 | tail -5 >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          fi
+          {
+            echo "## Coverage Summary"
+            echo ""
+            if [ -f "build/html_output/all/coverage.info" ]; then
+              echo "### Overall Coverage"
+              echo '```'
+              lcov --list build/html_output/all/coverage.info --rc branch_coverage=1 | tail -5
+              echo '```'
+              echo ""
+            fi
+            if [ -f "build/html_output/paddle/coverage.info" ]; then
+              echo "### Paddle Compat Coverage"
+              echo '```'
+              lcov --list build/html_output/paddle/coverage.info --rc branch_coverage=1 | tail -5
+              echo '```'
+              echo ""
+            fi
+            if [ -f "build/html_output/torch/coverage.info" ]; then
+              echo "### LibTorch Coverage"
+              echo '```'
+              lcov --list build/html_output/torch/coverage.info --rc branch_coverage=1 | tail -5
+              echo '```'
+            fi
+          } | tee -a $GITHUB_STEP_SUMMARY
