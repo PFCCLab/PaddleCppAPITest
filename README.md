@@ -74,7 +74,7 @@ custom-kernel 外部头文件路径，可使用独立构建目录开启：
 ```bash
 cmake -S . -B build_custom_kernel -G Ninja \
   -DTORCH_DIR=<libtorch path> \
-  -DENABLE_PADDLE_CUSTOM_KERNEL_COMPAT_TESTS=ON
+  -DENABLE_PADDLE_CUSTOM_KERNEL=ON
 ninja -C build_custom_kernel
 ```
 

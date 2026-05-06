@@ -97,6 +97,21 @@ jobs:
             fi
           } | tee -a $GITHUB_STEP_SUMMARY
 
+      - name: Configure custom-kernel build
+        run: |
+          cmake -S . -B build_custom_kernel -G Ninja -DTORCH_DIR=${{ github.workspace }}/third_party/libtorch -DENABLE_PADDLE_CUSTOM_KERNEL=ON
+
+      - name: Build custom-kernel
+        run: |
+          cmake --build build_custom_kernel -j
+
+      - name: Run custom-kernel comparison tests
+        continue-on-error: true
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/third_party/libtorch/lib:${{ env.LD_LIBRARY_PATH }}
+        run: |
+          bash test/result_cmp.sh build_custom_kernel
+
   linux-cuda:
     name: Linux-CUDA
     needs: check-bypass
