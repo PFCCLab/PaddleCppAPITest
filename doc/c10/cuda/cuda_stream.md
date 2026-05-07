@@ -61,8 +61,8 @@
 | `getStreamFromPool(const int priority, DeviceIndex device_index = -1)` | ✅ | - [x] | P1 | 已实现，使用 `std::clamp` 映射到最多 4 档优先级，与 PyTorch 一致 |
 | `getStreamFromExternal(cudaStream_t, DeviceIndex)` | ✅ | - [x] | P1 | 已实现，通过 `make_cuda_stream()` 包装外部流 |
 | `getDefaultCUDAStream(DeviceIndex device_index = -1)` | ✅ | - [x] | P0 | 已实现，返回默认 null stream（`id == 0`），`c10_Stream_test` 覆盖稳定性与不受 `setCurrentCUDAStream()` 影响 |
-| `getCurrentCUDAStream(DeviceIndex device_index = -1)` | ✅ | - [x] | P0 | 已实现，保持 per-thread、per-device current stream 语义；TLS 未设置时回退到 default stream |
-| `setCurrentCUDAStream(CUDAStream)` | ✅ | - [x] | P0 | 已实现，仅修改当前线程 TLS 中对应设备的 current stream |
+| `getCurrentCUDAStream(DeviceIndex device_index = -1)` | ✅ | - [x] | P0 | 已实现，保持 per-thread、per-device current stream 语义；从 thread-local `g_thread_local_current_streams` 读取，未设置时回退到 `getDefaultCUDAStream` |
+| `setCurrentCUDAStream(CUDAStream)` | ✅ | - [x] | P0 | 已实现，同时修改当前线程 TLS 中的 current stream 和 Paddle GPUContext stream；GPUContext 同步使用 `SetCUDAStream(phi::CUDAStream*)` 并标记 `owned_=false`，避免 destroy 外部 stream handle |
 | `operator<<(std::ostream&, const CUDAStream&)` | ✅ | - [x] | P2 | 已实现，委托到底层 `c10::Stream` 输出 |
 | `std::hash<c10::cuda::CUDAStream>` | ✅ | - [x] | P2 | 已实现，委托 `std::hash<c10::Stream>` |
 
@@ -122,6 +122,7 @@
 3. **主要差异说明**：
    - `getStreamFromPool(int, ...)` 现已与 PyTorch 对齐，使用独立 stream pool 实现（低/高优先级各 32 条），通过 `std::call_once` 懒初始化。
    - `getCurrentCUDAStream()` 现已与 PyTorch 对齐，使用 thread-local `std::vector<cudaStream_t>` 实现 per-thread current stream 语义，不再直接依赖 phi 层。
+   - `setCurrentCUDAStream()` 同时修改 thread-local 状态和 Paddle GPUContext stream。GPUContext 同步使用 `SetCUDAStream(phi::CUDAStream*)` 并标记 `owned_=false`，避免 `SetStream` 误 destroy 外部 stream handle（如 compat pool 中的 stream）。
    - `priority_range()` 在 CUDA 路径上可视为对齐；若构建为 HIP，PyTorch 会把 `least_priority` 规范化为 `0`，Paddle 当前未做该归一化。
    - PyTorch 在 `USE_ROCM` 下还暴露 `c10::hip` backward-compat alias；Paddle 当前 compat 头文件未覆盖这组入口。
    - `make_cuda_stream(cudaStream_t, DeviceIndex)`：Paddle 提供的辅助包装函数，功能上等价于 PyTorch 内部的 `CUDAStreamForId`，**非公开 API**。
@@ -129,8 +130,15 @@
 
 5. **测试现状**：
    - `test/c10/cuda/CUDATest2.cpp` 已覆盖 `UNCHECKED`、构造/比较、转换、`query()`、`synchronize()`、`priority()`、`priority_range()`、`pack3()`、`unpack3()`、`getCurrentCUDAStream()`、`getStreamFromPool()`、`getStreamFromExternal()`、`setCurrentCUDAStream()`、`operator<<`、`std::hash`。
-   - `/home/may/Paddle/test/cpp/compat/c10_Stream_test.cc` 已覆盖 `getDefaultCUDAStream()` 的 null-stream/stable 语义、`getStreamFromPool(true)` 的 bool 重载分派，以及 `setCurrentCUDAStream()` 不影响 `getDefaultCUDAStream()` 的行为。
+   - `/home/may/Paddle/test/cpp/compat/c10_Stream_test.cc` 已覆盖：
+     - `getDefaultCUDAStream()` 的 null-stream/stable 语义
+     - `getStreamFromPool(true)` 的 bool 重载分派
+     - `setCurrentCUDAStream()` 不影响 `getDefaultCUDAStream()` 的行为
+     - `GetCurrentCUDAStreamIsThreadLocal`：新线程返回 default stream，不继承父线程的 current stream
+     - `CurrentStreamDeadlockReproducer`：模拟 pool_stream 阻塞场景，验证后台线程不会因继承 stream 而被阻塞
+     - `GetCurrentCUDAStreamStableInUnsetThread`：验证未设置 thread-local 的线程在 GPUContext 反复切换下，每次获取的 default stream 稳定且相等
 
 6. **内部实现说明**：
    - PyTorch 的 `CUDAStreamForId` 是 `anonymous namespace` 中的内部辅助函数，用于从 `stream_id` 构造 `CUDAStream`。Paddle 使用 `make_cuda_stream` 完成相同功能，**无需暴露为公开 API**。
+   - `setCurrentCUDAStream` 的 GPUContext 同步：使用 `phi::CUDAStream(Place, gpuStream_t)` 构造函数创建 `owned_=false` 的 `phi::CUDAStream` 对象，通过 `GPUContext::SetCUDAStream(phi_stream, true)` 设置。这样 GPUContext 首次设置时会释放自己之前创建的 stream，后续切换不会 destroy 外部 stream handle（如 compat pool stream）。
    - PyTorch 使用编译时固定大小的 `std::array`（`C10_COMPILE_TIME_MAX_GPUS`）管理 stream pool；Paddle 使用运行时动态分配的 `std::vector<std::unique_ptr<DevicePools>>`，避免硬编码最大设备数限制。

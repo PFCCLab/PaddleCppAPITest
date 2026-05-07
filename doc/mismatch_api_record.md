@@ -2,6 +2,54 @@
 
 ---
 
+## 2026-05-07 兼容层接口修复（PR #78652）
+
+### 输入链接
+- 链接类型：PR
+- 原始链接：https://github.com/PaddlePaddle/Paddle/pull/78652
+- 关联 PR：#78652 [Cpp API Compatibility] Sync c10 CUDA stream state with Paddle's GPUContext stream
+
+### 问题与根因
+
+| # | 问题接口 | 触发场景 | 根因说明 |
+|---|---------|---------|---------|
+| 1 | `c10::cuda::getCurrentCUDAStream()` | 主线程调用 `setCurrentCUDAStream(pool_stream)` 后，后台线程调用 `getCurrentCUDAStream()` | PR #78652 删除了原有的 thread-local `tls_current_streams`，改为直接从 Paddle 全局 `GPUContext` 读取 stream。Paddle 的 `GPUContext` stream 是 per-device 全局共享的，导致所有线程看到同一个 current stream，违反 PyTorch 的 thread-local 语义 |
+| 2 | `c10::cuda::setCurrentCUDAStream()` | 循环多次调用 `setCurrentCUDAStream(pool_stream)` | PR #78652 使用 `getMutableGPUContext()->SetStream()` 同步 GPUContext，但 `SetStream` 内部会 `cudaStreamDestroy` 旧 stream。当旧 stream 来自 compat pool（外部管理，未移交所有权）时，错误的 destroy 导致后续重复使用即触发 SegFault |
+
+### 修复内容
+
+**Paddle compat 改动文件：**
+- `paddle/phi/api/include/compat/c10/cuda/CUDAStream.cpp`
+  - 重新引入 `thread_local std::vector<cudaStream_t> g_thread_local_current_streams`（含 `#ifdef PADDLE_WITH_HIP` 分支）
+  - `getCurrentCUDAStream`：优先从 thread-local 读取，未设置时返回 default stream
+  - `setCurrentCUDAStream`：
+    - 将 stream 存入 thread-local 状态（恢复 PyTorch 语义）
+    - 同步 Paddle GPUContext 时改用 `SetCUDAStream` 而非 `SetStream`：创建 `phi::CUDAStream(owned_=false)` 对象传入，避免 GPUContext 误 destroy 外部 stream handle（如 compat pool 中的 stream）
+    - 保留 FastDeploy #7344 的修复（Paddle kernel 使用正确的 stream）
+
+**新增/修改测试：**
+- `test/cpp/compat/c10_Stream_test.cc`
+  - 新增 `GetCurrentCUDAStreamIsThreadLocal` 测试：主线程设 pool stream，新线程验证返回 default stream（id == 0）
+  - 新增 `CurrentStreamDeadlockReproducer` 测试：使用 `cudaEventRecord/Wait` + `cudaStreamAddCallback` 模拟 pool_stream 阻塞场景，后台线程 `cudaStreamSynchronize(getCurrentCUDAStream())` 检测是否因继承父线程 stream 而被阻塞。通过 `std::packaged_task` + `std::future::wait_for(50ms)` 安全检测 timeout，不会真正死锁测试进程
+  - 新增 `GetCurrentCUDAStreamStableInUnsetThread` 测试：主线程循环切换 current stream（修改 GPUContext），后台线程（从不调用 `setCurrentCUDAStream`）持续采样 `getCurrentCUDAStream`，验证每次返回的 default stream 稳定且相等。证明 lazy 返回 `getDefaultCUDAStream()` 的语义与 PyTorch eager 初始化 thread-local 等价
+
+**PyTorch 对齐依据：**
+- `pytorch/c10/cuda/CUDAStream.cpp:168-397` 中 `thread_local std::unique_ptr<StreamId[]> current_streams`
+- PyTorch `getCurrentCUDAStream` 从 `current_streams[device_index]` 取 stream id
+- PyTorch `setCurrentCUDAStream` 写入 `current_streams[stream.device_index()]`
+- 新线程的 `current_streams` 独立初始化，默认指向 default stream
+
+### 验证结果
+- `ninja -j$(nproc)`：通过
+- `ctest -R "ATen|c10|torch"`：68/68 全部通过
+- `result_cmp.sh`：通过（DIFFER 为已有差异，与 stream 无关）
+
+### 风险与后续
+- 已知风险：Paddle GPUContext 的 stream 仍是全局的，后台线程中通过 Paddle API 直接执行的操作（不经过 `getCurrentCUDAStream`）仍可能使用主线程设置的 stream。这是 Paddle 架构层面的限制。
+- 后续待办：若需完全解决后台线程 Paddle 操作使用全局 stream 的问题，需在 Paddle 内部引入 per-thread stream 支持。
+
+---
+
 ## 2026-05-01 兼容层接口修复（PR #78837 discussion_r3168106304）
 
 ### 输入链接
