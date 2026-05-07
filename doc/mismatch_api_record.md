@@ -15,6 +15,7 @@
 |---|---------|---------|---------|
 | 1 | `c10::cuda::getCurrentCUDAStream()` | 主线程调用 `setCurrentCUDAStream(pool_stream)` 后，后台线程调用 `getCurrentCUDAStream()` | PR #78652 删除了原有的 thread-local `tls_current_streams`，改为直接从 Paddle 全局 `GPUContext` 读取 stream。Paddle 的 `GPUContext` stream 是 per-device 全局共享的，导致所有线程看到同一个 current stream，违反 PyTorch 的 thread-local 语义 |
 | 2 | `c10::cuda::setCurrentCUDAStream()` | 循环多次调用 `setCurrentCUDAStream(pool_stream)` | PR #78652 使用 `getMutableGPUContext()->SetStream()` 同步 GPUContext，但 `SetStream` 内部会 `cudaStreamDestroy` 旧 stream。当旧 stream 来自 compat pool（外部管理，未移交所有权）时，错误的 destroy 导致后续重复使用即触发 SegFault |
+| 3 | 测试代码 Windows 兼容性 | Windows-GPU / Build and test | `std::packaged_task<c10::cuda::CUDAStream()>` 在 MSVC 上编译失败（`error C2512: no appropriate default constructor available`），因为 MSVC 的 `std::future` 实现需要 `CUDAStream` 的默认构造函数，而 `CUDAStream` 类没有默认构造函数 |
 
 ### 修复内容
 
@@ -29,7 +30,7 @@
 
 **新增/修改测试：**
 - `test/cpp/compat/c10_Stream_test.cc`
-  - 新增 `GetCurrentCUDAStreamIsThreadLocal` 测试：主线程设 pool stream，新线程验证返回 default stream（id == 0）
+  - 新增 `GetCurrentCUDAStreamIsThreadLocal` 测试：主线程设 pool stream，新线程验证返回 default stream（id == 0）。使用 `std::thread` + 引用捕获传递结果，避免 MSVC `std::packaged_task<CUDAStream()>` 需要默认构造函数的问题
   - 新增 `CurrentStreamDeadlockReproducer` 测试：使用 `cudaEventRecord/Wait` + `cudaStreamAddCallback` 模拟 pool_stream 阻塞场景，后台线程 `cudaStreamSynchronize(getCurrentCUDAStream())` 检测是否因继承父线程 stream 而被阻塞。通过 `std::packaged_task` + `std::future::wait_for(50ms)` 安全检测 timeout，不会真正死锁测试进程
   - 新增 `GetCurrentCUDAStreamStableInUnsetThread` 测试：主线程循环切换 current stream（修改 GPUContext），后台线程（从不调用 `setCurrentCUDAStream`）持续采样 `getCurrentCUDAStream`，验证每次返回的 default stream 稳定且相等。证明 lazy 返回 `getDefaultCUDAStream()` 的语义与 PyTorch eager 初始化 thread-local 等价
 
