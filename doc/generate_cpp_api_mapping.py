@@ -358,6 +358,17 @@ def generate_mapping(
     invoke_diff_ops += sorted(aliased_torch_ops - compat_ops)
     missing = sorted(libtorch_ops - api_funcs - compat_ops - aliased_torch_ops)
 
+    # 分类到差异文档子目录的映射（用于生成可跳转链接）
+    CATEGORY_TO_DOC_DIR = {
+        "仅参数名不一致": "cpp_args_name_diff",
+        "参数默认值不一致": "cpp_args_default_value_diff",
+        "输入参数类型不一致": "cpp_input_args_type_diff",
+        "返回参数类型不一致": "cpp_output_args_type_diff",
+        "paddle 参数更多": "cpp_paddle_more_args",
+        "torch 参数更多": "cpp_torch_more_args",
+        "API 别名": "cpp_api_alias_diff",
+    }
+
     # 预解析 Paddle 签名
     paddle_sigs = parse_paddle_signatures(paddle_api_h)
 
@@ -473,7 +484,7 @@ def generate_mapping(
     )
     for idx, op in enumerate(exact_match, 1):
         lines.append(
-            f"| {idx} | `at::{op}` | `at::{op}` (compat层) | {cat_name} | 头文件: `ATen/ops/{op}.h` |"
+            f"| {idx} | `at::{op}` | `at::{op}` (compat层) | {cat_name} | - |"
         )
     lines.append("")
 
@@ -523,7 +534,12 @@ def generate_mapping(
             "|------|-----------------|----------------|----------|------|"
         )
         for idx, (op, detail, torch_sig, paddle_sig) in enumerate(ops, 1):
-            remark = f"头文件: `ATen/ops/{op}.h`<br>{detail}"
+            doc_dir = CATEGORY_TO_DOC_DIR.get(cat_name)
+            if doc_dir:
+                remark = f"[差异对比]({doc_dir}/at.{op}.md)"
+            else:
+                # 仅 API 调用方式不一致 / 组合替代实现（无差异文档）
+                remark = detail
             if cat_name == "API 别名":
                 paddle_op_name = alias_map.get(op, op)
                 lines.append(
@@ -553,9 +569,7 @@ def generate_mapping(
         "|------|-----------------|----------------|----------|------|"
     )
     for idx, op in enumerate(missing, 1):
-        lines.append(
-            f"| {idx} | `at::{op}` | - | {cat_name} | 头文件: `ATen/ops/{op}.h` |"
-        )
+        lines.append(f"| {idx} | `at::{op}` | - | {cat_name} | - |")
     lines.append("")
 
     # 统计
