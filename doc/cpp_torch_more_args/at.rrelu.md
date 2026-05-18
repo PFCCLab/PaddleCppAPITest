@@ -7,7 +7,7 @@ at::rrelu(self, lower=0.125, upper=0.3333333333333333, training=false, generator
 
 ### Paddle C++ API
 ```cpp
-paddle::experimental::rrelu(x, lower=1.0f/8, upper=1.0f/3, is_test=false)
+paddle::experimental::rrelu(x, lower=0.125f, upper=0.3333333333333333f, is_test=false)
 ```
 
 PyTorch 相比 Paddle 支持更多参数，具体如下：

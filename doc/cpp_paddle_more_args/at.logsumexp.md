@@ -19,6 +19,6 @@ paddle::experimental::logsumexp(x, axis={}, keepdim=false, reduce_all=false)
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
-| dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 |
+| dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 默认值不同：PyTorch 无默认值，Paddle 默认 `axis={}`。 |
 | keepdim | keepdim | 参数名一致。 |
 | - | reduce_all | PyTorch 无此参数，Paddle 有 `reduce_all`。 |

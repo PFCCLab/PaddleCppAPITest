@@ -21,6 +21,6 @@ paddle::experimental::fft_c2r(x, axes, normalization, forward, last_dim_size=0L)
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
 | dim | - | Paddle 无此参数，PyTorch 有 `dim`。 |
 | normalization | normalization | 参数名一致。 |
-| last_dim_size | last_dim_size | 参数名一致。 |
+| last_dim_size | last_dim_size | 参数名一致。 默认值不同：PyTorch 无默认值，Paddle 默认 `last_dim_size=0L`。 |
 | - | axes | PyTorch 无此参数，Paddle 有 `axes`。 |
 | - | forward | PyTorch 无此参数，Paddle 有 `forward`。 |

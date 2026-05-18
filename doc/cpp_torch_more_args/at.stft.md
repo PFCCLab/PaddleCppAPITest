@@ -24,6 +24,6 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | win_length | - | Paddle 无此参数，PyTorch 有 `win_length`。 |
 | window | window | 参数名一致。 |
 | normalized | normalized | 参数名一致。 |
-| onesided | onesided | 参数名一致。 |
+| onesided | onesided | 参数名一致。 默认值不同：PyTorch 默认 `onesided=::std::nullopt`，Paddle 无默认值。 |
 | return_complex | - | Paddle 无此参数，PyTorch 有 `return_complex`。 |
 | align_to_window | - | Paddle 无此参数，PyTorch 有 `align_to_window`。 |

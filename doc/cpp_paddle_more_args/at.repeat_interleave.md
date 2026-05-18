@@ -19,6 +19,6 @@ paddle::experimental::repeat_interleave(x, repeats, axis, output_size=-1)
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | repeats | repeats | 参数名一致。 |
-| output_size | output_size | 参数名一致。 |
+| output_size | output_size | 参数名一致。 默认值不同：PyTorch 默认 `output_size=::std::nullopt`，Paddle 默认 `output_size=-1`。 |
 | - | x | PyTorch 无此参数，Paddle 有 `x`。 |
 | - | axis | PyTorch 无此参数，Paddle 有 `axis`。 |

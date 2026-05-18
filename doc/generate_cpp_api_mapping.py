@@ -193,6 +193,25 @@ def load_cpp_api_alias_mapping(mapping_path=None):
         return json.load(f)
 
 
+def normalize_default_value(val):
+    """将分数形式的默认值（如 '1.0f/8'）规范化为十进制字符串（如 '0.125f'）。"""
+    if not isinstance(val, str):
+        return val
+    import re
+
+    m = re.match(r"^(\d+\.?\d*)f?/\d+\.?\d*$", val)
+    if m:
+        try:
+            result = eval(val.replace("f", ""))
+            # 保留 f 后缀
+            suffix = "f" if "f" in val else ""
+            if isinstance(result, float):
+                return f"{result:.16g}{suffix}"
+        except Exception:
+            pass
+    return val
+
+
 # 常见参数名别名映射（PyTorch -> Paddle）
 ARG_NAME_ALIASES = {
     "self": ["x", "input", "values"],
@@ -214,6 +233,38 @@ ARG_NAME_ALIASES = {
     "normalized_shape": ["begin_norm_axis"],
     "training": ["is_test"],
 }
+
+
+def _append_default_diff(remark, t_arg, p_arg):
+    """若两参数默认值不同，在 remark 后追加默认值差异说明。"""
+    t_def_raw = t_arg.get("default")
+    p_def_raw = p_arg.get("default")
+    t_def = normalize_default_value(t_def_raw)
+    p_def = normalize_default_value(p_def_raw)
+    if t_def == p_def:
+        return remark
+    # 尝试数值比较，避免 1e-05 vs 1e-5 这类等价但字符串不同的假阳性
+    if t_def is not None and p_def is not None:
+        try:
+            t_num = float(str(t_def).replace("f", ""))
+            p_num = float(str(p_def).replace("f", ""))
+            if t_num == p_num:
+                return remark
+        except (ValueError, TypeError):
+            pass
+    t_name = t_arg["name"]
+    p_name = p_arg["name"]
+    if t_def is not None and p_def is not None:
+        remark += f" 默认值不同：PyTorch 默认 `{t_name}={t_def}`，Paddle 默认 `{p_name}={p_def}`。"
+    elif t_def is not None:
+        remark += (
+            f" 默认值不同：PyTorch 默认 `{t_name}={t_def}`，Paddle 无默认值。"
+        )
+    elif p_def is not None:
+        remark += (
+            f" 默认值不同：PyTorch 无默认值，Paddle 默认 `{p_name}={p_def}`。"
+        )
+    return remark
 
 
 def _args_match_by_name(t_name, p_name):
@@ -682,7 +733,9 @@ def generate_cpp_args_name_diff_docs(invoke_categories, output_dir):
             for a in args:
                 name = a["name"]
                 if a["default"] is not None:
-                    parts.append(f"{name}={a['default']}")
+                    parts.append(
+                        f"{name}={normalize_default_value(a['default'])}"
+                    )
                 else:
                     parts.append(name)
             return ", ".join(parts)
@@ -756,7 +809,9 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
             for a in args:
                 name = a["name"]
                 if a["default"] is not None:
-                    parts.append(f"{name}={a['default']}")
+                    parts.append(
+                        f"{name}={normalize_default_value(a['default'])}"
+                    )
                 else:
                     parts.append(name)
             return ", ".join(parts)
@@ -772,7 +827,9 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
         for t_arg in t_args:
             t_name = t_arg["name"]
             if t_name in p_dict:
-                diff_rows.append(f"| {t_name} | {t_name} | 参数名一致。 |")
+                remark = "参数名一致。"
+                remark = _append_default_diff(remark, t_arg, p_dict[t_name])
+                diff_rows.append(f"| {t_name} | {t_name} | {remark} |")
                 matched_p.add(t_name)
             elif t_name in ARG_NAME_ALIASES:
                 matched_alias = None
@@ -781,22 +838,29 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
                         matched_alias = alias
                         break
                 if matched_alias:
+                    remark = (
+                        f"仅参数名不一致，`{t_name}` 对应 `{matched_alias}`。"
+                    )
+                    remark = _append_default_diff(
+                        remark, t_arg, p_dict[matched_alias]
+                    )
                     diff_rows.append(
-                        f"| {t_name} | {matched_alias} | 仅参数名不一致，`{t_name}` 对应 `{matched_alias}`。 |"
+                        f"| {t_name} | {matched_alias} | {remark} |"
                     )
                     matched_p.add(matched_alias)
                 else:
                     remark = f"Paddle 无此参数，PyTorch 有 `{t_name}`。"
-                    if (
-                        op in ("add", "subtract", "index_add")
-                        and t_name == "alpha"
-                    ):
+                    if op in ("add", "index_add") and t_name == "alpha":
                         remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
+                    elif op == "subtract" and t_name == "alpha":
+                        remark = "影响计算语义，PyTorch 计算 self - alpha * other，Paddle 无此参数，等价表达需组合调用。"
                     diff_rows.append(f"| {t_name} | - | {remark} |")
             else:
                 remark = f"Paddle 无此参数，PyTorch 有 `{t_name}`。"
-                if op in ("add", "subtract", "index_add") and t_name == "alpha":
+                if op in ("add", "index_add") and t_name == "alpha":
                     remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
+                elif op == "subtract" and t_name == "alpha":
+                    remark = "影响计算语义，PyTorch 计算 self - alpha * other，Paddle 无此参数，等价表达需组合调用。"
                 diff_rows.append(f"| {t_name} | - | {remark} |")
 
         for p_arg in p_args:
@@ -875,7 +939,9 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
             for a in args:
                 name = a["name"]
                 if a["default"] is not None:
-                    parts.append(f"{name}={a['default']}")
+                    parts.append(
+                        f"{name}={normalize_default_value(a['default'])}"
+                    )
                 else:
                     parts.append(name)
             return ", ".join(parts)
@@ -891,7 +957,9 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
         for t_arg in t_args:
             t_name = t_arg["name"]
             if t_name in p_dict:
-                diff_rows.append(f"| {t_name} | {t_name} | 参数名一致。 |")
+                remark = "参数名一致。"
+                remark = _append_default_diff(remark, t_arg, p_dict[t_name])
+                diff_rows.append(f"| {t_name} | {t_name} | {remark} |")
                 matched_p.add(t_name)
             elif t_name in ARG_NAME_ALIASES:
                 matched_alias = None
@@ -914,12 +982,14 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
                         and t_name == "normalized_shape"
                         and matched_alias == "begin_norm_axis"
                     ):
-                        remark = "类型与语义差异，`normalized_shape` 是尾部维度形状列表，`begin_norm_axis` 是轴索引，调用端需转换。"
-                    elif (
-                        op in ("add", "subtract", "index_add")
-                        and t_name == "alpha"
-                    ):
+                        remark = "⚠️ 类型与语义差异，`normalized_shape` 是尾部维度形状列表，`begin_norm_axis` 是轴索引，二者不可直接互换，调用端需转换。"
+                    elif op in ("add", "index_add") and t_name == "alpha":
                         remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
+                    elif op == "subtract" and t_name == "alpha":
+                        remark = "影响计算语义，PyTorch 计算 self - alpha * other，Paddle 无此参数，等价表达需组合调用。"
+                    remark = _append_default_diff(
+                        remark, t_arg, p_dict[matched_alias]
+                    )
                     diff_rows.append(
                         f"| {t_name} | {matched_alias} | {remark} |"
                     )
@@ -930,8 +1000,10 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
                     )
             else:
                 remark = f"Paddle 无此参数，PyTorch 有 `{t_name}`。"
-                if op in ("add", "subtract", "index_add") and t_name == "alpha":
+                if op in ("add", "index_add") and t_name == "alpha":
                     remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
+                elif op == "subtract" and t_name == "alpha":
+                    remark = "影响计算语义，PyTorch 计算 self - alpha * other，Paddle 无此参数，等价表达需组合调用。"
                 diff_rows.append(f"| {t_name} | - | {remark} |")
 
         for p_arg in p_args:
@@ -996,7 +1068,9 @@ def generate_cpp_api_alias_diff_docs(invoke_categories, output_dir):
             for a in args:
                 name = a["name"]
                 if a["default"] is not None:
-                    parts.append(f"{name}={a['default']}")
+                    parts.append(
+                        f"{name}={normalize_default_value(a['default'])}"
+                    )
                 else:
                     parts.append(name)
             return ", ".join(parts)
@@ -1098,7 +1172,9 @@ def generate_cpp_semantic_mismatch_docs(invoke_categories, output_dir):
             for a in args:
                 name = a["name"]
                 if a["default"] is not None:
-                    parts.append(f"{name}={a['default']}")
+                    parts.append(
+                        f"{name}={normalize_default_value(a['default'])}"
+                    )
                 else:
                     parts.append(name)
             return ", ".join(parts)
@@ -1199,7 +1275,9 @@ def generate_cpp_output_args_type_diff_docs(invoke_categories, output_dir):
             for a in args:
                 name = a["name"]
                 if a["default"] is not None:
-                    parts.append(f"{name}={a['default']}")
+                    parts.append(
+                        f"{name}={normalize_default_value(a['default'])}"
+                    )
                 else:
                     parts.append(name)
             return ", ".join(parts)
@@ -1265,7 +1343,9 @@ def generate_cpp_input_args_type_diff_docs(invoke_categories, output_dir):
             for a in args:
                 name = a["name"]
                 if a["default"] is not None:
-                    parts.append(f"{name}={a['default']}")
+                    parts.append(
+                        f"{name}={normalize_default_value(a['default'])}"
+                    )
                 else:
                     parts.append(name)
             return ", ".join(parts)
@@ -1351,7 +1431,9 @@ def generate_cpp_args_default_value_diff_docs(invoke_categories, output_dir):
             for a in args:
                 name = a["name"]
                 if a["default"] is not None:
-                    parts.append(f"{name}={a['default']}")
+                    parts.append(
+                        f"{name}={normalize_default_value(a['default'])}"
+                    )
                 else:
                     parts.append(name)
             return ", ".join(parts)

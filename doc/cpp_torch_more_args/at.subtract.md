@@ -20,4 +20,4 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | ----------- | ---------- | ---- |
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
 | other | y | 仅参数名不一致，`other` 对应 `y`。 |
-| alpha | - | 影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。 |
+| alpha | - | 影响计算语义，PyTorch 计算 self - alpha * other，Paddle 无此参数，等价表达需组合调用。 |

@@ -25,5 +25,5 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | running_var | - | Paddle 无此参数，PyTorch 有 `running_var`。 |
 | use_input_stats | - | Paddle 无此参数，PyTorch 有 `use_input_stats`。 |
 | momentum | - | Paddle 无此参数，PyTorch 有 `momentum`。 |
-| eps | epsilon | 仅参数名不一致，`eps` 对应 `epsilon`。 |
+| eps | epsilon | 仅参数名不一致，`eps` 对应 `epsilon`。 默认值不同：PyTorch 无默认值，Paddle 默认 `epsilon=1e-5`。 |
 | cudnn_enabled | - | Paddle 无此参数，PyTorch 有 `cudnn_enabled`。 |

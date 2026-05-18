@@ -19,7 +19,7 @@ paddle::experimental::dropout(x, seed_tensor, p=0.5f, is_test=false, mode="downg
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | input | x | 仅参数名不一致，`input` 对应 `x`。 |
-| p | p | 参数名一致。 |
+| p | p | 参数名一致。 默认值不同：PyTorch 无默认值，Paddle 默认 `p=0.5f`。 |
 | train | - | Paddle 无此参数，PyTorch 有 `train`。 |
 | - | seed_tensor | PyTorch 无此参数，Paddle 有 `seed_tensor`。 |
 | - | is_test | PyTorch 无此参数，Paddle 有 `is_test`。 |

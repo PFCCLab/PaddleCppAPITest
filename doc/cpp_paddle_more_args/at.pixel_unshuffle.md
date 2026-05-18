@@ -19,5 +19,5 @@ paddle::experimental::pixel_unshuffle(x, downscale_factor=1, data_format="NCHW")
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
-| downscale_factor | downscale_factor | 参数名一致。 |
+| downscale_factor | downscale_factor | 参数名一致。 默认值不同：PyTorch 无默认值，Paddle 默认 `downscale_factor=1`。 |
 | - | data_format | PyTorch 无此参数，Paddle 有 `data_format`。 |

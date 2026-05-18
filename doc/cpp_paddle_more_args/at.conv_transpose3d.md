@@ -23,7 +23,7 @@ paddle::experimental::conv3d_transpose(x, filter, strides={1, 1, 1}, paddings={0
 | bias | - | Paddle 无此参数，PyTorch 有 `bias`。 |
 | stride | - | Paddle 无此参数，PyTorch 有 `stride`。 |
 | padding | - | Paddle 无此参数，PyTorch 有 `padding`。 |
-| output_padding | output_padding | 参数名一致。 |
+| output_padding | output_padding | 参数名一致。 默认值不同：PyTorch 默认 `output_padding=0`，Paddle 默认 `output_padding={}`。 |
 | groups | groups | 参数名一致。 |
 | dilation | - | Paddle 无此参数，PyTorch 有 `dilation`。 |
 | - | strides | PyTorch 无此参数，Paddle 有 `strides`。 |

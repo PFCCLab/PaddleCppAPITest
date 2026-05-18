@@ -19,7 +19,7 @@ paddle::experimental::argmin(x, axis, keepdims=false, flatten=false, dtype=DataT
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
-| dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 |
+| dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 默认值不同：PyTorch 默认 `dim=::std::nullopt`，Paddle 无默认值。 |
 | keepdim | - | Paddle 无此参数，PyTorch 有 `keepdim`。 |
 | - | keepdims | PyTorch 无此参数，Paddle 有 `keepdims`。 |
 | - | flatten | PyTorch 无此参数，Paddle 有 `flatten`。 |

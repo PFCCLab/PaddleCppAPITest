@@ -19,7 +19,7 @@ paddle::experimental::logcumsumexp(x, axis=-1, flatten=false, exclusive=false, r
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
-| dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 |
+| dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 默认值不同：PyTorch 无默认值，Paddle 默认 `axis=-1`。 |
 | - | flatten | PyTorch 无此参数，Paddle 有 `flatten`。 |
 | - | exclusive | PyTorch 无此参数，Paddle 有 `exclusive`。 |
 | - | reverse | PyTorch 无此参数，Paddle 有 `reverse`。 |

@@ -19,6 +19,6 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
-| num_samples | num_samples | 参数名一致。 |
+| num_samples | num_samples | 参数名一致。 默认值不同：PyTorch 无默认值，Paddle 默认 `num_samples=1`。 |
 | replacement | replacement | 参数名一致。 |
 | generator | - | Paddle 无此参数，PyTorch 有 `generator`。 |

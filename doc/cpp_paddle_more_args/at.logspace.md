@@ -21,7 +21,7 @@ paddle::experimental::logspace(start, stop, num, base, dtype, place={})
 | start | start | 参数名一致。 |
 | end | - | Paddle 无此参数，PyTorch 有 `end`。 |
 | steps | - | Paddle 无此参数，PyTorch 有 `steps`。 |
-| base | base | 参数名一致。 |
+| base | base | 参数名一致。 默认值不同：PyTorch 默认 `base=10.0`，Paddle 无默认值。 |
 | options | - | Paddle 无此参数，PyTorch 有 `options`。 |
 | - | stop | PyTorch 无此参数，Paddle 有 `stop`。 |
 | - | num | PyTorch 无此参数，Paddle 有 `num`。 |

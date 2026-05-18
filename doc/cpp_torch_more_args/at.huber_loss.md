@@ -21,4 +21,4 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | self | input | 仅参数名不一致，`self` 对应 `input`。 |
 | target | label | 仅参数名不一致，`target` 对应 `label`。 |
 | reduction | - | Paddle 无此参数，PyTorch 有 `reduction`。 |
-| delta | delta | 参数名一致。 |
+| delta | delta | 参数名一致。 默认值不同：PyTorch 默认 `delta=1.0`，Paddle 无默认值。 |

@@ -21,4 +21,4 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
 | pad | paddings | 仅参数名不一致，`pad` 对应 `paddings`。 |
 | mode | - | Paddle 无此参数，PyTorch 有 `mode`。 |
-| value | pad_value | 仅参数名不一致，`value` 对应 `pad_value`。 |
+| value | pad_value | 仅参数名不一致，`value` 对应 `pad_value`。 默认值不同：PyTorch 默认 `value=::std::nullopt`，Paddle 无默认值。 |

@@ -19,5 +19,5 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
-| dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 |
+| dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 默认值不同：PyTorch 无默认值，Paddle 默认 `axis=-1`。 |
 | dtype | - | Paddle 无此参数，PyTorch 有 `dtype`。 |
