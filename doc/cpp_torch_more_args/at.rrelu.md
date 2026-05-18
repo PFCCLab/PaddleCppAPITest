@@ -12,6 +12,8 @@ paddle::experimental::rrelu(x, lower=1.0f/8, upper=1.0f/3, is_test=false)
 
 PyTorch 相比 Paddle 支持更多参数，具体如下：
 
+> 注：参数映射表按 PyTorch 签名顺序排列。
+
 ### 参数映射
 
 | PyTorch C++ | Paddle C++ | 备注 |
@@ -19,6 +21,5 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
 | lower | lower | 参数名一致。 |
 | upper | upper | 参数名一致。 |
-| training | - | Paddle 无此参数，PyTorch 有 `training`。 |
+| training | is_test | 语义取反对应，`training=true` ↔ `is_test=false`。 |
 | generator | - | Paddle 无此参数，PyTorch 有 `generator`。 |
-| - | is_test | PyTorch 无此参数，Paddle 有 `is_test`。 |

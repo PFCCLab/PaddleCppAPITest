@@ -12,6 +12,8 @@ paddle::experimental::selu(x, scale=1.0507009873554804934193349852946, alpha=1.6
 
 两者功能一致，Paddle 相比 PyTorch 支持更多参数，具体如下：
 
+> 注：参数映射表按 PyTorch 签名顺序排列。
+
 ### 参数映射
 
 | PyTorch C++ | Paddle C++ | 备注 |

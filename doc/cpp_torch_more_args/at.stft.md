@@ -12,6 +12,8 @@ paddle::experimental::stft(x, window, n_fft, hop_length, normalized, onesided)
 
 PyTorch 相比 Paddle 支持更多参数，具体如下：
 
+> 注：参数映射表按 PyTorch 签名顺序排列。
+
 ### 参数映射
 
 | PyTorch C++ | Paddle C++ | 备注 |

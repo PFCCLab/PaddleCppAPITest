@@ -12,6 +12,8 @@ paddle::experimental::baddbmm(input, x, y, beta=1.0, alpha=1.0, out_dtype=DataTy
 
 两者功能一致，Paddle 相比 PyTorch 支持更多参数，具体如下：
 
+> 注：参数映射表按 PyTorch 签名顺序排列。
+
 ### 参数映射
 
 | PyTorch C++ | Paddle C++ | 备注 |

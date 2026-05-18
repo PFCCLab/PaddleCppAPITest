@@ -12,14 +12,15 @@ paddle::experimental::layer_norm(x, scale, bias, epsilon=1e-5, begin_norm_axis=1
 
 PyTorch 相比 Paddle 支持更多参数，具体如下：
 
+> 注：参数映射表按 PyTorch 签名顺序排列。
+
 ### 参数映射
 
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | input | x | 仅参数名不一致，`input` 对应 `x`。 |
-| normalized_shape | - | Paddle 无此参数，PyTorch 有 `normalized_shape`。 |
+| normalized_shape | begin_norm_axis | 仅参数名不一致，`normalized_shape` 对应 `begin_norm_axis`。 |
 | weight | scale | 仅参数名不一致，`weight` 对应 `scale`。 |
 | bias | bias | 参数名一致。 |
 | eps | epsilon | 仅参数名不一致，`eps` 对应 `epsilon`。 |
 | cudnn_enable | - | Paddle 无此参数，PyTorch 有 `cudnn_enable`。 |
-| - | begin_norm_axis | PyTorch 无此参数，Paddle 有 `begin_norm_axis`。 |

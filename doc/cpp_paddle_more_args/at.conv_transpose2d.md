@@ -12,6 +12,8 @@ paddle::experimental::conv2d_transpose(x, filter, strides={1, 1}, paddings={0, 0
 
 两者功能一致，Paddle 相比 PyTorch 支持更多参数，具体如下：
 
+> 注：参数映射表按 PyTorch 签名顺序排列。
+
 ### 参数映射
 
 | PyTorch C++ | Paddle C++ | 备注 |

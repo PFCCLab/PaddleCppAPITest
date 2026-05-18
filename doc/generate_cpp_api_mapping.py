@@ -195,7 +195,7 @@ def load_cpp_api_alias_mapping(mapping_path=None):
 
 # 常见参数名别名映射（PyTorch -> Paddle）
 ARG_NAME_ALIASES = {
-    "self": ["x", "input"],
+    "self": ["x", "input", "values"],
     "other": ["y"],
     "dim": ["axis"],
     "dims": ["axis"],
@@ -211,6 +211,8 @@ ARG_NAME_ALIASES = {
     "col": ["cols"],
     "pad": ["paddings"],
     "value": ["pad_value"],
+    "normalized_shape": ["begin_norm_axis"],
+    "training": ["is_test"],
 }
 
 
@@ -422,6 +424,7 @@ def generate_mapping(
         "paddle 参数更多": "cpp_paddle_more_args",
         "torch 参数更多": "cpp_torch_more_args",
         "API 别名": "cpp_api_alias_diff",
+        "语义差异": "cpp_semantic_mismatch",
     }
 
     # 预解析 Paddle 签名
@@ -429,6 +432,9 @@ def generate_mapping(
 
     # 对 invoke_diff 做签名级自动分类
     invoke_categories = {}
+
+    # 语义差异 API（PyTorch 与 Paddle 同名但语义不同）
+    SEMANTIC_MISMATCH_APIS = {"uniform", "set"}
 
     for op in invoke_diff_ops:
         torch_path = os.path.join(libtorch_ops_dir, f"{op}.h")
@@ -441,7 +447,12 @@ def generate_mapping(
         if not torch_sig or not paddle_sig:
             continue
 
-        cat, detail = compare_signatures(torch_sig, paddle_sig)
+        # 语义差异 API 直接归入特殊分类
+        if op in SEMANTIC_MISMATCH_APIS:
+            cat = "语义差异"
+            detail = "PyTorch 与 Paddle API 语义不同，不应视为等价实现"
+        else:
+            cat, detail = compare_signatures(torch_sig, paddle_sig)
 
         # 如果该 op 是通过别名映射识别的，同时加入 "API 别名" 分类
         if op in alias_map:
@@ -467,6 +478,7 @@ def generate_mapping(
         "返回参数类型不一致",
         "组合替代实现",
         "API 别名",
+        "语义差异",
     ]
 
     # 收集统计
@@ -608,10 +620,10 @@ def generate_mapping(
             lines.append("| - | - | - | - | 暂无 |")
         lines.append("")
 
-    # 12. 功能缺失
+    # 13. 功能缺失
     cat_name = "功能缺失"
     stats[cat_name] = len(missing)
-    lines.append(f"### 12. {cat_name}")
+    lines.append(f"### 13. {cat_name}")
     lines.append("")
     lines.append(
         "**简介：** 此类 PyTorch C++ API 在 Paddle 中暂时没有等效实现。"
@@ -808,6 +820,8 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
             "两者功能一致，Paddle 相比 PyTorch 支持更多参数，具体如下："
         )
         lines.append("")
+        lines.append("> 注：参数映射表按 PyTorch 签名顺序排列。")
+        lines.append("")
         lines.append("### 参数映射")
         lines.append("")
         lines.append("| PyTorch C++ | Paddle C++ | 备注 |")
@@ -872,8 +886,19 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
                         matched_alias = alias
                         break
                 if matched_alias:
+                    remark = (
+                        f"仅参数名不一致，`{t_name}` 对应 `{matched_alias}`。"
+                    )
+                    if (
+                        op == "rrelu"
+                        and t_name == "training"
+                        and matched_alias == "is_test"
+                    ):
+                        remark = (
+                            "语义取反对应，`training=true` ↔ `is_test=false`。"
+                        )
                     diff_rows.append(
-                        f"| {t_name} | {matched_alias} | 仅参数名不一致，`{t_name}` 对应 `{matched_alias}`。 |"
+                        f"| {t_name} | {matched_alias} | {remark} |"
                     )
                     matched_p.add(matched_alias)
                 else:
@@ -908,6 +933,8 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
         lines.append("```")
         lines.append("")
         lines.append("PyTorch 相比 Paddle 支持更多参数，具体如下：")
+        lines.append("")
+        lines.append("> 注：参数映射表按 PyTorch 签名顺序排列。")
         lines.append("")
         lines.append("### 参数映射")
         lines.append("")
@@ -1024,6 +1051,106 @@ def generate_cpp_api_alias_diff_docs(invoke_categories, output_dir):
         generated.append(op)
 
     print(f"成功生成 {len(generated)} 个 C++ API 别名差异文档到: {output_dir}")
+    return generated
+
+
+def generate_cpp_semantic_mismatch_docs(invoke_categories, output_dir):
+    """为'语义差异'分类的函数生成独立的 C++ API 语义差异文档。"""
+    os.makedirs(output_dir, exist_ok=True)
+
+    mismatch_ops = invoke_categories.get("语义差异", [])
+    generated = []
+    alias_map = load_cpp_api_alias_mapping()
+
+    for op, detail, torch_sig, paddle_sig in mismatch_ops:
+        t_args = [parse_arg(a) for a in torch_sig["args"] if parse_arg(a)]
+        p_args = [parse_arg(a) for a in paddle_sig["args"] if parse_arg(a)]
+        p_args = [a for a in p_args if "predefined_out" not in a["name"]]
+
+        paddle_op_name = alias_map.get(op, op)
+
+        def fmt_sig(args):
+            parts = []
+            for a in args:
+                name = a["name"]
+                if a["default"] is not None:
+                    parts.append(f"{name}={a['default']}")
+                else:
+                    parts.append(name)
+            return ", ".join(parts)
+
+        torch_sig_str = fmt_sig(t_args)
+        paddle_sig_str = fmt_sig(p_args)
+
+        # 按参数名匹配
+        p_dict = {a["name"]: a for a in p_args}
+        matched_p = set()
+        diff_rows = []
+
+        for t_arg in t_args:
+            t_name = t_arg["name"]
+            if t_name in p_dict:
+                diff_rows.append(f"| {t_name} | {t_name} | 参数名一致。 |")
+                matched_p.add(t_name)
+            elif t_name in ARG_NAME_ALIASES:
+                matched_alias = None
+                for alias in ARG_NAME_ALIASES[t_name]:
+                    if alias in p_dict:
+                        matched_alias = alias
+                        break
+                if matched_alias:
+                    diff_rows.append(
+                        f"| {t_name} | {matched_alias} | 仅参数名不一致，`{t_name}` 对应 `{matched_alias}`。 |"
+                    )
+                    matched_p.add(matched_alias)
+                else:
+                    diff_rows.append(
+                        f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
+                    )
+            else:
+                diff_rows.append(
+                    f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
+                )
+
+        for p_arg in p_args:
+            p_name = p_arg["name"]
+            if p_name not in matched_p:
+                diff_rows.append(
+                    f"| - | {p_name} | PyTorch 无此参数，Paddle 有 `{p_name}`。 |"
+                )
+
+        lines = []
+        lines.append(f"## [语义差异]at::{op}")
+        lines.append("")
+        lines.append("### PyTorch C++ API")
+        lines.append("```cpp")
+        lines.append(f"at::{op}({torch_sig_str})")
+        lines.append("```")
+        lines.append("")
+        lines.append("### Paddle C++ API")
+        lines.append("```cpp")
+        lines.append(
+            f"paddle::experimental::{paddle_op_name}({paddle_sig_str})"
+        )
+        lines.append("```")
+        lines.append("")
+        lines.append(
+            f"**注意：PyTorch `at::{op}` 与 Paddle `paddle::experimental::{paddle_op_name}` 语义不同，不应视为等价 API。**"
+        )
+        lines.append("")
+        lines.append("### 参数映射")
+        lines.append("")
+        lines.append("| PyTorch C++ | Paddle C++ | 备注 |")
+        lines.append("| ----------- | ---------- | ---- |")
+        lines.extend(diff_rows)
+        lines.append("")
+
+        filepath = os.path.join(output_dir, f"at.{op}.md")
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+        generated.append(op)
+
+    print(f"成功生成 {len(generated)} 个 C++ API 语义差异文档到: {output_dir}")
     return generated
 
 
@@ -1342,6 +1469,12 @@ def main():
         os.path.dirname(args.output), "cpp_api_alias_diff"
     )
     generate_cpp_api_alias_diff_docs(invoke_categories, cpp_alias_dir)
+
+    # 同时生成 C++ API 语义差异文档
+    cpp_semantic_dir = os.path.join(
+        os.path.dirname(args.output), "cpp_semantic_mismatch"
+    )
+    generate_cpp_semantic_mismatch_docs(invoke_categories, cpp_semantic_dir)
 
 
 if __name__ == "__main__":
