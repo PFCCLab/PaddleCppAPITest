@@ -16,9 +16,7 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
-| self | - | Paddle 无此参数，PyTorch 有 `self`。 |
-| target | - | Paddle 无此参数，PyTorch 有 `target`。 |
+| self | input | 仅参数名不一致，`self` 对应 `input`。 |
+| target | label | 仅参数名不一致，`target` 对应 `label`。 |
 | reduction | - | Paddle 无此参数，PyTorch 有 `reduction`。 |
 | delta | delta | 参数名一致。 |
-| - | input | PyTorch 无此参数，Paddle 有 `input`。 |
-| - | label | PyTorch 无此参数，Paddle 有 `label`。 |

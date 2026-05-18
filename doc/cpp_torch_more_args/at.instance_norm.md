@@ -17,13 +17,11 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
 | input | x | 仅参数名不一致，`input` 对应 `x`。 |
-| weight | - | Paddle 无此参数，PyTorch 有 `weight`。 |
+| weight | scale | 仅参数名不一致，`weight` 对应 `scale`。 |
 | bias | bias | 参数名一致。 |
 | running_mean | - | Paddle 无此参数，PyTorch 有 `running_mean`。 |
 | running_var | - | Paddle 无此参数，PyTorch 有 `running_var`。 |
 | use_input_stats | - | Paddle 无此参数，PyTorch 有 `use_input_stats`。 |
 | momentum | - | Paddle 无此参数，PyTorch 有 `momentum`。 |
-| eps | - | Paddle 无此参数，PyTorch 有 `eps`。 |
+| eps | epsilon | 仅参数名不一致，`eps` 对应 `epsilon`。 |
 | cudnn_enabled | - | Paddle 无此参数，PyTorch 有 `cudnn_enabled`。 |
-| - | scale | PyTorch 无此参数，Paddle 有 `scale`。 |
-| - | epsilon | PyTorch 无此参数，Paddle 有 `epsilon`。 |

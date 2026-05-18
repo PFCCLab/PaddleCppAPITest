@@ -4,7 +4,7 @@
 帮助开发者快速迁移 PyTorch C++ 使用经验。
 
 > **Note**: 本映射表基于以下路径**自动解析 C++ 函数签名**生成：
-> - PyTorch C++ API 头文件: `D:/迅雷下载/libtorch/include/ATen/ops`
+> - PyTorch C++ API 头文件: `D:/Lenovo/libtorch/include/ATen/ops`
 > - Paddle compat 层头文件: `D:/Lenovo/Paddle/paddle/phi/api/include/compat/ATen/ops`
 > - Paddle `api.h` 头文件: `D:/Lenovo/Paddle/paddle/phi/api/include/api.h`
 
@@ -106,7 +106,10 @@
 
 | 序号 | PyTorch C++ API | Paddle C++ API | 映射分类 | 备注 |
 |------|-----------------|----------------|----------|------|
-| 1 | `at::complex` | `paddle::experimental::complex` | 仅 API 调用方式不一致 | 签名高度相似，调用方式或语义有细微差异 |
+| 1 | `at::broadcast_tensors` | `paddle::experimental::broadcast_tensors` | 仅 API 调用方式不一致 | 签名高度相似，调用方式或语义有细微差异 |
+| 2 | `at::complex` | `paddle::experimental::complex` | 仅 API 调用方式不一致 | 签名高度相似，调用方式或语义有细微差异 |
+| 3 | `at::meshgrid` | `paddle::experimental::meshgrid` | 仅 API 调用方式不一致 | 签名高度相似，调用方式或语义有细微差异 |
+| 4 | `at::nonzero` | `paddle::experimental::nonzero` | 仅 API 调用方式不一致 | 签名高度相似，调用方式或语义有细微差异 |
 
 ### 3. 仅参数名不一致
 
@@ -145,47 +148,54 @@
 | 29 | `at::floor_divide` | `paddle::experimental::floor_divide` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.floor_divide.md) |
 | 30 | `at::fmax` | `paddle::experimental::fmax` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.fmax.md) |
 | 31 | `at::fmin` | `paddle::experimental::fmin` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.fmin.md) |
-| 32 | `at::hardswish` | `paddle::experimental::hardswish` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.hardswish.md) |
-| 33 | `at::heaviside` | `paddle::experimental::heaviside` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.heaviside.md) |
-| 34 | `at::i0` | `paddle::experimental::i0` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.i0.md) |
-| 35 | `at::imag` | `paddle::experimental::imag` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.imag.md) |
-| 36 | `at::inverse` | `paddle::experimental::inverse` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.inverse.md) |
-| 37 | `at::isfinite` | `paddle::experimental::isfinite` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.isfinite.md) |
-| 38 | `at::isinf` | `paddle::experimental::isinf` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.isinf.md) |
-| 39 | `at::isnan` | `paddle::experimental::isnan` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.isnan.md) |
-| 40 | `at::kron` | `paddle::experimental::kron` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.kron.md) |
-| 41 | `at::lgamma` | `paddle::experimental::lgamma` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.lgamma.md) |
-| 42 | `at::log` | `paddle::experimental::log` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log.md) |
-| 43 | `at::log10` | `paddle::experimental::log10` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log10.md) |
-| 44 | `at::log1p` | `paddle::experimental::log1p` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log1p.md) |
-| 45 | `at::log2` | `paddle::experimental::log2` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log2.md) |
-| 46 | `at::logical_and` | `paddle::experimental::logical_and` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.logical_and.md) |
-| 47 | `at::logical_not` | `paddle::experimental::logical_not` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.logical_not.md) |
-| 48 | `at::logical_or` | `paddle::experimental::logical_or` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.logical_or.md) |
-| 49 | `at::logical_xor` | `paddle::experimental::logical_xor` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.logical_xor.md) |
-| 50 | `at::masked_scatter` | `paddle::experimental::masked_scatter` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.masked_scatter.md) |
-| 51 | `at::maximum` | `paddle::experimental::maximum` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.maximum.md) |
-| 52 | `at::minimum` | `paddle::experimental::minimum` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.minimum.md) |
-| 53 | `at::multiply` | `paddle::experimental::multiply` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.multiply.md) |
-| 54 | `at::mv` | `paddle::experimental::mv` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.mv.md) |
-| 55 | `at::nextafter` | `paddle::experimental::nextafter` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.nextafter.md) |
-| 56 | `at::nonzero` | `paddle::experimental::nonzero` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.nonzero.md) |
-| 57 | `at::real` | `paddle::experimental::real` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.real.md) |
-| 58 | `at::relu` | `paddle::experimental::relu` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.relu.md) |
-| 59 | `at::relu6` | `paddle::experimental::relu6` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.relu6.md) |
-| 60 | `at::rsqrt` | `paddle::experimental::rsqrt` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.rsqrt.md) |
-| 61 | `at::sigmoid` | `paddle::experimental::sigmoid` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sigmoid.md) |
-| 62 | `at::sign` | `paddle::experimental::sign` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sign.md) |
-| 63 | `at::silu` | `paddle::experimental::silu` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.silu.md) |
-| 64 | `at::sin` | `paddle::experimental::sin` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sin.md) |
-| 65 | `at::sinh` | `paddle::experimental::sinh` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sinh.md) |
-| 66 | `at::sqrt` | `paddle::experimental::sqrt` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sqrt.md) |
-| 67 | `at::square` | `paddle::experimental::square` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.square.md) |
-| 68 | `at::tan` | `paddle::experimental::tan` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.tan.md) |
-| 69 | `at::tanh` | `paddle::experimental::tanh` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.tanh.md) |
-| 70 | `at::trunc` | `paddle::experimental::trunc` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.trunc.md) |
-| 71 | `at::_conj` | `paddle::experimental::_conj` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at._conj.md) |
-| 72 | `at::log_sigmoid` | `paddle::experimental::log_sigmoid` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log_sigmoid.md) |
+| 32 | `at::full_like` | `paddle::experimental::full_like` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.full_like.md) |
+| 33 | `at::hardshrink` | `paddle::experimental::hardshrink` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.hardshrink.md) |
+| 34 | `at::hardswish` | `paddle::experimental::hardswish` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.hardswish.md) |
+| 35 | `at::hardtanh` | `paddle::experimental::hardtanh` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.hardtanh.md) |
+| 36 | `at::heaviside` | `paddle::experimental::heaviside` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.heaviside.md) |
+| 37 | `at::i0` | `paddle::experimental::i0` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.i0.md) |
+| 38 | `at::imag` | `paddle::experimental::imag` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.imag.md) |
+| 39 | `at::inverse` | `paddle::experimental::inverse` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.inverse.md) |
+| 40 | `at::isfinite` | `paddle::experimental::isfinite` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.isfinite.md) |
+| 41 | `at::isinf` | `paddle::experimental::isinf` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.isinf.md) |
+| 42 | `at::isnan` | `paddle::experimental::isnan` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.isnan.md) |
+| 43 | `at::kron` | `paddle::experimental::kron` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.kron.md) |
+| 44 | `at::lgamma` | `paddle::experimental::lgamma` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.lgamma.md) |
+| 45 | `at::log` | `paddle::experimental::log` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log.md) |
+| 46 | `at::log10` | `paddle::experimental::log10` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log10.md) |
+| 47 | `at::log1p` | `paddle::experimental::log1p` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log1p.md) |
+| 48 | `at::log2` | `paddle::experimental::log2` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log2.md) |
+| 49 | `at::logical_and` | `paddle::experimental::logical_and` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.logical_and.md) |
+| 50 | `at::logical_not` | `paddle::experimental::logical_not` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.logical_not.md) |
+| 51 | `at::logical_or` | `paddle::experimental::logical_or` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.logical_or.md) |
+| 52 | `at::logical_xor` | `paddle::experimental::logical_xor` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.logical_xor.md) |
+| 53 | `at::masked_scatter` | `paddle::experimental::masked_scatter` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.masked_scatter.md) |
+| 54 | `at::maximum` | `paddle::experimental::maximum` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.maximum.md) |
+| 55 | `at::minimum` | `paddle::experimental::minimum` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.minimum.md) |
+| 56 | `at::multiply` | `paddle::experimental::multiply` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.multiply.md) |
+| 57 | `at::mv` | `paddle::experimental::mv` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.mv.md) |
+| 58 | `at::nextafter` | `paddle::experimental::nextafter` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.nextafter.md) |
+| 59 | `at::ones_like` | `paddle::experimental::ones_like` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.ones_like.md) |
+| 60 | `at::pow` | `paddle::experimental::pow` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.pow.md) |
+| 61 | `at::real` | `paddle::experimental::real` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.real.md) |
+| 62 | `at::relu` | `paddle::experimental::relu` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.relu.md) |
+| 63 | `at::relu6` | `paddle::experimental::relu6` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.relu6.md) |
+| 64 | `at::rsqrt` | `paddle::experimental::rsqrt` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.rsqrt.md) |
+| 65 | `at::scatter` | `paddle::experimental::scatter` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.scatter.md) |
+| 66 | `at::sigmoid` | `paddle::experimental::sigmoid` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sigmoid.md) |
+| 67 | `at::sign` | `paddle::experimental::sign` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sign.md) |
+| 68 | `at::silu` | `paddle::experimental::silu` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.silu.md) |
+| 69 | `at::sin` | `paddle::experimental::sin` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sin.md) |
+| 70 | `at::sinh` | `paddle::experimental::sinh` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sinh.md) |
+| 71 | `at::softshrink` | `paddle::experimental::softshrink` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.softshrink.md) |
+| 72 | `at::sqrt` | `paddle::experimental::sqrt` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.sqrt.md) |
+| 73 | `at::square` | `paddle::experimental::square` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.square.md) |
+| 74 | `at::tan` | `paddle::experimental::tan` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.tan.md) |
+| 75 | `at::tanh` | `paddle::experimental::tanh` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.tanh.md) |
+| 76 | `at::tile` | `paddle::experimental::tile` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.tile.md) |
+| 77 | `at::trunc` | `paddle::experimental::trunc` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.trunc.md) |
+| 78 | `at::_conj` | `paddle::experimental::_conj` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at._conj.md) |
+| 79 | `at::log_sigmoid` | `paddle::experimental::log_sigmoid` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log_sigmoid.md) |
 
 ### 4. paddle 参数更多
 
@@ -248,7 +258,6 @@
 |------|-----------------|----------------|----------|------|
 | 1 | `at::fill` | `paddle::experimental::fill` | 参数默认值不一致 | [差异对比](cpp_args_default_value_diff/at.fill.md) |
 | 2 | `at::roll` | `paddle::experimental::roll` | 参数默认值不一致 | [差异对比](cpp_args_default_value_diff/at.roll.md) |
-| 3 | `at::tile` | `paddle::experimental::tile` | 参数默认值不一致 | [差异对比](cpp_args_default_value_diff/at.tile.md) |
 
 ### 6. torch 参数更多
 
@@ -299,49 +308,40 @@
 | 4 | `at::bitwise_and` | `paddle::experimental::bitwise_and` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.bitwise_and.md) |
 | 5 | `at::bitwise_or` | `paddle::experimental::bitwise_or` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.bitwise_or.md) |
 | 6 | `at::bitwise_xor` | `paddle::experimental::bitwise_xor` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.bitwise_xor.md) |
-| 7 | `at::broadcast_tensors` | `paddle::experimental::broadcast_tensors` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.broadcast_tensors.md) |
-| 8 | `at::celu` | `paddle::experimental::celu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.celu.md) |
-| 9 | `at::clip` | `paddle::experimental::clip` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.clip.md) |
-| 10 | `at::concat` | `paddle::experimental::concat` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.concat.md) |
-| 11 | `at::cross` | `paddle::experimental::cross` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.cross.md) |
-| 12 | `at::diag_embed` | `paddle::experimental::diag_embed` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.diag_embed.md) |
-| 13 | `at::diagonal` | `paddle::experimental::diagonal` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.diagonal.md) |
-| 14 | `at::dist` | `paddle::experimental::dist` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.dist.md) |
-| 15 | `at::flip` | `paddle::experimental::flip` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.flip.md) |
-| 16 | `at::full_like` | `paddle::experimental::full_like` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.full_like.md) |
-| 17 | `at::gelu` | `paddle::experimental::gelu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.gelu.md) |
-| 18 | `at::greater_equal` | `paddle::experimental::greater_equal` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.greater_equal.md) |
-| 19 | `at::group_norm` | `paddle::experimental::group_norm` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.group_norm.md) |
-| 20 | `at::hardshrink` | `paddle::experimental::hardshrink` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.hardshrink.md) |
-| 21 | `at::hardtanh` | `paddle::experimental::hardtanh` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.hardtanh.md) |
-| 22 | `at::index_fill` | `paddle::experimental::index_fill` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.index_fill.md) |
-| 23 | `at::index_select` | `paddle::experimental::index_select` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.index_select.md) |
-| 24 | `at::isclose` | `paddle::experimental::isclose` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.isclose.md) |
-| 25 | `at::leaky_relu` | `paddle::experimental::leaky_relu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.leaky_relu.md) |
-| 26 | `at::lerp` | `paddle::experimental::lerp` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.lerp.md) |
-| 27 | `at::less_equal` | `paddle::experimental::less_equal` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.less_equal.md) |
-| 28 | `at::logit` | `paddle::experimental::logit` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.logit.md) |
-| 29 | `at::masked_fill` | `paddle::experimental::masked_fill` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.masked_fill.md) |
-| 30 | `at::matrix_power` | `paddle::experimental::matrix_power` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.matrix_power.md) |
-| 31 | `at::meshgrid` | `paddle::experimental::meshgrid` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.meshgrid.md) |
-| 32 | `at::nansum` | `paddle::experimental::nansum` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.nansum.md) |
-| 33 | `at::not_equal` | `paddle::experimental::not_equal` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.not_equal.md) |
-| 34 | `at::one_hot` | `paddle::experimental::one_hot` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.one_hot.md) |
-| 35 | `at::ones_like` | `paddle::experimental::ones_like` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.ones_like.md) |
-| 36 | `at::polygamma` | `paddle::experimental::polygamma` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.polygamma.md) |
-| 37 | `at::pow` | `paddle::experimental::pow` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.pow.md) |
-| 38 | `at::remainder` | `paddle::experimental::remainder` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.remainder.md) |
-| 39 | `at::renorm` | `paddle::experimental::renorm` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.renorm.md) |
-| 40 | `at::scatter` | `paddle::experimental::scatter` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.scatter.md) |
-| 41 | `at::softplus` | `paddle::experimental::softplus` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.softplus.md) |
-| 42 | `at::softshrink` | `paddle::experimental::softshrink` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.softshrink.md) |
-| 43 | `at::stack` | `paddle::experimental::stack` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.stack.md) |
-| 44 | `at::tril` | `paddle::experimental::tril` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.tril.md) |
-| 45 | `at::triu` | `paddle::experimental::triu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.triu.md) |
-| 46 | `at::unbind` | `paddle::experimental::unbind` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.unbind.md) |
-| 47 | `at::_fft_c2c` | `paddle::experimental::_fft_c2c` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at._fft_c2c.md) |
-| 48 | `at::_stack` | `paddle::experimental::_stack` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at._stack.md) |
-| 49 | `at::grid_sampler` | `paddle::experimental::grid_sampler` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.grid_sampler.md) |
+| 7 | `at::celu` | `paddle::experimental::celu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.celu.md) |
+| 8 | `at::clip` | `paddle::experimental::clip` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.clip.md) |
+| 9 | `at::concat` | `paddle::experimental::concat` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.concat.md) |
+| 10 | `at::cross` | `paddle::experimental::cross` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.cross.md) |
+| 11 | `at::diag_embed` | `paddle::experimental::diag_embed` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.diag_embed.md) |
+| 12 | `at::diagonal` | `paddle::experimental::diagonal` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.diagonal.md) |
+| 13 | `at::dist` | `paddle::experimental::dist` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.dist.md) |
+| 14 | `at::flip` | `paddle::experimental::flip` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.flip.md) |
+| 15 | `at::gelu` | `paddle::experimental::gelu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.gelu.md) |
+| 16 | `at::greater_equal` | `paddle::experimental::greater_equal` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.greater_equal.md) |
+| 17 | `at::group_norm` | `paddle::experimental::group_norm` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.group_norm.md) |
+| 18 | `at::index_fill` | `paddle::experimental::index_fill` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.index_fill.md) |
+| 19 | `at::index_select` | `paddle::experimental::index_select` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.index_select.md) |
+| 20 | `at::isclose` | `paddle::experimental::isclose` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.isclose.md) |
+| 21 | `at::leaky_relu` | `paddle::experimental::leaky_relu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.leaky_relu.md) |
+| 22 | `at::lerp` | `paddle::experimental::lerp` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.lerp.md) |
+| 23 | `at::less_equal` | `paddle::experimental::less_equal` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.less_equal.md) |
+| 24 | `at::logit` | `paddle::experimental::logit` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.logit.md) |
+| 25 | `at::masked_fill` | `paddle::experimental::masked_fill` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.masked_fill.md) |
+| 26 | `at::matrix_power` | `paddle::experimental::matrix_power` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.matrix_power.md) |
+| 27 | `at::nansum` | `paddle::experimental::nansum` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.nansum.md) |
+| 28 | `at::not_equal` | `paddle::experimental::not_equal` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.not_equal.md) |
+| 29 | `at::one_hot` | `paddle::experimental::one_hot` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.one_hot.md) |
+| 30 | `at::polygamma` | `paddle::experimental::polygamma` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.polygamma.md) |
+| 31 | `at::remainder` | `paddle::experimental::remainder` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.remainder.md) |
+| 32 | `at::renorm` | `paddle::experimental::renorm` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.renorm.md) |
+| 33 | `at::softplus` | `paddle::experimental::softplus` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.softplus.md) |
+| 34 | `at::stack` | `paddle::experimental::stack` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.stack.md) |
+| 35 | `at::tril` | `paddle::experimental::tril` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.tril.md) |
+| 36 | `at::triu` | `paddle::experimental::triu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.triu.md) |
+| 37 | `at::unbind` | `paddle::experimental::unbind` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.unbind.md) |
+| 38 | `at::_fft_c2c` | `paddle::experimental::_fft_c2c` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at._fft_c2c.md) |
+| 39 | `at::_stack` | `paddle::experimental::_stack` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at._stack.md) |
+| 40 | `at::grid_sampler` | `paddle::experimental::grid_sampler` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.grid_sampler.md) |
 
 ### 9. 返回参数类型不一致
 
@@ -1212,13 +1212,13 @@
 ## 统计
 
 - **API 完全一致**: 66 个
-- **仅 API 调用方式不一致**: 1 个
-- **仅参数名不一致**: 72 个
+- **仅 API 调用方式不一致**: 4 个
+- **仅参数名不一致**: 79 个
 - **paddle 参数更多**: 46 个
-- **参数默认值不一致**: 3 个
+- **参数默认值不一致**: 2 个
 - **torch 参数更多**: 22 个
 - **输入参数用法不一致**: 0 个
-- **输入参数类型不一致**: 49 个
+- **输入参数类型不一致**: 40 个
 - **返回参数类型不一致**: 29 个
 - **组合替代实现**: 0 个
 - **API 别名**: 18 个

@@ -3,6 +3,8 @@ name: compile-test
 on:
   pull_request:
     branches: ["master"]
+    paths-ignore:
+      - "doc/**"
   workflow_dispatch:
 
 jobs:

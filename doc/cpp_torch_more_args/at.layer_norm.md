@@ -18,10 +18,8 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | ----------- | ---------- | ---- |
 | input | x | 仅参数名不一致，`input` 对应 `x`。 |
 | normalized_shape | - | Paddle 无此参数，PyTorch 有 `normalized_shape`。 |
-| weight | - | Paddle 无此参数，PyTorch 有 `weight`。 |
+| weight | scale | 仅参数名不一致，`weight` 对应 `scale`。 |
 | bias | bias | 参数名一致。 |
-| eps | - | Paddle 无此参数，PyTorch 有 `eps`。 |
+| eps | epsilon | 仅参数名不一致，`eps` 对应 `epsilon`。 |
 | cudnn_enable | - | Paddle 无此参数，PyTorch 有 `cudnn_enable`。 |
-| - | scale | PyTorch 无此参数，Paddle 有 `scale`。 |
-| - | epsilon | PyTorch 无此参数，Paddle 有 `epsilon`。 |
 | - | begin_norm_axis | PyTorch 无此参数，Paddle 有 `begin_norm_axis`。 |

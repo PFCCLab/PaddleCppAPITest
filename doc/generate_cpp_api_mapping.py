@@ -193,6 +193,35 @@ def load_cpp_api_alias_mapping(mapping_path=None):
         return json.load(f)
 
 
+# 常见参数名别名映射（PyTorch -> Paddle）
+ARG_NAME_ALIASES = {
+    "self": ["x", "input"],
+    "other": ["y"],
+    "dim": ["axis"],
+    "dims": ["axis"],
+    "input": ["x"],
+    "weight": ["filter", "scale"],
+    "src": ["x"],
+    "tensor": ["x"],
+    "indices": ["x"],
+    "target": ["label"],
+    "source": ["add_value"],
+    "eps": ["epsilon"],
+    "row": ["rows"],
+    "col": ["cols"],
+    "pad": ["paddings"],
+    "value": ["pad_value"],
+}
+
+
+def _args_match_by_name(t_name, p_name):
+    """判断两个参数名是否匹配（含别名映射）。"""
+    if t_name == p_name:
+        return True
+    aliases = ARG_NAME_ALIASES.get(t_name, [])
+    return p_name in aliases
+
+
 # ============================================================
 # Signature Comparison Engine
 # ============================================================
@@ -228,37 +257,63 @@ def compare_signatures(torch_sig, paddle_sig):
             "返回类型不一致",
         )
 
-    # 2. 参数数量
-    if len(p_args) > len(t_args):
+    # 2. 按参数名（含别名）做跨索引匹配，计算实际未匹配数量
+    t_matched = set()
+    p_matched = set()
+    for i, t_arg in enumerate(t_args):
+        for j, p_arg in enumerate(p_args):
+            if j in p_matched:
+                continue
+            if _args_match_by_name(t_arg["name"], p_arg["name"]):
+                t_matched.add(i)
+                p_matched.add(j)
+                break
+
+    unmatched_t = len(t_args) - len(t_matched)
+    unmatched_p = len(p_args) - len(p_matched)
+
+    if unmatched_p > unmatched_t:
         return (
             "paddle 参数更多",
-            f"PyTorch {len(t_args)} 个参数，Paddle {len(p_args)} 个参数",
+            f"PyTorch {len(t_args)} 个参数，Paddle {len(p_args)} 个参数（跨名匹配后 Paddle 多 {unmatched_p - unmatched_t} 个）",
         )
-    if len(t_args) > len(p_args):
+    if unmatched_t > unmatched_p:
         return (
             "torch 参数更多",
-            f"PyTorch {len(t_args)} 个参数，Paddle {len(p_args)} 个参数",
+            f"PyTorch {len(t_args)} 个参数，Paddle {len(p_args)} 个参数（跨名匹配后 PyTorch 多 {unmatched_t - unmatched_p} 个）",
         )
 
-    # 3-5. 逐参数对比
+    # 3-5. 对已成功匹配的参数逐对对比类型/默认值/名称
     type_diff = False
     default_diff = False
     name_diff = False
 
-    for i in range(len(t_args)):
-        t_type = normalize_type(t_args[i]["type"])
-        p_type = normalize_type(p_args[i]["type"])
+    for i, t_arg in enumerate(t_args):
+        if i not in t_matched:
+            continue
+        # 找到匹配的 Paddle 参数索引
+        matched_j = None
+        for j, p_arg in enumerate(p_args):
+            if j in p_matched and _args_match_by_name(
+                t_arg["name"], p_arg["name"]
+            ):
+                matched_j = j
+                break
+        if matched_j is None:
+            continue
+
+        t_type = normalize_type(t_arg["type"])
+        p_type = normalize_type(p_args[matched_j]["type"])
 
         if t_type != p_type:
             type_diff = True
 
-        # 默认值对比（字符串级）
-        t_def = t_args[i]["default"]
-        p_def = p_args[i]["default"]
+        t_def = t_arg["default"]
+        p_def = p_args[matched_j]["default"]
         if t_def != p_def:
             default_diff = True
 
-        if t_args[i]["name"] != p_args[i]["name"]:
+        if t_arg["name"] != p_args[matched_j]["name"]:
             name_diff = True
 
     if type_diff:
@@ -697,18 +752,6 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
         torch_sig_str = fmt_sig(t_args)
         paddle_sig_str = fmt_sig(p_args)
 
-        # 常见参数名别名映射（PyTorch -> Paddle）
-        ARG_NAME_ALIASES = {
-            "self": "x",
-            "other": "y",
-            "dim": "axis",
-            "dims": "axis",
-            "input": "x",
-            "weight": "filter",
-            "src": "x",
-            "tensor": "x",
-        }
-
         # 按参数名匹配，避免索引错位
         p_dict = {a["name"]: a for a in p_args}
         matched_p = set()
@@ -719,15 +762,21 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
             if t_name in p_dict:
                 diff_rows.append(f"| {t_name} | {t_name} | 参数名一致。 |")
                 matched_p.add(t_name)
-            elif (
-                t_name in ARG_NAME_ALIASES
-                and ARG_NAME_ALIASES[t_name] in p_dict
-            ):
-                alias = ARG_NAME_ALIASES[t_name]
-                diff_rows.append(
-                    f"| {t_name} | {alias} | 仅参数名不一致，`{t_name}` 对应 `{alias}`。 |"
-                )
-                matched_p.add(alias)
+            elif t_name in ARG_NAME_ALIASES:
+                matched_alias = None
+                for alias in ARG_NAME_ALIASES[t_name]:
+                    if alias in p_dict:
+                        matched_alias = alias
+                        break
+                if matched_alias:
+                    diff_rows.append(
+                        f"| {t_name} | {matched_alias} | 仅参数名不一致，`{t_name}` 对应 `{matched_alias}`。 |"
+                    )
+                    matched_p.add(matched_alias)
+                else:
+                    diff_rows.append(
+                        f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
+                    )
             else:
                 diff_rows.append(
                     f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
@@ -806,18 +855,6 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
         torch_sig_str = fmt_sig(t_args)
         paddle_sig_str = fmt_sig(p_args)
 
-        # 常见参数名别名映射（PyTorch -> Paddle）
-        ARG_NAME_ALIASES = {
-            "self": "x",
-            "other": "y",
-            "dim": "axis",
-            "dims": "axis",
-            "input": "x",
-            "weight": "filter",
-            "src": "x",
-            "tensor": "x",
-        }
-
         # 按参数名匹配，避免索引错位
         p_dict = {a["name"]: a for a in p_args}
         matched_p = set()
@@ -828,15 +865,21 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
             if t_name in p_dict:
                 diff_rows.append(f"| {t_name} | {t_name} | 参数名一致。 |")
                 matched_p.add(t_name)
-            elif (
-                t_name in ARG_NAME_ALIASES
-                and ARG_NAME_ALIASES[t_name] in p_dict
-            ):
-                alias = ARG_NAME_ALIASES[t_name]
-                diff_rows.append(
-                    f"| {t_name} | {alias} | 仅参数名不一致，`{t_name}` 对应 `{alias}`。 |"
-                )
-                matched_p.add(alias)
+            elif t_name in ARG_NAME_ALIASES:
+                matched_alias = None
+                for alias in ARG_NAME_ALIASES[t_name]:
+                    if alias in p_dict:
+                        matched_alias = alias
+                        break
+                if matched_alias:
+                    diff_rows.append(
+                        f"| {t_name} | {matched_alias} | 仅参数名不一致，`{t_name}` 对应 `{matched_alias}`。 |"
+                    )
+                    matched_p.add(matched_alias)
+                else:
+                    diff_rows.append(
+                        f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
+                    )
             else:
                 diff_rows.append(
                     f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
@@ -917,31 +960,26 @@ def generate_cpp_api_alias_diff_docs(invoke_categories, output_dir):
         matched_p = set()
         diff_rows = []
 
-        ARG_NAME_ALIASES = {
-            "self": "x",
-            "other": "y",
-            "dim": "axis",
-            "dims": "axis",
-            "input": "x",
-            "weight": "filter",
-            "src": "x",
-            "tensor": "x",
-        }
-
         for t_arg in t_args:
             t_name = t_arg["name"]
             if t_name in p_dict:
                 diff_rows.append(f"| {t_name} | {t_name} | 参数名一致。 |")
                 matched_p.add(t_name)
-            elif (
-                t_name in ARG_NAME_ALIASES
-                and ARG_NAME_ALIASES[t_name] in p_dict
-            ):
-                alias = ARG_NAME_ALIASES[t_name]
-                diff_rows.append(
-                    f"| {t_name} | {alias} | 仅参数名不一致，`{t_name}` 对应 `{alias}`。 |"
-                )
-                matched_p.add(alias)
+            elif t_name in ARG_NAME_ALIASES:
+                matched_alias = None
+                for alias in ARG_NAME_ALIASES[t_name]:
+                    if alias in p_dict:
+                        matched_alias = alias
+                        break
+                if matched_alias:
+                    diff_rows.append(
+                        f"| {t_name} | {matched_alias} | 仅参数名不一致，`{t_name}` 对应 `{matched_alias}`。 |"
+                    )
+                    matched_p.add(matched_alias)
+                else:
+                    diff_rows.append(
+                        f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
+                    )
             else:
                 diff_rows.append(
                     f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
