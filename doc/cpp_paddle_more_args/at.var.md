@@ -12,6 +12,8 @@ paddle::experimental::var(x, axis={}, keepdim=false, unbiased=true, correction=1
 
 两者功能一致，Paddle 相比 PyTorch 支持更多参数，具体如下：
 
+> 注：当前对比基于 PyTorch 最简重载 `var(self, unbiased)`。PyTorch 也存在带 `dim/keepdim/correction` 的完整重载。
+
 > 注：参数映射表按 PyTorch 签名顺序排列。
 
 ### 参数映射

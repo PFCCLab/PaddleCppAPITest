@@ -237,16 +237,17 @@
 | 32 | `at::repeat_interleave` | `paddle::experimental::repeat_interleave` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.repeat_interleave.md) |
 | 33 | `at::round` | `paddle::experimental::round` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.round.md) |
 | 34 | `at::selu` | `paddle::experimental::selu` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.selu.md) |
-| 35 | `at::trace` | `paddle::experimental::trace` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.trace.md) |
-| 36 | `at::tril_indices` | `paddle::experimental::tril_indices` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.tril_indices.md) |
-| 37 | `at::triu_indices` | `paddle::experimental::triu_indices` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.triu_indices.md) |
-| 38 | `at::var` | `paddle::experimental::var` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.var.md) |
-| 39 | `at::_fft_c2r` | `paddle::experimental::_fft_c2r` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._fft_c2r.md) |
-| 40 | `at::_fft_r2c` | `paddle::experimental::_fft_r2c` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._fft_r2c.md) |
-| 41 | `at::_logcumsumexp` | `paddle::experimental::_logcumsumexp` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._logcumsumexp.md) |
-| 42 | `at::conv_transpose2d` | `paddle::experimental::conv_transpose2d` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.conv_transpose2d.md) |
-| 43 | `at::conv_transpose3d` | `paddle::experimental::conv_transpose3d` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.conv_transpose3d.md) |
-| 44 | `at::range` | `paddle::experimental::range` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.range.md) |
+| 35 | `at::set` | `paddle::experimental::set` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.set.md) |
+| 36 | `at::trace` | `paddle::experimental::trace` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.trace.md) |
+| 37 | `at::tril_indices` | `paddle::experimental::tril_indices` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.tril_indices.md) |
+| 38 | `at::triu_indices` | `paddle::experimental::triu_indices` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.triu_indices.md) |
+| 39 | `at::var` | `paddle::experimental::var` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.var.md) |
+| 40 | `at::_fft_c2r` | `paddle::experimental::_fft_c2r` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._fft_c2r.md) |
+| 41 | `at::_fft_r2c` | `paddle::experimental::_fft_r2c` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._fft_r2c.md) |
+| 42 | `at::_logcumsumexp` | `paddle::experimental::_logcumsumexp` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._logcumsumexp.md) |
+| 43 | `at::conv_transpose2d` | `paddle::experimental::conv_transpose2d` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.conv_transpose2d.md) |
+| 44 | `at::conv_transpose3d` | `paddle::experimental::conv_transpose3d` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.conv_transpose3d.md) |
+| 45 | `at::range` | `paddle::experimental::range` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.range.md) |
 
 ### 5. 参数默认值不一致
 
@@ -415,8 +416,7 @@
 
 | 序号 | PyTorch C++ API | Paddle C++ API | 映射分类 | 备注 |
 |------|-----------------|----------------|----------|------|
-| 1 | `at::set` | `paddle::experimental::set` | 语义差异 | [差异对比](cpp_semantic_mismatch/at.set.md) |
-| 2 | `at::uniform` | `paddle::experimental::uniform` | 语义差异 | [差异对比](cpp_semantic_mismatch/at.uniform.md) |
+| 1 | `at::uniform` | `paddle::experimental::uniform` | 语义差异 | [差异对比](cpp_semantic_mismatch/at.uniform.md) |
 
 ### 13. 功能缺失
 
@@ -1220,7 +1220,7 @@
 - **API 完全一致**: 66 个
 - **仅 API 调用方式不一致**: 4 个
 - **仅参数名不一致**: 79 个
-- **paddle 参数更多**: 44 个
+- **paddle 参数更多**: 45 个
 - **参数默认值不一致**: 2 个
 - **torch 参数更多**: 22 个
 - **输入参数用法不一致**: 0 个
@@ -1228,7 +1228,7 @@
 - **返回参数类型不一致**: 29 个
 - **组合替代实现**: 0 个
 - **API 别名**: 18 个
-- **语义差异**: 2 个
+- **语义差异**: 1 个
 - **功能缺失**: 790 个
 - **API 别名映射数**: 18 个
 - **libtorch 主 ops 总数**: 1082 个

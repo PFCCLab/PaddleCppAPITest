@@ -434,7 +434,7 @@ def generate_mapping(
     invoke_categories = {}
 
     # 语义差异 API（PyTorch 与 Paddle 同名但语义不同）
-    SEMANTIC_MISMATCH_APIS = {"uniform", "set"}
+    SEMANTIC_MISMATCH_APIS = {"uniform"}
 
     for op in invoke_diff_ops:
         torch_path = os.path.join(libtorch_ops_dir, f"{op}.h")
@@ -786,13 +786,18 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
                     )
                     matched_p.add(matched_alias)
                 else:
-                    diff_rows.append(
-                        f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
-                    )
+                    remark = f"Paddle 无此参数，PyTorch 有 `{t_name}`。"
+                    if (
+                        op in ("add", "subtract", "index_add")
+                        and t_name == "alpha"
+                    ):
+                        remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
+                    diff_rows.append(f"| {t_name} | - | {remark} |")
             else:
-                diff_rows.append(
-                    f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
-                )
+                remark = f"Paddle 无此参数，PyTorch 有 `{t_name}`。"
+                if op in ("add", "subtract", "index_add") and t_name == "alpha":
+                    remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
+                diff_rows.append(f"| {t_name} | - | {remark} |")
 
         for p_arg in p_args:
             p_name = p_arg["name"]
@@ -816,9 +821,18 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
         )
         lines.append("```")
         lines.append("")
-        lines.append(
-            "两者功能一致，Paddle 相比 PyTorch 支持更多参数，具体如下："
-        )
+        if op == "var":
+            lines.append(
+                "两者功能一致，Paddle 相比 PyTorch 支持更多参数，具体如下："
+            )
+            lines.append("")
+            lines.append(
+                "> 注：当前对比基于 PyTorch 最简重载 `var(self, unbiased)`。PyTorch 也存在带 `dim/keepdim/correction` 的完整重载。"
+            )
+        else:
+            lines.append(
+                "两者功能一致，Paddle 相比 PyTorch 支持更多参数，具体如下："
+            )
         lines.append("")
         lines.append("> 注：参数映射表按 PyTorch 签名顺序排列。")
         lines.append("")
@@ -894,9 +908,18 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
                         and t_name == "training"
                         and matched_alias == "is_test"
                     ):
-                        remark = (
-                            "语义取反对应，`training=true` ↔ `is_test=false`。"
-                        )
+                        remark = "语义取反，`training` 对应 `!is_test`（training=true 时 is_test=false）。"
+                    elif (
+                        op == "layer_norm"
+                        and t_name == "normalized_shape"
+                        and matched_alias == "begin_norm_axis"
+                    ):
+                        remark = "类型与语义差异，`normalized_shape` 是尾部维度形状列表，`begin_norm_axis` 是轴索引，调用端需转换。"
+                    elif (
+                        op in ("add", "subtract", "index_add")
+                        and t_name == "alpha"
+                    ):
+                        remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
                     diff_rows.append(
                         f"| {t_name} | {matched_alias} | {remark} |"
                     )
@@ -906,9 +929,10 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
                         f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
                     )
             else:
-                diff_rows.append(
-                    f"| {t_name} | - | Paddle 无此参数，PyTorch 有 `{t_name}`。 |"
-                )
+                remark = f"Paddle 无此参数，PyTorch 有 `{t_name}`。"
+                if op in ("add", "subtract", "index_add") and t_name == "alpha":
+                    remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
+                diff_rows.append(f"| {t_name} | - | {remark} |")
 
         for p_arg in p_args:
             p_name = p_arg["name"]
@@ -1395,7 +1419,7 @@ def main():
     )
     parser.add_argument(
         "--libtorch-ops-dir",
-        default=r"D:/迅雷下载/libtorch/include/ATen/ops",
+        default=r"D:/Lenovo/libtorch/include/ATen/ops",
         help="libtorch ATen/ops 头文件目录",
     )
     parser.add_argument(

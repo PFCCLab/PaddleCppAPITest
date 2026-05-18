@@ -22,4 +22,4 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | dim | axis | 仅参数名不一致，`dim` 对应 `axis`。 |
 | index | index | 参数名一致。 |
 | source | add_value | 仅参数名不一致，`source` 对应 `add_value`。 |
-| alpha | - | Paddle 无此参数，PyTorch 有 `alpha`。 |
+| alpha | - | 影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。 |
