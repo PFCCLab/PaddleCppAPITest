@@ -230,7 +230,6 @@ ARG_NAME_ALIASES = {
     "col": ["cols"],
     "pad": ["paddings"],
     "value": ["pad_value"],
-    "normalized_shape": ["begin_norm_axis"],
     "training": ["is_test"],
 }
 
@@ -828,6 +827,8 @@ def generate_cpp_paddle_more_args_docs(invoke_categories, output_dir):
             t_name = t_arg["name"]
             if t_name in p_dict:
                 remark = "参数名一致。"
+                if op == "embedding" and t_name == "weight":
+                    remark = "参数名一致，但位置顺序不同：PyTorch 第 1 个参数 weight 对应 Paddle 第 2 个参数 weight，调用时需按名传参或调换位置。"
                 remark = _append_default_diff(remark, t_arg, p_dict[t_name])
                 diff_rows.append(f"| {t_name} | {t_name} | {remark} |")
                 matched_p.add(t_name)
@@ -958,6 +959,8 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
             t_name = t_arg["name"]
             if t_name in p_dict:
                 remark = "参数名一致。"
+                if op == "embedding" and t_name == "weight":
+                    remark = "参数名一致，但位置顺序不同：PyTorch 第 1 个参数 weight 对应 Paddle 第 2 个参数 weight，调用时需按名传参或调换位置。"
                 remark = _append_default_diff(remark, t_arg, p_dict[t_name])
                 diff_rows.append(f"| {t_name} | {t_name} | {remark} |")
                 matched_p.add(t_name)
@@ -976,13 +979,7 @@ def generate_cpp_torch_more_args_docs(invoke_categories, output_dir):
                         and t_name == "training"
                         and matched_alias == "is_test"
                     ):
-                        remark = "语义取反，`training` 对应 `!is_test`（training=true 时 is_test=false）。"
-                    elif (
-                        op == "layer_norm"
-                        and t_name == "normalized_shape"
-                        and matched_alias == "begin_norm_axis"
-                    ):
-                        remark = "⚠️ 类型与语义差异，`normalized_shape` 是尾部维度形状列表，`begin_norm_axis` 是轴索引，二者不可直接互换，调用端需转换。"
+                        remark = "【需对值取反】`training` 与 `is_test` 语义互为反义，不能直接搬运布尔值（training=true 时应设 is_test=false）。"
                     elif op in ("add", "index_add") and t_name == "alpha":
                         remark = "影响计算语义，PyTorch 计算 self + alpha * other，Paddle 无此参数，等价表达需组合调用。"
                     elif op == "subtract" and t_name == "alpha":

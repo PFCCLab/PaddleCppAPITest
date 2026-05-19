@@ -18,7 +18,7 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 
 | PyTorch C++ | Paddle C++ | 备注 |
 | ----------- | ---------- | ---- |
-| weight | weight | 参数名一致。 |
+| weight | weight | 参数名一致，但位置顺序不同：PyTorch 第 1 个参数 weight 对应 Paddle 第 2 个参数 weight，调用时需按名传参或调换位置。 |
 | indices | x | 仅参数名不一致，`indices` 对应 `x`。 |
 | padding_idx | padding_idx | 参数名一致。 |
 | scale_grad_by_freq | - | Paddle 无此参数，PyTorch 有 `scale_grad_by_freq`。 |

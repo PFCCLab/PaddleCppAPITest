@@ -21,5 +21,5 @@ PyTorch 相比 Paddle 支持更多参数，具体如下：
 | self | x | 仅参数名不一致，`self` 对应 `x`。 |
 | lower | lower | 参数名一致。 |
 | upper | upper | 参数名一致。 |
-| training | is_test | 语义取反，`training` 对应 `!is_test`（training=true 时 is_test=false）。 |
+| training | is_test | 【需对值取反】`training` 与 `is_test` 语义互为反义，不能直接搬运布尔值（training=true 时应设 is_test=false）。 |
 | generator | - | Paddle 无此参数，PyTorch 有 `generator`。 |
