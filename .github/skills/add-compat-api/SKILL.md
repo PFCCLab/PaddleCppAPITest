@@ -31,6 +31,19 @@ TORCH_DIR=~/libtorch
 - `bash test/result_cmp.sh ./build/` 仍出现 `FAILED/SKIPPED/DIFF`
 - 需要新增 Device、Tensor、c10、ATen 等 compat 接口和测试
 
+## Step 0. 环境检测与自动配置
+
+进入主流程之前，按以下顺序检测并按需配置环境。完整命令模板与 fallback 决策见 [`references/env-setup.md`](references/env-setup.md)。
+
+1. **检测 NVIDIA GPU**（决定 libtorch CPU/CUDA 版本，用 `nvidia-smi`）
+2. **PaddleCppAPITest**（fork 工作流，缺失则自动克隆并配置 `origin`/`upstream`）
+3. **pytorch**（upstream，缺失则浅克隆，仅供参考）
+4. **libtorch**（缺失则下载并解压；URL 按上一步检测结果选 CPU / cu126）
+5. **Paddle 仓库**（**不自动克隆**——缺失时提示用户手动 fork + 克隆 + 配置 upstream，并暂停等待）
+6. **Paddle wheel**（缺失则提示用户安装；不自动 `pip install`，因为版本须与 Paddle build 输出一致）
+
+> 安全约定：克隆、下载、`pip install` 这类"本地、可逆"操作可在用户已知意图下直接执行；但**不要主动改用户已存在仓库的 `remote`**（remote 是用户工作流，意外覆盖会丢失工作）。
+
 ## 主流程（循环执行）
 
 ### Step 1. 确定本轮新增接口范围
@@ -184,6 +197,18 @@ bash test/result_cmp.sh ./build/
 - 发布前按 compat-doc-authoring 的 Step 5 校验 checklist 全项过审
 
 只有下游确认"格式合规"后，本轮才算完成。
+
+## Step 7. 提交 commit 并创建 PR
+
+闭环验证通过且文档已回填后，按以下流程提交。完整命令模板见 [`references/pr-workflow.md`](references/pr-workflow.md)。
+
+1. **从 fork 主分支 checkout 新分支**（`git fetch upstream && git checkout -B add/<api>-<YYYYMMDD> upstream/develop`）
+2. **commit 改动**（commit message 首行使用 `[Cpp API Compatibility] <对齐迭代记录标题>`）
+3. **征求用户同意后 push 到 fork**（`git push origin <branch>`——这是发出去的动作，**push 前必须明确询问用户**）
+4. **征求用户同意后 `gh pr create` 到 upstream**（`--repo PaddlePaddle/Paddle --base develop`——同样需要用户确认）
+5. **如果还改了 PCAT 测试**：在 `$PCAT_ROOT` 上重复 1-4 步，`--repo PFCCLab/PaddleCppAPITest --base master`
+
+> 安全约定：**`git push` 与 `gh pr create` 每一次执行前必须征求用户同意**（不是"在整个 Step 7 开始时一次性确认"，而是这两条命令各确认一次）。这与系统提示"对影响他人的动作要逐次确认"一致。
 
 ## 推荐执行节奏
 
