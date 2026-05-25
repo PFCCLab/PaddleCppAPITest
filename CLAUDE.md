@@ -1,0 +1,2 @@
+需要的仓库都在D:\Lenovo下
+命令行使用python而不是python3

@@ -170,6 +170,45 @@ argument-hint: '要编写的头文件或模块，例如 typeid.h、Stream.h、Te
 - 先出拆分方案（目录与文件映射）
 - 再分批落地，最后统一索引
 
+### 分支 E：基于验证结果修复文档
+
+**触发条件**：`verify_api_mapping.py` 验证报告发现映射表分类错误或别名映射失效。
+
+**处理流程**：
+
+1. **读取验证报告**
+   - 读取 `doc/verification_output/mapping_correction_report.md`
+   - 提取需要修正的 API 列表及目标分类
+
+2. **修复别名映射**
+   - 更新 `doc/cpp_api_alias_mapping.json`
+   - 移除验证为无效的映射条目
+   - 添加验证发现的新别名映射（高/中置信度）
+
+3. **修复映射表分类**
+   - 更新 `doc/cpp_api_mapping_cn.md`
+   - 从错误分类中删除条目
+   - 添加到正确分类（注意避免重复）
+   - 更新各分类的序号和统计数字
+
+4. **清理差异文档**
+   - 删除被移除条目引用的孤儿差异文档
+   - 为新增/变更分类的 API 创建或更新差异文档
+
+5. **验证修复结果**
+   - 重新运行 `python doc/verify_api_mapping.py --op <api>` 确认
+   - 检查映射表中无重复条目
+   - 确认统计数字正确
+
+**常见修复场景**：
+
+| 场景 | 修复操作 | 涉及文件 |
+|------|---------|----------|
+| API 实际为别名但标记为差异 | 移到"API 别名"，更新别名映射 | `cpp_api_mapping_cn.md`, `cpp_api_alias_mapping.json` |
+| API 别名映射无效（Paddle 无实现） | 移到"功能缺失"，移除别名映射 | `cpp_api_mapping_cn.md`, `cpp_api_alias_mapping.json` |
+| API 有 kernel 但未暴露到 api.h | 标记为 `kernel_only`，文档说明 | `cpp_api_mapping_cn.md` |
+| 同一 API 出现在多个分类中 | 删除重复条目，保留正确分类 | `cpp_api_mapping_cn.md` |
+
 ## 质量标准
 
 1. **可审阅**：每个🔧条目都在"关键差异说明"中有详细落点

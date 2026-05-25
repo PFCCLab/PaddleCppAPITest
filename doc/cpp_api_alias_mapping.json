@@ -1,20 +1,15 @@
 {
-  "_aminmax": "aminmax",
   "_conj": "conj",
   "_fft_c2c": "fft_c2c",
-  "_fft_c2r": "fft_c2r",
+  "_fft_c2r": "fft_r2c",
   "_fft_r2c": "fft_r2c",
   "_log_softmax": "log_softmax",
   "_logcumsumexp": "logcumsumexp",
   "_softmax": "softmax",
   "_stack": "stack",
   "_standard_gamma": "standard_gamma",
-  "_unique": "unique",
   "conv_transpose2d": "conv2d_transpose",
   "conv_transpose3d": "conv3d_transpose",
   "grid_sampler": "grid_sample",
-  "log_sigmoid": "logsigmoid",
-  "max_pool2d_with_indices": "max_pool2d_with_index",
-  "max_pool3d_with_indices": "max_pool3d_with_index",
-  "range": "arange"
+  "log_sigmoid": "logsigmoid"
 }

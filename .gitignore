@@ -51,3 +51,11 @@ Thumbs.db
 .codex_tmp
 coverage/html_report/
 .claude/settings.local.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated verification outputs
+doc/verification_output/

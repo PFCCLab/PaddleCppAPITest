@@ -194,8 +194,6 @@
 | 75 | `at::tanh` | `paddle::experimental::tanh` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.tanh.md) |
 | 76 | `at::tile` | `paddle::experimental::tile` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.tile.md) |
 | 77 | `at::trunc` | `paddle::experimental::trunc` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.trunc.md) |
-| 78 | `at::_conj` | `paddle::experimental::_conj` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at._conj.md) |
-| 79 | `at::log_sigmoid` | `paddle::experimental::log_sigmoid` | 仅参数名不一致 | [差异对比](cpp_args_name_diff/at.log_sigmoid.md) |
 
 ### 4. paddle 参数更多
 
@@ -247,7 +245,6 @@
 | 42 | `at::_logcumsumexp` | `paddle::experimental::_logcumsumexp` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._logcumsumexp.md) |
 | 43 | `at::conv_transpose2d` | `paddle::experimental::conv_transpose2d` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.conv_transpose2d.md) |
 | 44 | `at::conv_transpose3d` | `paddle::experimental::conv_transpose3d` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.conv_transpose3d.md) |
-| 45 | `at::range` | `paddle::experimental::range` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.range.md) |
 
 ### 5. 参数默认值不一致
 
@@ -373,10 +370,6 @@
 | 23 | `at::triangular_solve` | `paddle::experimental::triangular_solve` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at.triangular_solve.md) |
 | 24 | `at::unique_consecutive` | `paddle::experimental::unique_consecutive` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at.unique_consecutive.md) |
 | 25 | `at::where` | `paddle::experimental::where` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at.where.md) |
-| 26 | `at::_aminmax` | `paddle::experimental::_aminmax` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at._aminmax.md) |
-| 27 | `at::_unique` | `paddle::experimental::_unique` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at._unique.md) |
-| 28 | `at::max_pool2d_with_indices` | `paddle::experimental::max_pool2d_with_indices` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at.max_pool2d_with_indices.md) |
-| 29 | `at::max_pool3d_with_indices` | `paddle::experimental::max_pool3d_with_indices` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at.max_pool3d_with_indices.md) |
 
 ### 10. 组合替代实现
 
@@ -392,24 +385,19 @@
 
 | 序号 | PyTorch C++ API | Paddle C++ API | 映射分类 | 备注 |
 |------|-----------------|----------------|----------|------|
-| 1 | `at::_aminmax` | `paddle::experimental::aminmax` | API 别名 | [差异对比](cpp_api_alias_diff/at._aminmax.md) |
-| 2 | `at::_conj` | `paddle::experimental::conj` | API 别名 | [差异对比](cpp_api_alias_diff/at._conj.md) |
-| 3 | `at::_fft_c2c` | `paddle::experimental::fft_c2c` | API 别名 | [差异对比](cpp_api_alias_diff/at._fft_c2c.md) |
-| 4 | `at::_fft_c2r` | `paddle::experimental::fft_c2r` | API 别名 | [差异对比](cpp_api_alias_diff/at._fft_c2r.md) |
-| 5 | `at::_fft_r2c` | `paddle::experimental::fft_r2c` | API 别名 | [差异对比](cpp_api_alias_diff/at._fft_r2c.md) |
-| 6 | `at::_log_softmax` | `paddle::experimental::log_softmax` | API 别名 | [差异对比](cpp_api_alias_diff/at._log_softmax.md) |
-| 7 | `at::_logcumsumexp` | `paddle::experimental::logcumsumexp` | API 别名 | [差异对比](cpp_api_alias_diff/at._logcumsumexp.md) |
-| 8 | `at::_softmax` | `paddle::experimental::softmax` | API 别名 | [差异对比](cpp_api_alias_diff/at._softmax.md) |
-| 9 | `at::_stack` | `paddle::experimental::stack` | API 别名 | [差异对比](cpp_api_alias_diff/at._stack.md) |
-| 10 | `at::_standard_gamma` | `paddle::experimental::standard_gamma` | API 别名 | [差异对比](cpp_api_alias_diff/at._standard_gamma.md) |
-| 11 | `at::_unique` | `paddle::experimental::unique` | API 别名 | [差异对比](cpp_api_alias_diff/at._unique.md) |
-| 12 | `at::conv_transpose2d` | `paddle::experimental::conv2d_transpose` | API 别名 | [差异对比](cpp_api_alias_diff/at.conv_transpose2d.md) |
-| 13 | `at::conv_transpose3d` | `paddle::experimental::conv3d_transpose` | API 别名 | [差异对比](cpp_api_alias_diff/at.conv_transpose3d.md) |
-| 14 | `at::grid_sampler` | `paddle::experimental::grid_sample` | API 别名 | [差异对比](cpp_api_alias_diff/at.grid_sampler.md) |
-| 15 | `at::log_sigmoid` | `paddle::experimental::logsigmoid` | API 别名 | [差异对比](cpp_api_alias_diff/at.log_sigmoid.md) |
-| 16 | `at::max_pool2d_with_indices` | `paddle::experimental::max_pool2d_with_index` | API 别名 | [差异对比](cpp_api_alias_diff/at.max_pool2d_with_indices.md) |
-| 17 | `at::max_pool3d_with_indices` | `paddle::experimental::max_pool3d_with_index` | API 别名 | [差异对比](cpp_api_alias_diff/at.max_pool3d_with_indices.md) |
-| 18 | `at::range` | `paddle::experimental::arange` | API 别名 | [差异对比](cpp_api_alias_diff/at.range.md) |
+| 1 | `at::_conj` | `paddle::experimental::conj` | API 别名 | [差异对比](cpp_api_alias_diff/at._conj.md) |
+| 2 | `at::_fft_c2c` | `paddle::experimental::fft_c2c` | API 别名 | [差异对比](cpp_api_alias_diff/at._fft_c2c.md) |
+| 3 | `at::_fft_c2r` | `paddle::experimental::fft_c2r` | API 别名 | [差异对比](cpp_api_alias_diff/at._fft_c2r.md) |
+| 4 | `at::_fft_r2c` | `paddle::experimental::fft_r2c` | API 别名 | [差异对比](cpp_api_alias_diff/at._fft_r2c.md) |
+| 5 | `at::_log_softmax` | `paddle::experimental::log_softmax` | API 别名 | [差异对比](cpp_api_alias_diff/at._log_softmax.md) |
+| 6 | `at::_logcumsumexp` | `paddle::experimental::logcumsumexp` | API 别名 | [差异对比](cpp_api_alias_diff/at._logcumsumexp.md) |
+| 7 | `at::_softmax` | `paddle::experimental::softmax` | API 别名 | [差异对比](cpp_api_alias_diff/at._softmax.md) |
+| 8 | `at::_stack` | `paddle::experimental::stack` | API 别名 | [差异对比](cpp_api_alias_diff/at._stack.md) |
+| 9 | `at::_standard_gamma` | `paddle::experimental::standard_gamma` | API 别名 | [差异对比](cpp_api_alias_diff/at._standard_gamma.md) |
+| 10 | `at::conv_transpose2d` | `paddle::experimental::conv2d_transpose` | API 别名 | [差异对比](cpp_api_alias_diff/at.conv_transpose2d.md) |
+| 11 | `at::conv_transpose3d` | `paddle::experimental::conv3d_transpose` | API 别名 | [差异对比](cpp_api_alias_diff/at.conv_transpose3d.md) |
+| 12 | `at::grid_sampler` | `paddle::experimental::grid_sample` | API 别名 | [差异对比](cpp_api_alias_diff/at.grid_sampler.md) |
+| 13 | `at::log_sigmoid` | `paddle::experimental::logsigmoid` | API 别名 | [差异对比](cpp_api_alias_diff/at.log_sigmoid.md) |
 
 ### 12. 语义差异
 
@@ -1214,22 +1202,27 @@
 | 788 | `at::xlogy` | - | 功能缺失 | - |
 | 789 | `at::xor` | - | 功能缺失 | - |
 | 790 | `at::zero` | - | 功能缺失 | - |
+| 791 | `at::_aminmax` | - | 功能缺失 | - |
+| 792 | `at::_unique` | - | 功能缺失 | - |
+| 793 | `at::max_pool2d_with_indices` | - | 功能缺失 | - |
+| 794 | `at::max_pool3d_with_indices` | - | 功能缺失 | - |
+| 795 | `at::range` | - | 功能缺失 | - |
 
 ## 统计
 
 - **API 完全一致**: 66 个
 - **仅 API 调用方式不一致**: 4 个
-- **仅参数名不一致**: 79 个
-- **paddle 参数更多**: 45 个
+- **仅参数名不一致**: 77 个
+- **paddle 参数更多**: 44 个
 - **参数默认值不一致**: 2 个
 - **torch 参数更多**: 22 个
 - **输入参数用法不一致**: 0 个
 - **输入参数类型不一致**: 40 个
-- **返回参数类型不一致**: 29 个
+- **返回参数类型不一致**: 25 个
 - **组合替代实现**: 0 个
-- **API 别名**: 18 个
+- **API 别名**: 13 个
 - **语义差异**: 1 个
-- **功能缺失**: 790 个
-- **API 别名映射数**: 18 个
+- **功能缺失**: 795 个
+- **API 别名映射数**: 14 个
 - **libtorch 主 ops 总数**: 1082 个
-- **实际参与映射的 ops 数**: 1096 个
+- **实际参与映射的 ops 数**: 1089 个
