@@ -35,67 +35,111 @@ argument-hint: '目标 API 名（如 abs）或批次名（P0/P1/P2/P3/P4/P5）'
 
 ## 工作流
 
-### Step 1. 执行验证
+> **核心原则**：脚本只负责**定位**和**提取表层信息**（头文件签名、kernel 文件路径），**具体 C++ 实现逻辑的审核必须由人工逐一阅读源码完成**。
 
-单 API 验证：
+### Step 1. 脚本定位（自动化）
+
+脚本通过 `verify_api_mapping.py` 完成以下工作：
+
 ```bash
 cd "$PCAT_ROOT/doc"
+# 单 API
 python verify_api_mapping.py --op "$op"
-```
-
-批次验证：
-```bash
+# 批次
 python verify_api_mapping.py --batch "$batch"
 ```
 
-### Step 2. 结果分析
+脚本输出：
+- 验证状态（verified_compat / verified_api_h_only / alias_candidate / ...）
+- **PyTorch kernel 实现文件路径**（如 `aten/src/ATen/native/UnaryOps.cpp:543`）
+- **Paddle kernel 实现文件路径**（如 `paddle/phi/kernels/cpu/abs_kernel.cc:25`）
+- 头文件签名对比结果
 
-解析验证状态，输出分析：
+### Step 2. 人工阅读源码审核（核心步骤）
+
+**根据脚本定位的文件路径，逐一阅读 C++ 实现文件**，对比以下维度：
+
+#### 2.1 必须阅读的源码位置
+
+| 框架 | 文件类型 | 典型路径示例 |
+|------|---------|-------------|
+| PyTorch | CPU kernel | `aten/src/ATen/native/cpu/UnaryOpsKernel.cpp` |
+| PyTorch | CUDA kernel | `aten/src/ATen/native/cuda/AbsKernel.cu` |
+| PyTorch | 高层封装 | `aten/src/ATen/native/UnaryOps.cpp` |
+| Paddle | CPU kernel | `paddle/phi/kernels/cpu/abs_kernel.cc` |
+| Paddle | CUDA kernel | `paddle/phi/kernels/gpu/abs_kernel.cu` |
+| Paddle | Functor | `paddle/phi/kernels/funcs/activation_functor.h` |
+
+#### 2.2 审核检查清单
+
+| 检查项 | PyTorch 关注点 | Paddle 关注点 | 差异影响 |
+|--------|--------------|--------------|---------|
+| **核心数学运算** | 实际调用的函数（`std::abs`, `sum_stub` 等） | Functor 中的运算（`Acos<T>`, `SumFunctor`） | 数学语义是否一致 |
+| **数据类型处理** | `AT_DISPATCH_*` 宏、complex 分支 | `if constexpr`、float16 特化 | dtype 支持范围是否一致 |
+| **空张量处理** | `TensorIterator.numel() == 0` | `if (x.numel() == 0)` | 边界行为是否一致 |
+| **精度累积** | `should_use_acc_buffer`、中间 float 缓冲 | `Cast` 到 float32 | 低精度输入结果是否一致 |
+| **非连续张量** | `TensorIterator` 自动处理 | 是否检查 `is_contiguous()` | 布局敏感操作是否有差异 |
+| **异常/断言** | `TORCH_CHECK`、`AT_ASSERT` | `PADDLE_ENFORCE` | 异常触发时机是否一致 |
+| **in-place 限制** | complex 禁止、维度检查 | 是否由上层框架处理 | in-place 语义是否一致 |
+| **向量化实现** | AVX512、Vectorized | Eigen 向量化 | 性能差异，不影响语义 |
+
+#### 2.3 审核结论模板
+
+对每 个 API，填写以下审核记录：
+
+```markdown
+## at::<op_name> 源码审核
+
+**PyTorch 实现**（文件:行号）：
+```cpp
+// 粘贴核心实现代码
+```
+
+**Paddle 实现**（文件:行号）：
+```cpp
+// 粘贴核心实现代码
+```
+
+**审核结论**：
+
+| 维度 | PyTorch | Paddle | 差异 |
+|------|---------|--------|------|
+| 核心运算 | ... | ... | ... |
+| 数据类型 | ... | ... | ... |
+| 边界条件 | ... | ... | ... |
+| 异常语义 | ... | ... | ... |
+
+**风险评级**：低 / 中 / 高
+**理由**：...
+```
+
+### Step 3. 头文件签名对比（脚本辅助）
+
+脚本对比签名层面的差异：
 
 | 验证状态 | 含义 | 修复建议 |
 |----------|------|----------|
-| `verified_compat` | compat 层已实现 | 分类正确，无需操作 |
+| `verified_compat` | compat 层已实现 | 需人工审核实现逻辑 |
 | `verified_api_h_only` | api.h 有实现，compat 层未封装 | 可考虑添加 compat 层封装 |
-| `alias_candidate` | 发现别名映射候选 | 添加到 `cpp_api_alias_mapping.json` |
+| `alias_candidate` | 发现别名映射候选 | 需人工确认别名语义等价 |
 | `kernel_only` | kernel 已注册但未暴露到 api.h | 需 Paddle 侧暴露到 api.h |
 | `truly_missing` | 真正缺失 | 确认是否真的无对应实现 |
-| `yaml_only` | 只有 YAML 配置，无 kernel 注册 | 检查是否开发中 |
 
-### Step 3. Step 2-1 追踪详情
-
-对 `verified_compat` 和 `verified_api_h_only` 的 API，展示追踪详情：
-
-**PyTorch 侧**：
-- libtorch 头文件声明位置
-- 是否 dispatcher 转发
-- native_functions.yaml schema 与 dispatch
-- kernel 实现文件位置
-
-**Paddle 侧**：
-- api.h 签名
-- ops.yaml 配置
-- kernel 注册状态（CPU/GPU）
-- compat 层封装状态
-
-### Step 4. 修复建议
-
-根据验证结果给出具体修复操作：
+### Step 4. 修复建议与执行
 
 **场景 A：`verified_api_h_only` → 应添加 compat 层**
 - 参考同类型 API 的 compat 层实现模板
 - 建议创建 `paddle/phi/api/include/compat/ATen/ops/<op>.h`
 
-**场景 B：`alias_candidate` → 应更新别名映射**
-- 给出具体的 JSON 条目
-- 建议添加到 `cpp_api_alias_mapping.json`
-
-**场景 C：分类错误 → 应修正映射表**
-- 指出当前分类和应修正的分类
+**场景 B：分类错误 → 应修正映射表**
+- 结合源码审核结论，判断当前分类是否准确
 - 给出 `fix_mapping.py` 的修复参数
 
-### Step 5. 执行修复（用户确认后）
+**场景 C：发现实现语义差异 → 更新文档**
+- 在映射表备注中注明差异（如 `at::abs` 的非连续张量处理差异）
+- 更新差异文档
 
-用户确认后执行修复操作：
+执行修复：
 1. 更新 `cpp_api_alias_mapping.json`（如需）
 2. 运行 `fix_mapping.py` 更新映射表
 3. 删除/更新相关差异文档

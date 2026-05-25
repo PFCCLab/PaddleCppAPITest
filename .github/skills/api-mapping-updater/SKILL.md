@@ -43,6 +43,8 @@ argument-hint: '可选批次名（P0/P1/P2/P3/P4/P5/all），不传则全量验�
 
 ## 工作流
 
+> **核心原则**：脚本只负责**表层验证**（头文件签名、kernel 文件路径定位、重复条目检测），**具体 C++ 实现逻辑的审核必须由人工逐一阅读源码完成**。
+
 ### Step 1. 环境检查
 
 确认以下路径存在且可访问：
@@ -50,24 +52,47 @@ argument-hint: '可选批次名（P0/P1/P2/P3/P4/P5/all），不传则全量验�
 - `paddle_src_dir/paddle/phi/api/include/api.h` — Paddle API 声明
 - `pytorch_src_dir/aten/src/ATen/native/native_functions.yaml` — PyTorch 原生函数定义
 
-### Step 2. 执行验证
+### Step 2. 脚本执行表层验证
 
 ```bash
 cd "$PCAT_ROOT/doc"
 python verify_api_mapping.py --batch "$batch"
 ```
 
-### Step 3. 差异检测
+脚本输出（仅限表层信息）：
+- 各分类验证状态统计
+- **PyTorch kernel 实现文件路径**
+- **Paddle kernel 实现文件路径**
+- 头文件签名对比结果
+- 重复条目检测
 
-对比本次验证结果与历史结果（`verification_output/` 中最近的 JSON 文件）：
+### Step 3. 人工阅读源码审核（核心步骤）
+
+对 P0（API 完全一致）和 P1（仅参数名不一致）等关键批次的 API，**逐一阅读 C++ 实现文件**，对比以下维度：
+
+| 检查项 | PyTorch 关注点 | Paddle 关注点 | 差异影响 |
+|--------|--------------|--------------|---------|
+| **核心数学运算** | 实际调用的函数（`std::abs`, `sum_stub` 等） | Functor 中的运算（`Acos<T>`, `SumFunctor`） | 数学语义是否一致 |
+| **数据类型处理** | `AT_DISPATCH_*` 宏、complex 分支 | `if constexpr`、float16 特化 | dtype 支持范围是否一致 |
+| **空张量处理** | `TensorIterator.numel() == 0` | `if (x.numel() == 0)` | 边界行为是否一致 |
+| **精度累积** | `should_use_acc_buffer`、中间 float 缓冲 | `Cast` 到 float32 | 低精度输入结果是否一致 |
+| **非连续张量** | `TensorIterator` 自动处理 | 是否检查 `is_contiguous()` | 布局敏感操作是否有差异 |
+| **异常/断言** | `TORCH_CHECK`、`AT_ASSERT` | `PADDLE_ENFORCE` | 异常触发时机是否一致 |
+| **in-place 限制** | complex 禁止、维度检查 | 是否由上层框架处理 | in-place 语义是否一致 |
+
+**审核产出**：每个 API 的风险评级（低/中/高）+ 差异说明
+
+### Step 4. 脚本差异检测（自动化）
+
+对比本次与历史验证结果：
 - 新增 `truly_missing`（Paddle 侧实现被移除）
 - 新增 `verified_api_h_only`（Paddle 新增实现但未封装 compat）
 - 新增 `alias_candidate`（发现新别名映射）
 - 状态变更（如 `verified_compat` → `truly_missing`）
 
-### Step 4. 自动修复（高置信度）
+### Step 5. 自动修复（仅限高置信度表层问题）
 
-对以下场景自动修复：
+脚本可自动修复的场景（不涉及实现逻辑判断）：
 
 | 场景 | 修复操作 | 置信度 |
 |------|---------|--------|
@@ -76,9 +101,11 @@ python verify_api_mapping.py --batch "$batch"
 | `verified_compat` API 的 compat 层文件缺失 | 降级为 `verified_api_h_only` | medium |
 | 发现新的 `strip_underscore_prefix` 别名 | 添加到 `cpp_api_alias_mapping.json` | high |
 
+**⚠️ 注意**：脚本**不**判断实现语义等价性，语义审核必须由 Step 3 的人工审核完成。
+
 修复后运行 `fix_mapping.py` 更新 `cpp_api_mapping_cn.md`。
 
-### Step 5. 生成报告
+### Step 6. 生成报告
 
 ```bash
 python generate_comprehensive_report.py
@@ -86,21 +113,14 @@ python generate_comprehensive_report.py
 
 报告包含：
 - 各批次验证统计
-- 新发现的问题列表
+- 脚本发现的问题列表
+- **人工源码审核记录**（风险评级 + 差异说明）
 - 自动修复记录
-- 需人工审核的条目
-
-### Step 6. 人工审核队列
-
-以下问题进入人工审核队列（不自动修复）：
-- 语义差异判断（API 行为是否真正一致）
-- 新的别名候选（非规则匹配）
-- `kernel_only` 候选（是否暴露到 api.h）
-- 分类争议（如"仅参数名不一致" vs "API 别名"）
+- 需继续人工审核的条目
 
 ### Step 7. 提交 PR
 
-若存在自动修复：
+若存在修复：
 1. `git add doc/`
 2. pre-commit 检查
 3. `git commit`
