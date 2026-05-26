@@ -240,11 +240,6 @@
 | 37 | `at::tril_indices` | `paddle::experimental::tril_indices` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.tril_indices.md) |
 | 38 | `at::triu_indices` | `paddle::experimental::triu_indices` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.triu_indices.md) |
 | 39 | `at::var` | `paddle::experimental::var` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.var.md) |
-| 40 | `at::_fft_c2r` | `paddle::experimental::_fft_c2r` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._fft_c2r.md) |
-| 41 | `at::_fft_r2c` | `paddle::experimental::_fft_r2c` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._fft_r2c.md) |
-| 42 | `at::_logcumsumexp` | `paddle::experimental::_logcumsumexp` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at._logcumsumexp.md) |
-| 43 | `at::conv_transpose2d` | `paddle::experimental::conv_transpose2d` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.conv_transpose2d.md) |
-| 44 | `at::conv_transpose3d` | `paddle::experimental::conv_transpose3d` | paddle 参数更多 | [差异对比](cpp_paddle_more_args/at.conv_transpose3d.md) |
 
 ### 5. 参数默认值不一致
 
@@ -280,9 +275,6 @@
 | 17 | `at::softmax` | `paddle::experimental::softmax` | torch 参数更多 | [差异对比](cpp_torch_more_args/at.softmax.md) |
 | 18 | `at::stft` | `paddle::experimental::stft` | torch 参数更多 | [差异对比](cpp_torch_more_args/at.stft.md) |
 | 19 | `at::subtract` | `paddle::experimental::subtract` | torch 参数更多 | [差异对比](cpp_torch_more_args/at.subtract.md) |
-| 20 | `at::_log_softmax` | `paddle::experimental::_log_softmax` | torch 参数更多 | [差异对比](cpp_torch_more_args/at._log_softmax.md) |
-| 21 | `at::_softmax` | `paddle::experimental::_softmax` | torch 参数更多 | [差异对比](cpp_torch_more_args/at._softmax.md) |
-| 22 | `at::_standard_gamma` | `paddle::experimental::_standard_gamma` | torch 参数更多 | [差异对比](cpp_torch_more_args/at._standard_gamma.md) |
 
 ### 7. 输入参数用法不一致
 
@@ -335,9 +327,6 @@
 | 35 | `at::tril` | `paddle::experimental::tril` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.tril.md) |
 | 36 | `at::triu` | `paddle::experimental::triu` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.triu.md) |
 | 37 | `at::unbind` | `paddle::experimental::unbind` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.unbind.md) |
-| 38 | `at::_fft_c2c` | `paddle::experimental::_fft_c2c` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at._fft_c2c.md) |
-| 39 | `at::_stack` | `paddle::experimental::_stack` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at._stack.md) |
-| 40 | `at::grid_sampler` | `paddle::experimental::grid_sampler` | 输入参数类型不一致 | [差异对比](cpp_input_args_type_diff/at.grid_sampler.md) |
 
 ### 9. 返回参数类型不一致
 
@@ -1213,11 +1202,11 @@
 - **API 完全一致**: 66 个
 - **仅 API 调用方式不一致**: 4 个
 - **仅参数名不一致**: 77 个
-- **paddle 参数更多**: 44 个
+- **paddle 参数更多**: 39 个
 - **参数默认值不一致**: 2 个
-- **torch 参数更多**: 22 个
+- **torch 参数更多**: 19 个
 - **输入参数用法不一致**: 0 个
-- **输入参数类型不一致**: 40 个
+- **输入参数类型不一致**: 37 个
 - **返回参数类型不一致**: 25 个
 - **组合替代实现**: 0 个
 - **API 别名**: 13 个
