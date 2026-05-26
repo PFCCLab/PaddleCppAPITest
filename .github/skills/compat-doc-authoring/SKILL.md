@@ -177,16 +177,16 @@ argument-hint: '要编写的头文件或模块，例如 typeid.h、Stream.h、Te
 **处理流程**：
 
 1. **读取验证报告**
-   - 读取 `doc/verification_output/mapping_correction_report.md`
+   - 读取 `doc/mapping/verification_output/mapping_correction_report.md`
    - 提取需要修正的 API 列表及目标分类
 
 2. **修复别名映射**
-   - 更新 `doc/cpp_api_alias_mapping.json`
+   - 更新 `doc/mapping/cpp_api_alias_mapping.json`
    - 移除验证为无效的映射条目
    - 添加验证发现的新别名映射（高/中置信度）
 
 3. **修复映射表分类**
-   - 更新 `doc/cpp_api_mapping_cn.md`
+   - 更新 `doc/mapping/cpp_api_mapping_cn.md`
    - 从错误分类中删除条目
    - 添加到正确分类（注意避免重复）
    - 更新各分类的序号和统计数字
@@ -196,7 +196,7 @@ argument-hint: '要编写的头文件或模块，例如 typeid.h、Stream.h、Te
    - 为新增/变更分类的 API 创建或更新差异文档
 
 5. **验证修复结果**
-   - 重新运行 `python doc/verify_api_mapping.py --op <api>` 确认
+   - 重新运行 `python doc/mapping/verify_api_mapping.py --op <api>` 确认
    - 检查映射表中无重复条目
    - 确认统计数字正确
 

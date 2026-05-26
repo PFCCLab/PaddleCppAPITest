@@ -1,0 +1,1207 @@
+{
+  "P3_alias": {
+    "batch_name": "P3_alias",
+    "total": 13,
+    "timestamp": "2026-05-26T13:28:22.200374",
+    "results": [
+      {
+        "op_name": "_conj",
+        "pytorch": {
+          "op_name": "_conj",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_conj.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_conj",
+                "params": "const at::Tensor & self"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_conj",
+                "aten_name": "aten::_conj",
+                "overload_name": "",
+                "schema": "_conj(Tensor(a) self) -> Tensor(a)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_conj(Tensor(a) self) -> Tensor(a)",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "_conj"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "_conj",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_conj",
+            "paddle_api": "conj",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_fft_c2c",
+        "pytorch": {
+          "op_name": "_fft_c2c",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_fft_c2c.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_fft_c2c",
+                "params": "const at::Tensor & self, at::IntArrayRef dim, int64_t normalization, bool forward"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "_fft_c2c_symint",
+                "params": "const at::Tensor & self, c10::SymIntArrayRef dim, int64_t normalization, bool forward"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_fft_c2c",
+                "aten_name": "aten::_fft_c2c",
+                "overload_name": "",
+                "schema": "_fft_c2c(Tensor self, SymInt[] dim, int normalization, bool forward) -> Tensor"
+              },
+              {
+                "struct_name": "_fft_c2c_out",
+                "aten_name": "aten::_fft_c2c",
+                "overload_name": "out",
+                "schema": "_fft_c2c.out(Tensor self, SymInt[] dim, int normalization, bool forward, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_fft_c2c(Tensor self, SymInt[] dim, int normalization, bool forward) -> Tensor",
+                "dispatch": {
+                  "CPU": "_fft_c2c_mkl",
+                  "CUDA": "_fft_c2c_cufft",
+                  "MPS": "_fft_c2c_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "_fft_c2c.out(Tensor self, SymInt[] dim, int normalization, bool forward, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "_fft_c2c_mkl_out",
+                  "CUDA": "_fft_c2c_cufft_out",
+                  "MPS": "_fft_c2c_mps_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu_file": "aten\\src\\ATen\\native\\mkl\\SpectralOps.cpp",
+            "cpu_func": "_fft_c2c_mkl_out",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\SpectralOps.cpp",
+            "cuda_func": "_fft_c2c_cufft_out"
+          }
+        },
+        "paddle": {
+          "op_name": "_fft_c2c",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_fft_c2c",
+            "paddle_api": "fft_c2c",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_fft_c2r",
+        "pytorch": {
+          "op_name": "_fft_c2r",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_fft_c2r.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_fft_c2r",
+                "params": "const at::Tensor & self, at::IntArrayRef dim, int64_t normalization, int64_t last_dim_size"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "_fft_c2r_symint",
+                "params": "const at::Tensor & self, at::IntArrayRef dim, int64_t normalization, c10::SymInt last_dim_size"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_fft_c2r",
+                "aten_name": "aten::_fft_c2r",
+                "overload_name": "",
+                "schema": "_fft_c2r(Tensor self, int[] dim, int normalization, SymInt last_dim_size) -> Tensor"
+              },
+              {
+                "struct_name": "_fft_c2r_out",
+                "aten_name": "aten::_fft_c2r",
+                "overload_name": "out",
+                "schema": "_fft_c2r.out(Tensor self, int[] dim, int normalization, SymInt last_dim_size, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_fft_c2r(Tensor self, int[] dim, int normalization, SymInt last_dim_size) -> Tensor",
+                "dispatch": {
+                  "CPU": "_fft_c2r_mkl",
+                  "CUDA": "_fft_c2r_cufft",
+                  "MPS": "_fft_c2r_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "_fft_c2r.out(Tensor self, int[] dim, int normalization, SymInt last_dim_size, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "_fft_c2r_mkl_out",
+                  "CUDA": "_fft_c2r_cufft_out",
+                  "MPS": "_fft_c2r_mps_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu_file": "aten\\src\\ATen\\native\\mkl\\SpectralOps.cpp",
+            "cpu_func": "_fft_c2r_mkl_out",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\SpectralOps.cpp",
+            "cuda_func": "_fft_c2r_cufft_out"
+          }
+        },
+        "paddle": {
+          "op_name": "_fft_c2r",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_fft_c2r",
+            "paddle_api": "fft_c2r",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_fft_r2c",
+        "pytorch": {
+          "op_name": "_fft_r2c",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_fft_r2c.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_fft_r2c",
+                "params": "const at::Tensor & self, at::IntArrayRef dim, int64_t normalization, bool onesided"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_fft_r2c",
+                "aten_name": "aten::_fft_r2c",
+                "overload_name": "",
+                "schema": "_fft_r2c(Tensor self, int[] dim, int normalization, bool onesided) -> Tensor"
+              },
+              {
+                "struct_name": "_fft_r2c_out",
+                "aten_name": "aten::_fft_r2c",
+                "overload_name": "out",
+                "schema": "_fft_r2c.out(Tensor self, int[] dim, int normalization, bool onesided, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_fft_r2c(Tensor self, int[] dim, int normalization, bool onesided) -> Tensor",
+                "dispatch": {
+                  "CPU": "_fft_r2c_mkl",
+                  "CUDA": "_fft_r2c_cufft",
+                  "MPS": "_fft_r2c_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "_fft_r2c.out(Tensor self, int[] dim, int normalization, bool onesided, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "_fft_r2c_mkl_out",
+                  "CUDA": "_fft_r2c_cufft_out",
+                  "MPS": "_fft_r2c_mps_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu_file": "aten\\src\\ATen\\native\\mkl\\SpectralOps.cpp",
+            "cpu_func": "_fft_r2c_mkl_out",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\SpectralOps.cpp",
+            "cuda_func": "_fft_r2c_cufft_out"
+          }
+        },
+        "paddle": {
+          "op_name": "_fft_r2c",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_fft_r2c",
+            "paddle_api": "fft_r2c",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_log_softmax",
+        "pytorch": {
+          "op_name": "_log_softmax",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_log_softmax.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_log_softmax",
+                "params": "const at::Tensor & self, int64_t dim, bool half_to_float"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_log_softmax",
+                "aten_name": "aten::_log_softmax",
+                "overload_name": "",
+                "schema": "_log_softmax(Tensor self, int dim, bool half_to_float) -> Tensor"
+              },
+              {
+                "struct_name": "_log_softmax_out",
+                "aten_name": "aten::_log_softmax",
+                "overload_name": "out",
+                "schema": "_log_softmax.out(Tensor self, int dim, bool half_to_float, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_log_softmax(Tensor self, int dim, bool half_to_float) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "_log_softmax.out(Tensor self, int dim, bool half_to_float, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "log_softmax_cpu_out",
+                  "CUDA": "log_softmax_cuda_out",
+                  "MTIA": "log_softmax_mtia_out",
+                  "MPS": "log_softmax_mps_out"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "_log_softmax",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_log_softmax",
+            "paddle_api": "log_softmax",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_logcumsumexp",
+        "pytorch": {
+          "op_name": "_logcumsumexp",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_logcumsumexp.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_logcumsumexp",
+                "params": "const at::Tensor & self, int64_t dim"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_logcumsumexp",
+                "aten_name": "aten::_logcumsumexp",
+                "overload_name": "",
+                "schema": "_logcumsumexp(Tensor self, int dim) -> Tensor"
+              },
+              {
+                "struct_name": "_logcumsumexp_out",
+                "aten_name": "aten::_logcumsumexp",
+                "overload_name": "out",
+                "schema": "_logcumsumexp.out(Tensor self, int dim, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_logcumsumexp(Tensor self, int dim) -> Tensor",
+                "dispatch": {
+                  "CPU": "_logcumsumexp_cpu",
+                  "CUDA": "_logcumsumexp_cuda",
+                  "MPS": "_logcumsumexp_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "_logcumsumexp.out(Tensor self, int dim, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "_logcumsumexp_out_cpu",
+                  "CUDA": "_logcumsumexp_out_cuda",
+                  "MPS": "_logcumsumexp_out_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu_file": "aten\\src\\ATen\\native\\ReduceOps.cpp",
+            "cpu_func": "_logcumsumexp_out_cpu",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\ScanKernels.cpp",
+            "cuda_func": "_logcumsumexp_out_cuda"
+          }
+        },
+        "paddle": {
+          "op_name": "_logcumsumexp",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_logcumsumexp",
+            "paddle_api": "logcumsumexp",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_softmax",
+        "pytorch": {
+          "op_name": "_softmax",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_softmax.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_softmax",
+                "params": "const at::Tensor & self, int64_t dim, bool half_to_float"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_softmax",
+                "aten_name": "aten::_softmax",
+                "overload_name": "",
+                "schema": "_softmax(Tensor self, int dim, bool half_to_float) -> Tensor"
+              },
+              {
+                "struct_name": "_softmax_out",
+                "aten_name": "aten::_softmax",
+                "overload_name": "out",
+                "schema": "_softmax.out(Tensor self, int dim, bool half_to_float, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_softmax(Tensor self, int dim, bool half_to_float) -> Tensor",
+                "dispatch": {
+                  "MkldnnCPU": "mkldnn_softmax",
+                  "NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA": "softmax_nested"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "_softmax.out(Tensor self, int dim, bool half_to_float, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "softmax_cpu_out",
+                  "CUDA": "softmax_cuda_out",
+                  "MPS": "softmax_mps_out"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "mkldnncpu_file": "aten\\src\\ATen\\native\\mkldnn\\SoftMax.cpp",
+            "mkldnncpu_func": "mkldnn_softmax",
+            "nestedtensorcpu, nestedtensorhpu, nestedtensorcuda_file": "aten\\src\\ATen\\native\\nested\\NestedTensorMath.cpp",
+            "nestedtensorcpu, nestedtensorhpu, nestedtensorcuda_func": "softmax_nested"
+          }
+        },
+        "paddle": {
+          "op_name": "_softmax",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_softmax",
+            "paddle_api": "softmax",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_stack",
+        "pytorch": {
+          "op_name": "_stack",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_stack.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_stack",
+                "params": "at::TensorList tensors, int64_t dim=0"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_stack",
+                "aten_name": "aten::_stack",
+                "overload_name": "",
+                "schema": "_stack(Tensor[] tensors, int dim=0) -> Tensor"
+              },
+              {
+                "struct_name": "_stack_out",
+                "aten_name": "aten::_stack",
+                "overload_name": "out",
+                "schema": "_stack.out(Tensor[] tensors, int dim=0, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_stack(Tensor[] tensors, int dim=0) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "_stack.out(Tensor[] tensors, int dim=0, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "_stack",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_stack",
+            "paddle_api": "stack",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_standard_gamma",
+        "pytorch": {
+          "op_name": "_standard_gamma",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_standard_gamma.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_standard_gamma",
+                "params": "const at::Tensor & self, ::std::optional<at::Generator> generator=::std::nullopt"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_standard_gamma",
+                "aten_name": "aten::_standard_gamma",
+                "overload_name": "",
+                "schema": "_standard_gamma(Tensor self, Generator? generator=None) -> Tensor"
+              },
+              {
+                "struct_name": "_standard_gamma_out",
+                "aten_name": "aten::_standard_gamma",
+                "overload_name": "out",
+                "schema": "_standard_gamma.out(Tensor self, Generator? generator=None, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_standard_gamma(Tensor self, Generator? generator=None) -> Tensor",
+                "dispatch": {
+                  "CPU": "_s_gamma_cpu",
+                  "CUDA": "_s_gamma_cuda",
+                  "MPS": "_s_gamma_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu_file": "aten\\src\\ATen\\native\\Distributions.cpp",
+            "cpu_func": "_s_gamma_cpu",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\Distributions.cpp",
+            "cuda_func": "_s_gamma_cuda"
+          }
+        },
+        "paddle": {
+          "op_name": "_standard_gamma",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_standard_gamma",
+            "paddle_api": "standard_gamma",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "conv_transpose2d",
+        "pytorch": {
+          "op_name": "conv_transpose2d",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/conv_transpose2d.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "conv_transpose2d",
+                "params": "const at::Tensor & input, const at::Tensor & weight, const ::std::optional<at::Tensor> & bias={}, at::IntArrayRef stride=1, at::IntArrayRef padding=0, at::IntArrayRef output_padding=0, int64_t groups=1, at::IntArrayRef dilation=1"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "conv_transpose2d_symint",
+                "params": "const at::Tensor & input, const at::Tensor & weight, const ::std::optional<at::Tensor> & bias={}, c10::SymIntArrayRef stride=c10::SymInt(1), c10::SymIntArrayRef padding=c10::SymInt(0), c10::SymIntArrayRef output_padding=c10::SymInt(0), c10::SymInt groups=1, c10::SymIntArrayRef dilation=c10::SymInt(1)"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "conv_transpose2d_input",
+                "aten_name": "aten::conv_transpose2d",
+                "overload_name": "input",
+                "schema": "conv_transpose2d.input(Tensor input, Tensor weight, Tensor? bias=None, SymInt[2] stride=1, SymInt[2] padding=0, SymInt[2] output_padding=0, SymInt groups=1, SymInt[2] dilation=1) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "conv_transpose2d.input(Tensor input, Tensor weight, Tensor? bias=None, SymInt[2] stride=1, SymInt[2] padding=0, SymInt[2] output_padding=0, SymInt groups=1, SymInt[2] dilation=1) -> Tensor",
+                "dispatch": {
+                  "CompositeImplicitAutograd": "conv_transpose2d_symint"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "compositeimplicitautograd_file": "aten\\src\\ATen\\native\\Convolution.cpp",
+            "compositeimplicitautograd_func": "conv_transpose2d_symint"
+          }
+        },
+        "paddle": {
+          "op_name": "conv_transpose2d",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "conv_transpose2d",
+            "paddle_api": "conv2d_transpose",
+            "rule": "conv_transpose_alias",
+            "confidence": "high",
+            "description": "conv_transposeNd -> convNd_transpose"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "conv_transpose3d",
+        "pytorch": {
+          "op_name": "conv_transpose3d",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/conv_transpose3d.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "conv_transpose3d",
+                "params": "const at::Tensor & input, const at::Tensor & weight, const ::std::optional<at::Tensor> & bias={}, at::IntArrayRef stride=1, at::IntArrayRef padding=0, at::IntArrayRef output_padding=0, int64_t groups=1, at::IntArrayRef dilation=1"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "conv_transpose3d_symint",
+                "params": "const at::Tensor & input, const at::Tensor & weight, const ::std::optional<at::Tensor> & bias={}, c10::SymIntArrayRef stride=c10::SymInt(1), c10::SymIntArrayRef padding=c10::SymInt(0), c10::SymIntArrayRef output_padding=c10::SymInt(0), c10::SymInt groups=1, c10::SymIntArrayRef dilation=c10::SymInt(1)"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "conv_transpose3d_input",
+                "aten_name": "aten::conv_transpose3d",
+                "overload_name": "input",
+                "schema": "conv_transpose3d.input(Tensor input, Tensor weight, Tensor? bias=None, SymInt[3] stride=1, SymInt[3] padding=0, SymInt[3] output_padding=0, SymInt groups=1, SymInt[3] dilation=1) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "conv_transpose3d.input(Tensor input, Tensor weight, Tensor? bias=None, SymInt[3] stride=1, SymInt[3] padding=0, SymInt[3] output_padding=0, SymInt groups=1, SymInt[3] dilation=1) -> Tensor",
+                "dispatch": {
+                  "CompositeImplicitAutograd": "conv_transpose3d_symint"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "compositeimplicitautograd_file": "aten\\src\\ATen\\native\\Convolution.cpp",
+            "compositeimplicitautograd_func": "conv_transpose3d_symint"
+          }
+        },
+        "paddle": {
+          "op_name": "conv_transpose3d",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "conv_transpose3d",
+            "paddle_api": "conv3d_transpose",
+            "rule": "conv_transpose_alias",
+            "confidence": "high",
+            "description": "conv_transposeNd -> convNd_transpose"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "grid_sampler",
+        "pytorch": {
+          "op_name": "grid_sampler",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/grid_sampler.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "grid_sampler",
+                "params": "const at::Tensor & input, const at::Tensor & grid, int64_t interpolation_mode, int64_t padding_mode, bool align_corners"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "grid_sampler",
+                "aten_name": "aten::grid_sampler",
+                "overload_name": "",
+                "schema": "grid_sampler(Tensor input, Tensor grid, int interpolation_mode, int padding_mode, bool align_corners) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "grid_sampler(Tensor input, Tensor grid, int interpolation_mode, int padding_mode, bool align_corners) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "grid_sampler",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "grid_sampler",
+            "paddle_api": "grid_sample",
+            "rule": "common_naming_differences",
+            "confidence": "medium",
+            "description": "Common naming differences between PyTorch and Paddle"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "log_sigmoid",
+        "pytorch": {
+          "op_name": "log_sigmoid",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/log_sigmoid.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "log_sigmoid",
+                "params": "const at::Tensor & self"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "log_sigmoid_out",
+                "aten_name": "aten::log_sigmoid",
+                "overload_name": "out",
+                "schema": "log_sigmoid.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "log_sigmoid",
+                "aten_name": "aten::log_sigmoid",
+                "overload_name": "",
+                "schema": "log_sigmoid(Tensor self) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "log_sigmoid.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "log_sigmoid(Tensor self) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "log_sigmoid",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "log_sigmoid",
+            "paddle_api": "logsigmoid",
+            "rule": "common_naming_differences",
+            "confidence": "medium",
+            "description": "Common naming differences between PyTorch and Paddle"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      }
+    ]
+  }
+}

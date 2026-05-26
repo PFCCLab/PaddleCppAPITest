@@ -1,0 +1,4786 @@
+{
+  "P2_输入参数类型不一致": {
+    "batch_name": "P2_输入参数类型不一致",
+    "total": 40,
+    "timestamp": "2026-05-26T13:40:59.930476",
+    "results": [
+      {
+        "op_name": "addmm",
+        "pytorch": {
+          "op_name": "addmm",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/addmm.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "addmm",
+                "params": "const at::Tensor & self, const at::Tensor & mat1, const at::Tensor & mat2, const at::Scalar & beta=1, const at::Scalar & alpha=1"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "addmm",
+                "params": "const at::Tensor & self, const at::Tensor & mat1, const at::Tensor & mat2, at::ScalarType out_dtype, const at::Scalar & beta=1, const at::Scalar & alpha=1"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "addmm_out",
+                "aten_name": "aten::addmm",
+                "overload_name": "out",
+                "schema": "addmm.out(Tensor self, Tensor mat1, Tensor mat2, *, Scalar beta=1, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "addmm",
+                "aten_name": "aten::addmm",
+                "overload_name": "",
+                "schema": "addmm(Tensor self, Tensor mat1, Tensor mat2, *, Scalar beta=1, Scalar alpha=1) -> Tensor"
+              },
+              {
+                "struct_name": "addmm_dtype",
+                "aten_name": "aten::addmm",
+                "overload_name": "dtype",
+                "schema": "addmm.dtype(Tensor self, Tensor mat1, Tensor mat2, ScalarType out_dtype, *, Scalar beta=1, Scalar alpha=1) -> Tensor"
+              },
+              {
+                "struct_name": "addmm_dtype_out",
+                "aten_name": "aten::addmm",
+                "overload_name": "dtype_out",
+                "schema": "addmm.dtype_out(Tensor self, Tensor mat1, Tensor mat2, ScalarType out_dtype, *, Scalar beta=1, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "addmm_",
+                "aten_name": "aten::addmm_",
+                "overload_name": "",
+                "schema": "addmm_(Tensor(a!) self, Tensor mat1, Tensor mat2, *, Scalar beta=1, Scalar alpha=1) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "addmm.out(Tensor self, Tensor mat1, Tensor mat2, *, Scalar beta=1, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "addmm_out_cpu",
+                  "CUDA": "addmm_out_cuda",
+                  "MPS": "addmm_out_mps",
+                  "XPU": "addmm_out_xpu",
+                  "MTIA": "addmm_out_mtia",
+                  "SparseCPU": "addmm_out_sparse_dense_cpu",
+                  "SparseCUDA": "addmm_out_sparse_dense_cuda",
+                  "SparseMPS": "addmm_out_sparse_dense_mps",
+                  "SparseCsrCPU": "addmm_out_sparse_compressed_cpu",
+                  "SparseCsrCUDA": "addmm_out_sparse_compressed_cuda"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "addmm(Tensor self, Tensor mat1, Tensor mat2, *, Scalar beta=1, Scalar alpha=1) -> Tensor",
+                "dispatch": {
+                  "SparseCPU": "addmm_sparse_dense_cpu",
+                  "SparseCUDA": "addmm_sparse_dense_cuda",
+                  "SparseMPS": "addmm_sparse_dense_mps",
+                  "SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta": "addmm_sparse_compressed_dense"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "addmm.dtype(Tensor self, Tensor mat1, Tensor mat2, ScalarType out_dtype, *, Scalar beta=1, Scalar alpha=1) -> Tensor",
+                "dispatch": {
+                  "CUDA": "_addmm_dtype_cuda",
+                  "XPU": "_addmm_dtype_xpu"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "addmm.dtype_out(Tensor self, Tensor mat1, Tensor mat2, ScalarType out_dtype, *, Scalar beta=1, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CUDA": "_addmm_dtype_out_cuda",
+                  "XPU": "_addmm_dtype_out_xpu"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "sparsecpu_file": "aten\\src\\ATen\\native\\sparse\\SparseTensorMath.cpp",
+            "sparsecpu_func": "addmm_sparse_dense_cpu",
+            "sparsecuda_file": "aten\\src\\ATen\\native\\sparse\\cuda\\SparseCUDATensorMath.cu",
+            "sparsecuda_func": "addmm_sparse_dense_cuda",
+            "sparsecsrcpu_file": "aten\\src\\ATen\\native\\sparse\\SparseCsrTensorMath.cpp",
+            "sparsecsrcpu_func": "addmm_out_sparse_compressed_cpu",
+            "sparsecsrcuda_file": "aten\\src\\ATen\\native\\sparse\\cuda\\SparseBlas.cpp",
+            "sparsecsrcuda_func": "addmm_out_sparse_compressed_cuda",
+            "sparsecsrcpu, sparsecsrcuda, sparsecsrmeta_file": "aten\\src\\ATen\\native\\sparse\\SparseCsrTensorMath.cpp",
+            "sparsecsrcpu, sparsecsrcuda, sparsecsrmeta_func": "addmm_sparse_compressed_dense",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\Blas.cpp",
+            "cuda_func": "_addmm_dtype_out_cuda",
+            "xpu_file": "aten\\src\\ATen\\native\\mkldnn\\xpu\\Blas.cpp",
+            "xpu_func": "_addmm_dtype_out_xpu"
+          }
+        },
+        "paddle": {
+          "op_name": "addmm",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor addmm(const Tensor& input, const Tensor& x, const Tensor& y, float beta = 1.0, float alpha = 1.0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor input, Tensor x, Tensor y, float beta=1.0, float alpha=1.0",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "addmm",
+              "data_type": "x"
+            },
+            "inplace": "input -> out",
+            "backward": "addmm_grad",
+            "infer_meta": {
+              "func": "AddmmInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\addmm_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "bilinear",
+        "pytorch": {
+          "op_name": "bilinear",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/bilinear.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "bilinear",
+                "params": "const at::Tensor & input1, const at::Tensor & input2, const at::Tensor & weight, const ::std::optional<at::Tensor> & bias={}"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "bilinear",
+                "aten_name": "aten::bilinear",
+                "overload_name": "",
+                "schema": "bilinear(Tensor input1, Tensor input2, Tensor weight, Tensor? bias=None) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "bilinear(Tensor input1, Tensor input2, Tensor weight, Tensor? bias=None) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "bilinear",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor bilinear(const Tensor& x, const Tensor& y, const Tensor& weight, const paddle::optional<Tensor>& bias, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y, Tensor weight, Tensor bias",
+            "output": "Tensor",
+            "kernel": {
+              "func": "bilinear"
+            },
+            "backward": "bilinear_grad",
+            "infer_meta": {
+              "func": "BilinearInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\bilinear_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "bincount",
+        "pytorch": {
+          "op_name": "bincount",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/bincount.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "bincount",
+                "params": "const at::Tensor & self, const ::std::optional<at::Tensor> & weights={}, int64_t minlength=0"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "bincount_symint",
+                "params": "const at::Tensor & self, const ::std::optional<at::Tensor> & weights={}, c10::SymInt minlength=0"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "bincount",
+                "aten_name": "aten::bincount",
+                "overload_name": "",
+                "schema": "bincount(Tensor self, Tensor? weights=None, SymInt minlength=0) -> Tensor"
+              },
+              {
+                "struct_name": "bincount_out",
+                "aten_name": "aten::bincount",
+                "overload_name": "out",
+                "schema": "bincount.out(Tensor self, Tensor? weights=None, SymInt minlength=0, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "bincount(Tensor self, Tensor? weights=None, SymInt minlength=0) -> Tensor",
+                "dispatch": {
+                  "CPU": "_bincount_cpu",
+                  "CUDA": "_bincount_cuda",
+                  "MPS": "_bincount_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu_file": "aten\\src\\ATen\\native\\SummaryOps.cpp",
+            "cpu_func": "_bincount_cpu",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\SummaryOps.cu",
+            "cuda_func": "_bincount_cuda"
+          }
+        },
+        "paddle": {
+          "op_name": "bincount",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor bincount(const Tensor& x, const paddle::optional<Tensor>& weights, const Scalar& minlength = 0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor weights, Scalar(int",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "bincount"
+            },
+            "infer_meta": {
+              "func": "BincountInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\bincount_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "bitwise_and",
+        "pytorch": {
+          "op_name": "bitwise_and",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/bitwise_and.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_and",
+                "params": "const at::Tensor & self, const at::Scalar & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_and",
+                "params": "const at::Scalar & self, const at::Tensor & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_and",
+                "params": "const at::Tensor & self, const at::Tensor & other"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "bitwise_and_Tensor_out",
+                "aten_name": "aten::bitwise_and",
+                "overload_name": "Tensor_out",
+                "schema": "bitwise_and.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_and_Scalar_out",
+                "aten_name": "aten::bitwise_and",
+                "overload_name": "Scalar_out",
+                "schema": "bitwise_and.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_and_Scalar",
+                "aten_name": "aten::bitwise_and",
+                "overload_name": "Scalar",
+                "schema": "bitwise_and.Scalar(Tensor self, Scalar other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_and_Scalar_Tensor",
+                "aten_name": "aten::bitwise_and",
+                "overload_name": "Scalar_Tensor",
+                "schema": "bitwise_and.Scalar_Tensor(Scalar self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_and_Tensor",
+                "aten_name": "aten::bitwise_and",
+                "overload_name": "Tensor",
+                "schema": "bitwise_and.Tensor(Tensor self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_and__Scalar",
+                "aten_name": "aten::bitwise_and_",
+                "overload_name": "Scalar",
+                "schema": "bitwise_and_.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_and__Tensor",
+                "aten_name": "aten::bitwise_and_",
+                "overload_name": "Tensor",
+                "schema": "bitwise_and_.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_and_Scalar_Tensor_out",
+                "aten_name": "aten::bitwise_and",
+                "overload_name": "Scalar_Tensor_out",
+                "schema": "bitwise_and.Scalar_Tensor_out(Scalar self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "bitwise_and.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA, MTIA": "bitwise_and_out",
+                  "MPS": "bitwise_and_out_mps"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": "function",
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "bitwise_and.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_and_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "bitwise_and.Scalar(Tensor self, Scalar other) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_and"
+                },
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": "method, function"
+              },
+              {
+                "func": "bitwise_and.Scalar_Tensor(Scalar self, Tensor other) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_and"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "bitwise_and.Tensor(Tensor self, Tensor other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu, cuda, mtia_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "cpu, cuda, mtia_func": "bitwise_and_out",
+            "compositeexplicitautograd_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "compositeexplicitautograd_func": "bitwise_and_out",
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "bitwise_and",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor bitwise_and(const Tensor& x, const Tensor& y, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "bitwise_and"
+            },
+            "inplace": "x -> out",
+            "infer_meta": {
+              "func": "ElementwiseInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "bitwise_or",
+        "pytorch": {
+          "op_name": "bitwise_or",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/bitwise_or.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_or",
+                "params": "const at::Tensor & self, const at::Scalar & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_or",
+                "params": "const at::Scalar & self, const at::Tensor & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_or",
+                "params": "const at::Tensor & self, const at::Tensor & other"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "bitwise_or_Tensor_out",
+                "aten_name": "aten::bitwise_or",
+                "overload_name": "Tensor_out",
+                "schema": "bitwise_or.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_or_Scalar_out",
+                "aten_name": "aten::bitwise_or",
+                "overload_name": "Scalar_out",
+                "schema": "bitwise_or.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_or_Scalar",
+                "aten_name": "aten::bitwise_or",
+                "overload_name": "Scalar",
+                "schema": "bitwise_or.Scalar(Tensor self, Scalar other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_or_Scalar_Tensor",
+                "aten_name": "aten::bitwise_or",
+                "overload_name": "Scalar_Tensor",
+                "schema": "bitwise_or.Scalar_Tensor(Scalar self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_or_Tensor",
+                "aten_name": "aten::bitwise_or",
+                "overload_name": "Tensor",
+                "schema": "bitwise_or.Tensor(Tensor self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_or__Scalar",
+                "aten_name": "aten::bitwise_or_",
+                "overload_name": "Scalar",
+                "schema": "bitwise_or_.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_or__Tensor",
+                "aten_name": "aten::bitwise_or_",
+                "overload_name": "Tensor",
+                "schema": "bitwise_or_.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_or_Scalar_Tensor_out",
+                "aten_name": "aten::bitwise_or",
+                "overload_name": "Scalar_Tensor_out",
+                "schema": "bitwise_or.Scalar_Tensor_out(Scalar self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "bitwise_or.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA, MTIA": "bitwise_or_out",
+                  "MPS": "bitwise_or_out_mps"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": "function",
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "bitwise_or.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_or_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "bitwise_or.Scalar(Tensor self, Scalar other) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_or"
+                },
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": "method, function"
+              },
+              {
+                "func": "bitwise_or.Scalar_Tensor(Scalar self, Tensor other) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_or"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "bitwise_or.Tensor(Tensor self, Tensor other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu, cuda, mtia_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "cpu, cuda, mtia_func": "bitwise_or_out",
+            "compositeexplicitautograd_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "compositeexplicitautograd_func": "bitwise_or_out",
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "bitwise_or",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor bitwise_or(const Tensor& x, const Tensor& y, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "bitwise_or"
+            },
+            "inplace": "x -> out",
+            "infer_meta": {
+              "func": "ElementwiseInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "bitwise_xor",
+        "pytorch": {
+          "op_name": "bitwise_xor",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/bitwise_xor.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_xor",
+                "params": "const at::Tensor & self, const at::Scalar & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_xor",
+                "params": "const at::Scalar & self, const at::Tensor & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "bitwise_xor",
+                "params": "const at::Tensor & self, const at::Tensor & other"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "bitwise_xor_Tensor_out",
+                "aten_name": "aten::bitwise_xor",
+                "overload_name": "Tensor_out",
+                "schema": "bitwise_xor.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_xor_Scalar_out",
+                "aten_name": "aten::bitwise_xor",
+                "overload_name": "Scalar_out",
+                "schema": "bitwise_xor.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_xor_Scalar",
+                "aten_name": "aten::bitwise_xor",
+                "overload_name": "Scalar",
+                "schema": "bitwise_xor.Scalar(Tensor self, Scalar other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_xor_Scalar_Tensor",
+                "aten_name": "aten::bitwise_xor",
+                "overload_name": "Scalar_Tensor",
+                "schema": "bitwise_xor.Scalar_Tensor(Scalar self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_xor_Tensor",
+                "aten_name": "aten::bitwise_xor",
+                "overload_name": "Tensor",
+                "schema": "bitwise_xor.Tensor(Tensor self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "bitwise_xor__Scalar",
+                "aten_name": "aten::bitwise_xor_",
+                "overload_name": "Scalar",
+                "schema": "bitwise_xor_.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_xor__Tensor",
+                "aten_name": "aten::bitwise_xor_",
+                "overload_name": "Tensor",
+                "schema": "bitwise_xor_.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "bitwise_xor_Scalar_Tensor_out",
+                "aten_name": "aten::bitwise_xor",
+                "overload_name": "Scalar_Tensor_out",
+                "schema": "bitwise_xor.Scalar_Tensor_out(Scalar self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "bitwise_xor.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA": "bitwise_xor_out",
+                  "MPS": "bitwise_xor_out_mps"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": "function",
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "bitwise_xor.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_xor_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "bitwise_xor.Scalar(Tensor self, Scalar other) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_xor"
+                },
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": "method, function"
+              },
+              {
+                "func": "bitwise_xor.Scalar_Tensor(Scalar self, Tensor other) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "bitwise_xor"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "bitwise_xor.Tensor(Tensor self, Tensor other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu, cuda_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "cpu, cuda_func": "bitwise_xor_out",
+            "compositeexplicitautograd_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "compositeexplicitautograd_func": "bitwise_xor_out",
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "bitwise_xor",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor bitwise_xor(const Tensor& x, const Tensor& y, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "bitwise_xor"
+            },
+            "inplace": "x -> out",
+            "infer_meta": {
+              "func": "ElementwiseInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "celu",
+        "pytorch": {
+          "op_name": "celu",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/celu.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "celu",
+                "params": "const at::Tensor & self, const at::Scalar & alpha=1.0"
+              },
+              {
+                "ret": "at::Tensor &",
+                "name": "celu_",
+                "params": "at::Tensor & self, const at::Scalar & alpha=1.0"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "celu",
+                "aten_name": "aten::celu",
+                "overload_name": "",
+                "schema": "celu(Tensor self, Scalar alpha=1.0) -> Tensor"
+              },
+              {
+                "struct_name": "celu_",
+                "aten_name": "aten::celu_",
+                "overload_name": "",
+                "schema": "celu_(Tensor(a!) self, Scalar alpha=1.0) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "celu_out",
+                "aten_name": "aten::celu",
+                "overload_name": "out",
+                "schema": "celu.out(Tensor self, Scalar alpha=1.0, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "celu(Tensor self, Scalar alpha=1.0) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "celu"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "celu",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor celu(const Tensor& x, float alpha = 1.0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, float alpha = 1.0",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "celu"
+            },
+            "inplace": "x -> out",
+            "backward": "celu_grad",
+            "infer_meta": {
+              "func": "UnchangedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "celu",
+            "paddle_api": "celu",
+            "rule": "common_naming_differences",
+            "confidence": "medium",
+            "description": "Common naming differences between PyTorch and Paddle"
+          }
+        ],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "clip",
+        "pytorch": {
+          "op_name": "clip",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/clip.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "clip",
+                "params": "const at::Tensor & self, const ::std::optional<at::Scalar> & min, const ::std::optional<at::Scalar> & max=::std::nullopt"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "clip",
+                "params": "const at::Tensor & self, const ::std::optional<at::Tensor> & min={}, const ::std::optional<at::Tensor> & max={}"
+              },
+              {
+                "ret": "at::Tensor &",
+                "name": "clip_",
+                "params": "at::Tensor & self, const ::std::optional<at::Scalar> & min, const ::std::optional<at::Scalar> & max=::std::nullopt"
+              },
+              {
+                "ret": "at::Tensor &",
+                "name": "clip_",
+                "params": "at::Tensor & self, const ::std::optional<at::Tensor> & min={}, const ::std::optional<at::Tensor> & max={}"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "clip",
+                "aten_name": "aten::clip",
+                "overload_name": "",
+                "schema": "clip(Tensor self, Scalar? min=None, Scalar? max=None) -> Tensor"
+              },
+              {
+                "struct_name": "clip_Tensor",
+                "aten_name": "aten::clip",
+                "overload_name": "Tensor",
+                "schema": "clip.Tensor(Tensor self, Tensor? min=None, Tensor? max=None) -> Tensor"
+              },
+              {
+                "struct_name": "clip_",
+                "aten_name": "aten::clip_",
+                "overload_name": "",
+                "schema": "clip_(Tensor(a!) self, Scalar? min=None, Scalar? max=None) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "clip__Tensor",
+                "aten_name": "aten::clip_",
+                "overload_name": "Tensor",
+                "schema": "clip_.Tensor(Tensor(a!) self, Tensor? min=None, Tensor? max=None) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "clip_out",
+                "aten_name": "aten::clip",
+                "overload_name": "out",
+                "schema": "clip.out(Tensor self, Scalar? min=None, Scalar? max=None, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "clip_Tensor_out",
+                "aten_name": "aten::clip",
+                "overload_name": "Tensor_out",
+                "schema": "clip.Tensor_out(Tensor self, Tensor? min=None, Tensor? max=None, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "clip(Tensor self, Scalar? min=None, Scalar? max=None) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "clip.Tensor(Tensor self, Tensor? min=None, Tensor? max=None) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "clip.out(Tensor self, Scalar? min=None, Scalar? max=None, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "clip.Tensor_out(Tensor self, Tensor? min=None, Tensor? max=None, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "clip",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor clip(const Tensor& x, const Scalar& min, const Scalar& max, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Scalar(float",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "clip",
+              "data_type": "x"
+            },
+            "inplace": "x -> out",
+            "backward": "clip_grad",
+            "infer_meta": {
+              "func": "UnchangedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\clip_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "concat",
+        "pytorch": {
+          "op_name": "concat",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/concat.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "concat",
+                "params": "at::TensorList tensors, int64_t dim=0"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "concat",
+                "params": "at::TensorList tensors, at::Dimname dim"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "concat",
+                "aten_name": "aten::concat",
+                "overload_name": "",
+                "schema": "concat(Tensor[] tensors, int dim=0) -> Tensor"
+              },
+              {
+                "struct_name": "concat_out",
+                "aten_name": "aten::concat",
+                "overload_name": "out",
+                "schema": "concat.out(Tensor[] tensors, int dim=0, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "concat_names",
+                "aten_name": "aten::concat",
+                "overload_name": "names",
+                "schema": "concat.names(Tensor[] tensors, Dimname dim) -> Tensor"
+              },
+              {
+                "struct_name": "concat_names_out",
+                "aten_name": "aten::concat",
+                "overload_name": "names_out",
+                "schema": "concat.names_out(Tensor[] tensors, Dimname dim, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "concat(Tensor[] tensors, int dim=0) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "concat.out(Tensor[] tensors, int dim=0, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "concat.names(Tensor[] tensors, Dimname dim) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "concat.names_out(Tensor[] tensors, Dimname dim, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "concat",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor concat(const std::vector<Tensor>& x, const Scalar& axis = 0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor[] x, Scalar axis=0",
+            "output": "Tensor",
+            "kernel": {
+              "func": "concat",
+              "data_type": "x"
+            },
+            "backward": "concat_grad",
+            "infer_meta": {
+              "func": "ConcatInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\concat_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "cross",
+        "pytorch": {
+          "op_name": "cross",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/cross.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "cross",
+                "params": "const at::Tensor & self, const at::Tensor & other, ::std::optional<int64_t> dim=::std::nullopt"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "cross_out",
+                "aten_name": "aten::cross",
+                "overload_name": "out",
+                "schema": "cross.out(Tensor self, Tensor other, int? dim=None, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "cross",
+                "aten_name": "aten::cross",
+                "overload_name": "",
+                "schema": "cross(Tensor self, Tensor other, int? dim=None) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "cross.out(Tensor self, Tensor other, int? dim=None, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "cross(Tensor self, Tensor other, int? dim=None) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "cross",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor cross(const Tensor& x, const Tensor& y, int axis = 9, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y, int axis = 9",
+            "output": "Tensor",
+            "kernel": {
+              "func": "cross",
+              "data_type": "x"
+            },
+            "backward": "cross_grad",
+            "infer_meta": {
+              "func": "CrossInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\cross_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "diag_embed",
+        "pytorch": {
+          "op_name": "diag_embed",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/diag_embed.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "diag_embed",
+                "params": "const at::Tensor & self, int64_t offset=0, int64_t dim1=-2, int64_t dim2=-1"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "diag_embed",
+                "aten_name": "aten::diag_embed",
+                "overload_name": "",
+                "schema": "diag_embed(Tensor self, int offset=0, int dim1=-2, int dim2=-1) -> Tensor"
+              },
+              {
+                "struct_name": "diag_embed_out",
+                "aten_name": "aten::diag_embed",
+                "overload_name": "out",
+                "schema": "diag_embed.out(Tensor self, int offset=0, int dim1=-2, int dim2=-1, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "diag_embed(Tensor self, int offset=0, int dim1=-2, int dim2=-1) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutogradNonFunctional": "diag_embed"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutogradNonFunctional"
+          }
+        },
+        "paddle": {
+          "op_name": "diag_embed",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor diag_embed(const Tensor& input, int offset = 0, int dim1 = -2, int dim2 = -1, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor input, int offset = 0, int dim1 = -2, int dim2 = -1",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "diag_embed"
+            },
+            "infer_meta": {
+              "func": "DiagEmbedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\diag_embed_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "diagonal",
+        "pytorch": {
+          "op_name": "diagonal",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/diagonal.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "diagonal",
+                "params": "const at::Tensor & self, int64_t offset=0, int64_t dim1=0, int64_t dim2=1"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "diagonal",
+                "params": "const at::Tensor & self, at::Dimname outdim, at::Dimname dim1, at::Dimname dim2, int64_t offset=0"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "diagonal",
+                "aten_name": "aten::diagonal",
+                "overload_name": "",
+                "schema": "diagonal(Tensor(a) self, int offset=0, int dim1=0, int dim2=1) -> Tensor(a)"
+              },
+              {
+                "struct_name": "diagonal_Dimname",
+                "aten_name": "aten::diagonal",
+                "overload_name": "Dimname",
+                "schema": "diagonal.Dimname(Tensor(a) self, *, Dimname outdim, Dimname dim1, Dimname dim2, int offset=0) -> Tensor(a)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "diagonal(Tensor(a) self, int offset=0, int dim1=0, int dim2=1) -> Tensor(a)",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "diagonal"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "diagonal.Dimname(Tensor(a) self, *, Dimname outdim, Dimname dim1, Dimname dim2, int offset=0) -> Tensor(a)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "diagonal",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor diagonal(const Tensor& x, int offset = 0, int axis1 = 0, int axis2 = 1, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, int offset = 0, int axis1 = 0, int axis2 = 1",
+            "output": "Tensor",
+            "kernel": {
+              "func": "diagonal"
+            },
+            "backward": "diagonal_grad",
+            "infer_meta": {
+              "func": "DiagonalInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\diagonal_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "dist",
+        "pytorch": {
+          "op_name": "dist",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/dist.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "dist",
+                "params": "const at::Tensor & self, const at::Tensor & other, const at::Scalar & p=2"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "dist",
+                "aten_name": "aten::dist",
+                "overload_name": "",
+                "schema": "dist(Tensor self, Tensor other, Scalar p=2) -> Tensor"
+              },
+              {
+                "struct_name": "dist_out",
+                "aten_name": "aten::dist",
+                "overload_name": "out",
+                "schema": "dist.out(Tensor self, Tensor other, Scalar p=2, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "dist(Tensor self, Tensor other, Scalar p=2) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "dist"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "dist",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor dist(const Tensor& x, const Tensor& y, float p = 2.0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y, float p = 2.0",
+            "output": "Tensor",
+            "kernel": {
+              "func": "dist"
+            },
+            "backward": "dist_grad",
+            "infer_meta": {
+              "func": "DistInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": false,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\dist_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "flip",
+        "pytorch": {
+          "op_name": "flip",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/flip.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "flip",
+                "params": "const at::Tensor & self, at::IntArrayRef dims"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "flip",
+                "aten_name": "aten::flip",
+                "overload_name": "",
+                "schema": "flip(Tensor self, int[] dims) -> Tensor"
+              },
+              {
+                "struct_name": "flip_out",
+                "aten_name": "aten::flip",
+                "overload_name": "out",
+                "schema": "flip.out(Tensor self, int[] dims, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "flip(Tensor self, int[] dims) -> Tensor",
+                "dispatch": {
+                  "CPU, QuantizedCPU, CUDA, QuantizedCUDA": "flip",
+                  "MPS": "flip_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu, quantizedcpu, cuda, quantizedcuda_file": "aten\\src\\ATen\\native\\TensorTransformations.cpp",
+            "cpu, quantizedcpu, cuda, quantizedcuda_func": "flip"
+          }
+        },
+        "paddle": {
+          "op_name": "flip",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor flip(const Tensor& x, const std::vector<int>& axis, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, int[] axis",
+            "output": "Tensor (out)",
+            "kernel": {
+              "func": "flip"
+            },
+            "backward": "flip_grad",
+            "infer_meta": {
+              "func": "FlipInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\flip_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "gelu",
+        "pytorch": {
+          "op_name": "gelu",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/gelu.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor &",
+                "name": "gelu_",
+                "params": "at::Tensor & self, c10::string_view approximate=\"none\""
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "gelu",
+                "params": "const at::Tensor & self, c10::string_view approximate=\"none\""
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "gelu_out",
+                "aten_name": "aten::gelu",
+                "overload_name": "out",
+                "schema": "gelu.out(Tensor self, *, str approximate='none', Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "gelu_",
+                "aten_name": "aten::gelu_",
+                "overload_name": "",
+                "schema": "gelu_(Tensor(a!) self, *, str approximate='none') -> Tensor(a!)"
+              },
+              {
+                "struct_name": "gelu",
+                "aten_name": "aten::gelu",
+                "overload_name": "",
+                "schema": "gelu(Tensor self, *, str approximate='none') -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "gelu.out(Tensor self, *, str approximate='none', Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "gelu_out_cpu",
+                  "CUDA": "gelu_out_cuda",
+                  "MPS": "gelu_out_mps"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null,
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "gelu(Tensor self, *, str approximate='none') -> Tensor",
+                "dispatch": {
+                  "MkldnnCPU": "mkldnn_gelu",
+                  "QuantizedCPU": "gelu_quantized_cpu",
+                  "QuantizedCUDA": "gelu_quantized_cuda",
+                  "NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA": "NestedTensor_gelu"
+                },
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "mkldnncpu_file": "aten\\src\\ATen\\native\\mkldnn\\Gelu.cpp",
+            "mkldnncpu_func": "mkldnn_gelu",
+            "quantizedcpu_file": "aten\\src\\ATen\\native\\quantized\\cpu\\qgelu.cpp",
+            "quantizedcpu_func": "gelu_quantized_cpu",
+            "quantizedcuda_file": "aten\\src\\ATen\\native\\quantized\\cuda\\Activation.cpp",
+            "quantizedcuda_func": "gelu_quantized_cuda",
+            "nestedtensorcpu, nestedtensorhpu, nestedtensorcuda_file": "aten\\src\\ATen\\native\\nested\\NestedTensorUnaryOps.cpp",
+            "nestedtensorcpu, nestedtensorhpu, nestedtensorcuda_func": "NestedTensor_gelu"
+          }
+        },
+        "paddle": {
+          "op_name": "gelu",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor gelu(const Tensor& x, bool approximate = false, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x,  bool approximate = false",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "gelu"
+            },
+            "backward": "gelu_grad",
+            "infer_meta": {
+              "func": "UnchangedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\gelu_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "gelu",
+            "paddle_api": "gelu",
+            "rule": "common_naming_differences",
+            "confidence": "medium",
+            "description": "Common naming differences between PyTorch and Paddle"
+          }
+        ],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "greater_equal",
+        "pytorch": {
+          "op_name": "greater_equal",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/greater_equal.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "greater_equal",
+                "params": "const at::Tensor & self, const at::Scalar & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "greater_equal",
+                "params": "const at::Tensor & self, const at::Tensor & other"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "greater_equal_Scalar_out",
+                "aten_name": "aten::greater_equal",
+                "overload_name": "Scalar_out",
+                "schema": "greater_equal.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "greater_equal_Scalar",
+                "aten_name": "aten::greater_equal",
+                "overload_name": "Scalar",
+                "schema": "greater_equal.Scalar(Tensor self, Scalar other) -> Tensor"
+              },
+              {
+                "struct_name": "greater_equal_Tensor_out",
+                "aten_name": "aten::greater_equal",
+                "overload_name": "Tensor_out",
+                "schema": "greater_equal.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "greater_equal_Tensor",
+                "aten_name": "aten::greater_equal",
+                "overload_name": "Tensor",
+                "schema": "greater_equal.Tensor(Tensor self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "greater_equal__Scalar",
+                "aten_name": "aten::greater_equal_",
+                "overload_name": "Scalar",
+                "schema": "greater_equal_.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "greater_equal__Tensor",
+                "aten_name": "aten::greater_equal_",
+                "overload_name": "Tensor",
+                "schema": "greater_equal_.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "greater_equal.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "greater_equal.Scalar(Tensor self, Scalar other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              },
+              {
+                "func": "greater_equal.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "greater_equal.Tensor(Tensor self, Tensor other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "greater_equal",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor greater_equal(const Tensor& x, const Tensor& y, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "greater_equal"
+            },
+            "inplace": "x -> out",
+            "infer_meta": {
+              "func": "CompareInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\inconsistent\\static_ops.yaml"
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "group_norm",
+        "pytorch": {
+          "op_name": "group_norm",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/group_norm.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "group_norm",
+                "params": "const at::Tensor & input, int64_t num_groups, const ::std::optional<at::Tensor> & weight={}, const ::std::optional<at::Tensor> & bias={}, double eps=1e-05, bool cudnn_enabled=true"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "group_norm",
+                "aten_name": "aten::group_norm",
+                "overload_name": "",
+                "schema": "group_norm(Tensor input, int num_groups, Tensor? weight=None, Tensor? bias=None, float eps=1e-05, bool cudnn_enabled=True) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "group_norm(Tensor input, int num_groups, Tensor? weight=None, Tensor? bias=None, float eps=1e-05, bool cudnn_enabled=True) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "group_norm",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor group_norm(const Tensor& x, const paddle::optional<Tensor>& scale, const paddle::optional<Tensor>& bias, double epsilon = 1e-5, int groups = -1, const std::string& data_format = \"NCHW\", paddle::optional<std::tuple<paddle::Tensor*, paddle::Tensor*, paddle::Tensor*>> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor scale, Tensor bias, double epsilon = 1e-5, int groups = -1, str data_format = \"NCHW\"",
+            "output": "Tensor(y), Tensor(mean), Tensor(variance)",
+            "kernel": {
+              "func": "group_norm"
+            },
+            "backward": "group_norm_grad",
+            "infer_meta": {
+              "func": "GroupNormInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\group_norm_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "group_norm",
+            "paddle_api": "group_norm",
+            "rule": "common_naming_differences",
+            "confidence": "medium",
+            "description": "Common naming differences between PyTorch and Paddle"
+          }
+        ],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "index_fill",
+        "pytorch": {
+          "op_name": "index_fill",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/index_fill.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "index_fill",
+                "params": "const at::Tensor & self, int64_t dim, const at::Tensor & index, const at::Scalar & value"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "index_fill",
+                "params": "const at::Tensor & self, int64_t dim, const at::Tensor & index, const at::Tensor & value"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "index_fill",
+                "params": "const at::Tensor & self, at::Dimname dim, const at::Tensor & index, const at::Scalar & value"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "index_fill",
+                "params": "const at::Tensor & self, at::Dimname dim, const at::Tensor & index, const at::Tensor & value"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "index_fill__int_Scalar",
+                "aten_name": "aten::index_fill_",
+                "overload_name": "int_Scalar",
+                "schema": "index_fill_.int_Scalar(Tensor(a!) self, int dim, Tensor index, Scalar value) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "index_fill_int_Scalar",
+                "aten_name": "aten::index_fill",
+                "overload_name": "int_Scalar",
+                "schema": "index_fill.int_Scalar(Tensor self, int dim, Tensor index, Scalar value) -> Tensor"
+              },
+              {
+                "struct_name": "index_fill__int_Tensor",
+                "aten_name": "aten::index_fill_",
+                "overload_name": "int_Tensor",
+                "schema": "index_fill_.int_Tensor(Tensor(a!) self, int dim, Tensor index, Tensor value) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "index_fill_int_Tensor",
+                "aten_name": "aten::index_fill",
+                "overload_name": "int_Tensor",
+                "schema": "index_fill.int_Tensor(Tensor self, int dim, Tensor index, Tensor value) -> Tensor"
+              },
+              {
+                "struct_name": "index_fill__Dimname_Scalar",
+                "aten_name": "aten::index_fill_",
+                "overload_name": "Dimname_Scalar",
+                "schema": "index_fill_.Dimname_Scalar(Tensor(a!) self, Dimname dim, Tensor index, Scalar value) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "index_fill__Dimname_Tensor",
+                "aten_name": "aten::index_fill_",
+                "overload_name": "Dimname_Tensor",
+                "schema": "index_fill_.Dimname_Tensor(Tensor(a!) self, Dimname dim, Tensor index, Tensor value) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "index_fill_Dimname_Scalar",
+                "aten_name": "aten::index_fill",
+                "overload_name": "Dimname_Scalar",
+                "schema": "index_fill.Dimname_Scalar(Tensor self, Dimname dim, Tensor index, Scalar value) -> Tensor"
+              },
+              {
+                "struct_name": "index_fill_Dimname_Tensor",
+                "aten_name": "aten::index_fill",
+                "overload_name": "Dimname_Tensor",
+                "schema": "index_fill.Dimname_Tensor(Tensor self, Dimname dim, Tensor index, Tensor value) -> Tensor"
+              },
+              {
+                "struct_name": "index_fill_int_Scalar_out",
+                "aten_name": "aten::index_fill",
+                "overload_name": "int_Scalar_out",
+                "schema": "index_fill.int_Scalar_out(Tensor self, int dim, Tensor index, Scalar value, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "index_fill_int_Tensor_out",
+                "aten_name": "aten::index_fill",
+                "overload_name": "int_Tensor_out",
+                "schema": "index_fill.int_Tensor_out(Tensor self, int dim, Tensor index, Tensor value, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "index_fill.int_Scalar(Tensor self, int dim, Tensor index, Scalar value) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "index_fill"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "index_fill.int_Tensor(Tensor self, int dim, Tensor index, Tensor value) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "index_fill"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "index_fill.Dimname_Scalar(Tensor self, Dimname dim, Tensor index, Scalar value) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "index_fill.Dimname_Tensor(Tensor self, Dimname dim, Tensor index, Tensor value) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "index_fill",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor index_fill(const Tensor& x, const Tensor& index, int dim, const Scalar& value, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor index, int dim, Scalar value",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "index_fill",
+              "data_type": "x"
+            },
+            "inplace": "x -> out",
+            "backward": "index_fill_grad",
+            "infer_meta": {
+              "func": "IndexFillInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\index_fill_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "index_select",
+        "pytorch": {
+          "op_name": "index_select",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/index_select.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "index_select",
+                "params": "const at::Tensor & self, int64_t dim, const at::Tensor & index"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "index_select",
+                "params": "const at::Tensor & self, at::Dimname dim, const at::Tensor & index"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "index_select_out",
+                "aten_name": "aten::index_select",
+                "overload_name": "out",
+                "schema": "index_select.out(Tensor self, int dim, Tensor index, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "index_select",
+                "aten_name": "aten::index_select",
+                "overload_name": "",
+                "schema": "index_select(Tensor self, int dim, Tensor index) -> Tensor"
+              },
+              {
+                "struct_name": "index_select_dimname_out",
+                "aten_name": "aten::index_select",
+                "overload_name": "dimname_out",
+                "schema": "index_select.dimname_out(Tensor self, Dimname dim, Tensor index, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "index_select_dimname",
+                "aten_name": "aten::index_select",
+                "overload_name": "dimname",
+                "schema": "index_select.dimname(Tensor self, Dimname dim, Tensor index) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "index_select.out(Tensor self, int dim, Tensor index, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, QuantizedCPU": "index_select_out_cpu_",
+                  "CUDA, QuantizedCUDA": "index_select_out_cuda",
+                  "MPS": "index_select_out_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "index_select(Tensor self, int dim, Tensor index) -> Tensor",
+                "dispatch": {
+                  "CPU": "index_select_cpu_",
+                  "QuantizedCPU": "index_select_quantized_cpu_",
+                  "CUDA": "index_select_cuda",
+                  "QuantizedCUDA": "index_select_quantized_cuda",
+                  "SparseCPU": "index_select_sparse_cpu",
+                  "SparseCUDA": "index_select_sparse_cuda",
+                  "SparseMPS": "index_select_sparse_mps",
+                  "MPS": "index_select_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              },
+              {
+                "func": "index_select.dimname_out(Tensor self, Dimname dim, Tensor index, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "index_select.dimname(Tensor self, Dimname dim, Tensor index) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu, quantizedcpu_file": "aten\\src\\ATen\\native\\TensorAdvancedIndexing.cpp",
+            "cpu, quantizedcpu_func": "index_select_out_cpu_",
+            "cuda, quantizedcuda_file": "aten\\src\\ATen\\native\\cuda\\Indexing.cu",
+            "cuda, quantizedcuda_func": "index_select_out_cuda",
+            "cpu_file": "aten\\src\\ATen\\native\\TensorAdvancedIndexing.cpp",
+            "cpu_func": "index_select_cpu_",
+            "quantizedcpu_file": "aten\\src\\ATen\\native\\TensorAdvancedIndexing.cpp",
+            "quantizedcpu_func": "index_select_quantized_cpu_",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\Indexing.cu",
+            "cuda_func": "index_select_cuda",
+            "quantizedcuda_file": "aten\\src\\ATen\\native\\cuda\\Indexing.cu",
+            "quantizedcuda_func": "index_select_quantized_cuda",
+            "sparsecpu_file": "aten\\src\\ATen\\native\\TensorShape.cpp",
+            "sparsecpu_func": "index_select_sparse_cpu",
+            "sparsecuda_file": "aten\\src\\ATen\\native\\cuda\\Indexing.cu",
+            "sparsecuda_func": "index_select_sparse_cuda"
+          }
+        },
+        "paddle": {
+          "op_name": "index_select",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor index_select(const Tensor& x, const Tensor& index, int axis = 0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor index, int axis = 0",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "index_select",
+              "data_type": "x"
+            },
+            "backward": "index_select_grad",
+            "infer_meta": {
+              "func": "IndexSelectInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\index_select_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "isclose",
+        "pytorch": {
+          "op_name": "isclose",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/isclose.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "isclose",
+                "params": "const at::Tensor & self, const at::Tensor & other, double rtol=1e-05, double atol=1e-08, bool equal_nan=false"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "isclose",
+                "aten_name": "aten::isclose",
+                "overload_name": "",
+                "schema": "isclose(Tensor self, Tensor other, float rtol=1e-05, float atol=1e-08, bool equal_nan=False) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "isclose(Tensor self, Tensor other, float rtol=1e-05, float atol=1e-08, bool equal_nan=False) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "isclose",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor isclose(const Tensor& x, const Tensor& y, const Scalar& rtol = 1e-5, const Scalar& atol = 1e-8, bool equal_nan = false, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y, Scalar(double",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "isclose",
+              "data_type": "x"
+            },
+            "infer_meta": {
+              "func": "ValueCompareInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\isclose_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "leaky_relu",
+        "pytorch": {
+          "op_name": "leaky_relu",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/leaky_relu.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "leaky_relu",
+                "params": "const at::Tensor & self, const at::Scalar & negative_slope=0.01"
+              },
+              {
+                "ret": "at::Tensor &",
+                "name": "leaky_relu_",
+                "params": "at::Tensor & self, const at::Scalar & negative_slope=0.01"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "leaky_relu_out",
+                "aten_name": "aten::leaky_relu",
+                "overload_name": "out",
+                "schema": "leaky_relu.out(Tensor self, Scalar negative_slope=0.01, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "leaky_relu",
+                "aten_name": "aten::leaky_relu",
+                "overload_name": "",
+                "schema": "leaky_relu(Tensor self, Scalar negative_slope=0.01) -> Tensor"
+              },
+              {
+                "struct_name": "leaky_relu_",
+                "aten_name": "aten::leaky_relu_",
+                "overload_name": "",
+                "schema": "leaky_relu_(Tensor(a!) self, Scalar negative_slope=0.01) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "leaky_relu.out(Tensor self, Scalar negative_slope=0.01, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA, MPS": "leaky_relu_out",
+                  "QuantizedCPU": "leaky_relu_out_quantized_cpu"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null,
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "leaky_relu(Tensor self, Scalar negative_slope=0.01) -> Tensor",
+                "dispatch": {
+                  "QuantizedCPU": "leaky_relu_quantized_cpu"
+                },
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "quantizedcpu_file": "aten\\src\\ATen\\native\\quantized\\cpu\\qrelu.cpp",
+            "quantizedcpu_func": "leaky_relu_quantized_cpu"
+          }
+        },
+        "paddle": {
+          "op_name": "leaky_relu",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor leaky_relu(const Tensor& x, double negative_slope = 0.02, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, double negative_slope = 0.02",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "leaky_relu"
+            },
+            "inplace": "x -> out",
+            "backward": "leaky_relu_grad",
+            "infer_meta": {
+              "func": "UnchangedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "leaky_relu",
+            "paddle_api": "leaky_relu",
+            "rule": "common_naming_differences",
+            "confidence": "medium",
+            "description": "Common naming differences between PyTorch and Paddle"
+          }
+        ],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "lerp",
+        "pytorch": {
+          "op_name": "lerp",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/lerp.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "lerp",
+                "params": "const at::Tensor & self, const at::Tensor & end, const at::Scalar & weight"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "lerp",
+                "params": "const at::Tensor & self, const at::Tensor & end, const at::Tensor & weight"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "lerp__Scalar",
+                "aten_name": "aten::lerp_",
+                "overload_name": "Scalar",
+                "schema": "lerp_.Scalar(Tensor(a!) self, Tensor end, Scalar weight) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "lerp__Tensor",
+                "aten_name": "aten::lerp_",
+                "overload_name": "Tensor",
+                "schema": "lerp_.Tensor(Tensor(a!) self, Tensor end, Tensor weight) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "lerp_Scalar_out",
+                "aten_name": "aten::lerp",
+                "overload_name": "Scalar_out",
+                "schema": "lerp.Scalar_out(Tensor self, Tensor end, Scalar weight, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "lerp_Tensor_out",
+                "aten_name": "aten::lerp",
+                "overload_name": "Tensor_out",
+                "schema": "lerp.Tensor_out(Tensor self, Tensor end, Tensor weight, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "lerp_Scalar",
+                "aten_name": "aten::lerp",
+                "overload_name": "Scalar",
+                "schema": "lerp.Scalar(Tensor self, Tensor end, Scalar weight) -> Tensor"
+              },
+              {
+                "struct_name": "lerp_Tensor",
+                "aten_name": "aten::lerp",
+                "overload_name": "Tensor",
+                "schema": "lerp.Tensor(Tensor self, Tensor end, Tensor weight) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "lerp.Scalar_out(Tensor self, Tensor end, Scalar weight, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA, MPS": "lerp_Scalar"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null,
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "lerp.Tensor_out(Tensor self, Tensor end, Tensor weight, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA, MPS": "lerp_Tensor"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null,
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "lerp.Scalar(Tensor self, Tensor end, Scalar weight) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              },
+              {
+                "func": "lerp.Tensor(Tensor self, Tensor end, Tensor weight) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "lerp",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor lerp(const Tensor& x, const Tensor& y, const Tensor& weight, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y, Tensor weight",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "lerp",
+              "data_type": "x"
+            },
+            "inplace": "x -> out",
+            "backward": "lerp_grad",
+            "infer_meta": {
+              "func": "LerpInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\lerp_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "less_equal",
+        "pytorch": {
+          "op_name": "less_equal",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/less_equal.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "less_equal",
+                "params": "const at::Tensor & self, const at::Scalar & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "less_equal",
+                "params": "const at::Tensor & self, const at::Tensor & other"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "less_equal_Scalar_out",
+                "aten_name": "aten::less_equal",
+                "overload_name": "Scalar_out",
+                "schema": "less_equal.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "less_equal_Scalar",
+                "aten_name": "aten::less_equal",
+                "overload_name": "Scalar",
+                "schema": "less_equal.Scalar(Tensor self, Scalar other) -> Tensor"
+              },
+              {
+                "struct_name": "less_equal_Tensor_out",
+                "aten_name": "aten::less_equal",
+                "overload_name": "Tensor_out",
+                "schema": "less_equal.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "less_equal_Tensor",
+                "aten_name": "aten::less_equal",
+                "overload_name": "Tensor",
+                "schema": "less_equal.Tensor(Tensor self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "less_equal__Scalar",
+                "aten_name": "aten::less_equal_",
+                "overload_name": "Scalar",
+                "schema": "less_equal_.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "less_equal__Tensor",
+                "aten_name": "aten::less_equal_",
+                "overload_name": "Tensor",
+                "schema": "less_equal_.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "less_equal.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "less_equal.Scalar(Tensor self, Scalar other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              },
+              {
+                "func": "less_equal.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "less_equal.Tensor(Tensor self, Tensor other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "less_equal",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor less_equal(const Tensor& x, const Tensor& y, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "less_equal"
+            },
+            "inplace": "x -> out",
+            "infer_meta": {
+              "func": "CompareInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\inconsistent\\static_ops.yaml"
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "logit",
+        "pytorch": {
+          "op_name": "logit",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/logit.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "logit",
+                "params": "const at::Tensor & self, ::std::optional<double> eps=::std::nullopt"
+              },
+              {
+                "ret": "at::Tensor &",
+                "name": "logit_",
+                "params": "at::Tensor & self, ::std::optional<double> eps=::std::nullopt"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "logit",
+                "aten_name": "aten::logit",
+                "overload_name": "",
+                "schema": "logit(Tensor self, float? eps=None) -> Tensor"
+              },
+              {
+                "struct_name": "logit_",
+                "aten_name": "aten::logit_",
+                "overload_name": "",
+                "schema": "logit_(Tensor(a!) self, float? eps=None) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "logit_out",
+                "aten_name": "aten::logit",
+                "overload_name": "out",
+                "schema": "logit.out(Tensor self, float? eps=None, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "logit(Tensor self, float? eps=None) -> Tensor",
+                "dispatch": {
+                  "CPU, CUDA, MTIA": "logit",
+                  "MPS": "logit_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "logit.out(Tensor self, float? eps=None, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA": "logit_out",
+                  "MPS": "logit_out_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu, cuda, mtia_file": "aten\\src\\ATen\\native\\UnaryOps.cpp",
+            "cpu, cuda, mtia_func": "logit",
+            "cpu, cuda_file": "aten\\src\\ATen\\native\\UnaryOps.cpp",
+            "cpu, cuda_func": "logit_out"
+          }
+        },
+        "paddle": {
+          "op_name": "logit",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor logit(const Tensor& x, double eps = 1e-6, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, double eps = 1e-6",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "logit"
+            },
+            "inplace": "x -> out",
+            "backward": "logit_grad",
+            "infer_meta": {
+              "func": "UnchangedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "masked_fill",
+        "pytorch": {
+          "op_name": "masked_fill",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/masked_fill.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "masked_fill",
+                "params": "const at::Tensor & self, const at::Tensor & mask, const at::Scalar & value"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "masked_fill",
+                "params": "const at::Tensor & self, const at::Tensor & mask, const at::Tensor & value"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "masked_fill__Scalar",
+                "aten_name": "aten::masked_fill_",
+                "overload_name": "Scalar",
+                "schema": "masked_fill_.Scalar(Tensor(a!) self, Tensor mask, Scalar value) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "masked_fill_Scalar",
+                "aten_name": "aten::masked_fill",
+                "overload_name": "Scalar",
+                "schema": "masked_fill.Scalar(Tensor self, Tensor mask, Scalar value) -> Tensor"
+              },
+              {
+                "struct_name": "masked_fill__Tensor",
+                "aten_name": "aten::masked_fill_",
+                "overload_name": "Tensor",
+                "schema": "masked_fill_.Tensor(Tensor(a!) self, Tensor mask, Tensor value) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "masked_fill_Tensor",
+                "aten_name": "aten::masked_fill",
+                "overload_name": "Tensor",
+                "schema": "masked_fill.Tensor(Tensor self, Tensor mask, Tensor value) -> Tensor"
+              },
+              {
+                "struct_name": "masked_fill_Scalar_out",
+                "aten_name": "aten::masked_fill",
+                "overload_name": "Scalar_out",
+                "schema": "masked_fill.Scalar_out(Tensor self, Tensor mask, Scalar value, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "masked_fill_Tensor_out",
+                "aten_name": "aten::masked_fill",
+                "overload_name": "Tensor_out",
+                "schema": "masked_fill.Tensor_out(Tensor self, Tensor mask, Tensor value, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "masked_fill.Scalar(Tensor self, Tensor mask, Scalar value) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "masked_fill",
+                  "NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA": "NestedTensor_masked_fill"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "masked_fill.Tensor(Tensor self, Tensor mask, Tensor value) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "masked_fill"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd",
+            "nestedtensorcpu, nestedtensorhpu, nestedtensorcuda_file": "aten\\src\\ATen\\native\\nested\\NestedTensorBinaryOps.cpp",
+            "nestedtensorcpu, nestedtensorhpu, nestedtensorcuda_func": "NestedTensor_masked_fill"
+          }
+        },
+        "paddle": {
+          "op_name": "masked_fill",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor masked_fill(const Tensor& x, const Tensor& mask, const Tensor& value, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor mask, Tensor value",
+            "output": "Tensor (out)",
+            "kernel": {
+              "func": "masked_fill",
+              "data_type": "x"
+            },
+            "inplace": "x -> out",
+            "backward": "masked_fill_grad",
+            "infer_meta": {
+              "func": "MaskedFillInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\masked_fill_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "matrix_power",
+        "pytorch": {
+          "op_name": "matrix_power",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/matrix_power.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "matrix_power",
+                "params": "const at::Tensor & self, int64_t n"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "matrix_power",
+                "aten_name": "aten::matrix_power",
+                "overload_name": "",
+                "schema": "matrix_power(Tensor self, int n) -> Tensor"
+              },
+              {
+                "struct_name": "matrix_power_out",
+                "aten_name": "aten::matrix_power",
+                "overload_name": "out",
+                "schema": "matrix_power.out(Tensor self, int n, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "matrix_power(Tensor self, int n) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "matrix_power.out(Tensor self, int n, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "matrix_power",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor matrix_power(const Tensor& x, int n, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, int n",
+            "output": "Tensor",
+            "kernel": {
+              "func": "matrix_power"
+            },
+            "backward": "matrix_power_grad",
+            "infer_meta": {
+              "func": "MatrixPowerInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\matrix_power_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "nansum",
+        "pytorch": {
+          "op_name": "nansum",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/nansum.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "nansum",
+                "params": "const at::Tensor & self, at::OptionalIntArrayRef dim=::std::nullopt, bool keepdim=false, ::std::optional<at::ScalarType> dtype=::std::nullopt"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "nansum",
+                "aten_name": "aten::nansum",
+                "overload_name": "",
+                "schema": "nansum(Tensor self, int[1]? dim=None, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor"
+              },
+              {
+                "struct_name": "nansum_out",
+                "aten_name": "aten::nansum",
+                "overload_name": "out",
+                "schema": "nansum.out(Tensor self, int[1]? dim=None, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "nansum(Tensor self, int[1]? dim=None, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor",
+                "dispatch": {
+                  "CPU, CUDA": "nansum",
+                  "MPS": "nansum_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "nansum.out(Tensor self, int[1]? dim=None, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA": "nansum_out",
+                  "MPS": "nansum_out_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu, cuda_file": "aten\\src\\ATen\\native\\ReduceOps.cpp",
+            "cpu, cuda_func": "nansum_out"
+          }
+        },
+        "paddle": {
+          "op_name": "nansum",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor nansum(const Tensor& x, const IntArray& axis = {}, DataType dtype = DataType::UNDEFINED, bool keepdim = false, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, IntArray axis={}, DataType dtype=DataType::UNDEFINED, bool keepdim=false",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "nansum",
+              "data_type": "x"
+            },
+            "backward": "nansum_grad",
+            "infer_meta": {
+              "func": "SumInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "not_equal",
+        "pytorch": {
+          "op_name": "not_equal",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/not_equal.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "not_equal",
+                "params": "const at::Tensor & self, const at::Scalar & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "not_equal",
+                "params": "const at::Tensor & self, const at::Tensor & other"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "not_equal_Scalar_out",
+                "aten_name": "aten::not_equal",
+                "overload_name": "Scalar_out",
+                "schema": "not_equal.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "not_equal_Scalar",
+                "aten_name": "aten::not_equal",
+                "overload_name": "Scalar",
+                "schema": "not_equal.Scalar(Tensor self, Scalar other) -> Tensor"
+              },
+              {
+                "struct_name": "not_equal_Tensor_out",
+                "aten_name": "aten::not_equal",
+                "overload_name": "Tensor_out",
+                "schema": "not_equal.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "not_equal_Tensor",
+                "aten_name": "aten::not_equal",
+                "overload_name": "Tensor",
+                "schema": "not_equal.Tensor(Tensor self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "not_equal__Scalar",
+                "aten_name": "aten::not_equal_",
+                "overload_name": "Scalar",
+                "schema": "not_equal_.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "not_equal__Tensor",
+                "aten_name": "aten::not_equal_",
+                "overload_name": "Tensor",
+                "schema": "not_equal_.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "not_equal.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "not_equal.Scalar(Tensor self, Scalar other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              },
+              {
+                "func": "not_equal.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "not_equal.Tensor(Tensor self, Tensor other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "not_equal",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor not_equal(const Tensor& x, const Tensor& y, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "not_equal"
+            },
+            "inplace": "x -> out",
+            "infer_meta": {
+              "func": "CompareInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\inconsistent\\static_ops.yaml"
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "one_hot",
+        "pytorch": {
+          "op_name": "one_hot",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/one_hot.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "one_hot",
+                "params": "const at::Tensor & self, int64_t num_classes=-1"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "one_hot",
+                "aten_name": "aten::one_hot",
+                "overload_name": "",
+                "schema": "one_hot(Tensor self, int num_classes=-1) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "one_hot(Tensor self, int num_classes=-1) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "one_hot",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor one_hot(const Tensor& x, const Scalar& num_classes, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Scalar(int",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "one_hot"
+            },
+            "infer_meta": {
+              "func": "OneHotInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\one_hot_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "polygamma",
+        "pytorch": {
+          "op_name": "polygamma",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/polygamma.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "polygamma",
+                "params": "int64_t n, const at::Tensor & self"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "polygamma_out",
+                "aten_name": "aten::polygamma",
+                "overload_name": "out",
+                "schema": "polygamma.out(int n, Tensor self, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "polygamma",
+                "aten_name": "aten::polygamma",
+                "overload_name": "",
+                "schema": "polygamma(int n, Tensor self) -> Tensor"
+              },
+              {
+                "struct_name": "polygamma_",
+                "aten_name": "aten::polygamma_",
+                "overload_name": "",
+                "schema": "polygamma_(Tensor(a!) self, int n) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "polygamma.out(int n, Tensor self, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA, MPS": "polygamma_out"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null,
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "polygamma(int n, Tensor self) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "polygamma",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor polygamma(const Tensor& x, int n, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, int n",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "polygamma"
+            },
+            "inplace": "x -> out",
+            "backward": "polygamma_grad",
+            "infer_meta": {
+              "func": "UnchangedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\polygamma_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "remainder",
+        "pytorch": {
+          "op_name": "remainder",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/remainder.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "remainder",
+                "params": "const at::Tensor & self, const at::Scalar & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "remainder",
+                "params": "const at::Tensor & self, const at::Tensor & other"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "remainder",
+                "params": "const at::Scalar & self, const at::Tensor & other"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "remainder_Scalar_out",
+                "aten_name": "aten::remainder",
+                "overload_name": "Scalar_out",
+                "schema": "remainder.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "remainder_Scalar",
+                "aten_name": "aten::remainder",
+                "overload_name": "Scalar",
+                "schema": "remainder.Scalar(Tensor self, Scalar other) -> Tensor"
+              },
+              {
+                "struct_name": "remainder__Scalar",
+                "aten_name": "aten::remainder_",
+                "overload_name": "Scalar",
+                "schema": "remainder_.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "remainder_Tensor_out",
+                "aten_name": "aten::remainder",
+                "overload_name": "Tensor_out",
+                "schema": "remainder.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "remainder_Tensor",
+                "aten_name": "aten::remainder",
+                "overload_name": "Tensor",
+                "schema": "remainder.Tensor(Tensor self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "remainder__Tensor",
+                "aten_name": "aten::remainder_",
+                "overload_name": "Tensor",
+                "schema": "remainder_.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "remainder_Scalar_Tensor",
+                "aten_name": "aten::remainder",
+                "overload_name": "Scalar_Tensor",
+                "schema": "remainder.Scalar_Tensor(Scalar self, Tensor other) -> Tensor"
+              },
+              {
+                "struct_name": "remainder_Scalar_Tensor_out",
+                "aten_name": "aten::remainder",
+                "overload_name": "Scalar_Tensor_out",
+                "schema": "remainder.Scalar_Tensor_out(Scalar self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "remainder.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "remainder_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "remainder.Scalar(Tensor self, Scalar other) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "remainder"
+                },
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": "method, function"
+              },
+              {
+                "func": "remainder.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA, MPS, MTIA": "remainder_out"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null,
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "remainder.Tensor(Tensor self, Tensor other) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [
+                  "core",
+                  "pointwise"
+                ],
+                "variants": "method, function"
+              },
+              {
+                "func": "remainder.Scalar_Tensor(Scalar self, Tensor other) -> Tensor",
+                "dispatch": {
+                  "CPU, CUDA, MPS": "remainder"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "compositeexplicitautograd_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "compositeexplicitautograd_func": "remainder_out",
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd",
+            "cpu, cuda, mps, mtia_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "cpu, cuda, mps, mtia_func": "remainder_out",
+            "cpu, cuda, mps_file": "aten\\src\\ATen\\native\\BinaryOps.cpp",
+            "cpu, cuda, mps_func": "remainder"
+          }
+        },
+        "paddle": {
+          "op_name": "remainder",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor remainder(const Tensor& x, const Tensor& y, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, Tensor y",
+            "output": "Tensor (out)",
+            "kernel": {
+              "func": "remainder"
+            },
+            "inplace": "x -> out",
+            "backward": "remainder_grad",
+            "infer_meta": {
+              "func": "ElementwiseInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\inconsistent\\static_ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "renorm",
+        "pytorch": {
+          "op_name": "renorm",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/renorm.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "renorm",
+                "params": "const at::Tensor & self, const at::Scalar & p, int64_t dim, const at::Scalar & maxnorm"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "renorm_out",
+                "aten_name": "aten::renorm",
+                "overload_name": "out",
+                "schema": "renorm.out(Tensor self, Scalar p, int dim, Scalar maxnorm, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "renorm",
+                "aten_name": "aten::renorm",
+                "overload_name": "",
+                "schema": "renorm(Tensor self, Scalar p, int dim, Scalar maxnorm) -> Tensor"
+              },
+              {
+                "struct_name": "renorm_",
+                "aten_name": "aten::renorm_",
+                "overload_name": "",
+                "schema": "renorm_(Tensor(a!) self, Scalar p, int dim, Scalar maxnorm) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "renorm.out(Tensor self, Scalar p, int dim, Scalar maxnorm, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA": "renorm_out",
+                  "MPS": "renorm_out_mps"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "renorm(Tensor self, Scalar p, int dim, Scalar maxnorm) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "renorm",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor renorm(const Tensor& x, float p, int axis, float max_norm, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, float p, int axis, float max_norm",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "renorm"
+            },
+            "inplace": "x -> out",
+            "backward": "renorm_grad",
+            "infer_meta": {
+              "func": "UnchangedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\renorm_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "softplus",
+        "pytorch": {
+          "op_name": "softplus",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/softplus.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "softplus",
+                "params": "const at::Tensor & self, const at::Scalar & beta=1, const at::Scalar & threshold=20"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "softplus_out",
+                "aten_name": "aten::softplus",
+                "overload_name": "out",
+                "schema": "softplus.out(Tensor self, Scalar beta=1, Scalar threshold=20, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "softplus",
+                "aten_name": "aten::softplus",
+                "overload_name": "",
+                "schema": "softplus(Tensor self, Scalar beta=1, Scalar threshold=20) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "softplus.out(Tensor self, Scalar beta=1, Scalar threshold=20, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU, CUDA": "softplus_out",
+                  "MPS": "softplus_out_mps"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null,
+                "structured_inherits": "TensorIteratorBase"
+              },
+              {
+                "func": "softplus(Tensor self, Scalar beta=1, Scalar threshold=20) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "softplus",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor softplus(const Tensor& x, double beta = 1.0, double threshold = 20.0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, double beta = 1.0, double threshold = 20.0",
+            "output": "Tensor",
+            "kernel": {
+              "func": "softplus"
+            },
+            "backward": "softplus_grad",
+            "infer_meta": {
+              "func": "UnchangedInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "stack",
+        "pytorch": {
+          "op_name": "stack",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/stack.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "stack",
+                "params": "at::TensorList tensors, int64_t dim=0"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "stack",
+                "aten_name": "aten::stack",
+                "overload_name": "",
+                "schema": "stack(Tensor[] tensors, int dim=0) -> Tensor"
+              },
+              {
+                "struct_name": "stack_out",
+                "aten_name": "aten::stack",
+                "overload_name": "out",
+                "schema": "stack.out(Tensor[] tensors, int dim=0, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "stack(Tensor[] tensors, int dim=0) -> Tensor",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "stack"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "stack.out(Tensor[] tensors, int dim=0, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "stack_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd",
+            "compositeexplicitautograd_file": "aten\\src\\ATen\\native\\TensorShape.cpp",
+            "compositeexplicitautograd_func": "stack_out"
+          }
+        },
+        "paddle": {
+          "op_name": "stack",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor stack(const std::vector<Tensor>& x, int axis = 0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor[] x, int axis = 0",
+            "output": "Tensor (out)",
+            "kernel": {
+              "func": "stack"
+            },
+            "backward": "stack_grad",
+            "infer_meta": {
+              "func": "StackInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\stack_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "tril",
+        "pytorch": {
+          "op_name": "tril",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/tril.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "tril",
+                "params": "const at::Tensor & self, int64_t diagonal=0"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "tril_symint",
+                "params": "const at::Tensor & self, c10::SymInt diagonal=0"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "tril_",
+                "aten_name": "aten::tril_",
+                "overload_name": "",
+                "schema": "tril_(Tensor(a!) self, SymInt diagonal=0) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "tril_out",
+                "aten_name": "aten::tril",
+                "overload_name": "out",
+                "schema": "tril.out(Tensor self, SymInt diagonal=0, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "tril",
+                "aten_name": "aten::tril",
+                "overload_name": "",
+                "schema": "tril(Tensor self, SymInt diagonal=0) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "tril.out(Tensor self, SymInt diagonal=0, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "tril_cpu",
+                  "CUDA": "tril_cuda",
+                  "MPS": "tril_mps_out"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "tril(Tensor self, SymInt diagonal=0) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "tril",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor tril(const Tensor& x, int diagonal = 0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, int diagonal=0",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "tril"
+            },
+            "inplace": "x -> out",
+            "backward": "tril_grad",
+            "infer_meta": {
+              "func": "TrilInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "triu",
+        "pytorch": {
+          "op_name": "triu",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/triu.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "triu",
+                "params": "const at::Tensor & self, int64_t diagonal=0"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "triu_symint",
+                "params": "const at::Tensor & self, c10::SymInt diagonal=0"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "triu_",
+                "aten_name": "aten::triu_",
+                "overload_name": "",
+                "schema": "triu_(Tensor(a!) self, SymInt diagonal=0) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "triu_out",
+                "aten_name": "aten::triu",
+                "overload_name": "out",
+                "schema": "triu.out(Tensor self, SymInt diagonal=0, *, Tensor(a!) out) -> Tensor(a!)"
+              },
+              {
+                "struct_name": "triu",
+                "aten_name": "aten::triu",
+                "overload_name": "",
+                "schema": "triu(Tensor self, SymInt diagonal=0) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "triu.out(Tensor self, SymInt diagonal=0, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "triu_cpu",
+                  "CUDA": "triu_cuda",
+                  "MPS": "triu_mps_out"
+                },
+                "structured": true,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "triu(Tensor self, SymInt diagonal=0) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "method, function"
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "triu",
+          "notes": [],
+          "api_declaration": {
+            "found": true,
+            "signature": "PADDLE_API Tensor triu(const Tensor& x, int diagonal = 0, paddle::optional<paddle::Tensor*> predefined_out = paddle::none);",
+            "has_predefined_out": true
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor x, int diagonal=0",
+            "output": "Tensor(out)",
+            "kernel": {
+              "func": "triu"
+            },
+            "inplace": "x -> out",
+            "backward": "triu_grad",
+            "infer_meta": {
+              "func": "TriuInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_api_h_only",
+        "notes": []
+      },
+      {
+        "op_name": "unbind",
+        "pytorch": {
+          "op_name": "unbind",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/unbind.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "::std::vector<at::Tensor>",
+                "name": "unbind",
+                "params": "const at::Tensor & self, int64_t dim=0"
+              },
+              {
+                "ret": "::std::vector<at::Tensor>",
+                "name": "unbind",
+                "params": "const at::Tensor & self, at::Dimname dim"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "unbind_int",
+                "aten_name": "aten::unbind",
+                "overload_name": "int",
+                "schema": "unbind.int(Tensor(a -> *) self, int dim=0) -> Tensor(a)[]"
+              },
+              {
+                "struct_name": "unbind_Dimname",
+                "aten_name": "aten::unbind",
+                "overload_name": "Dimname",
+                "schema": "unbind.Dimname(Tensor(a -> *) self, Dimname dim) -> Tensor(a)[]"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "unbind.int(Tensor(a -> *) self, int dim=0) -> Tensor(a)[]",
+                "dispatch": {
+                  "CompositeExplicitAutograd": "unbind",
+                  "NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA": "NestedTensor_unbind"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              },
+              {
+                "func": "unbind.Dimname(Tensor(a -> *) self, Dimname dim) -> Tensor(a)[]",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": "function, method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "composite": true,
+            "composite_backend": "CompositeExplicitAutograd"
+          }
+        },
+        "paddle": {
+          "op_name": "unbind",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "args": "Tensor input, int axis = 0",
+            "output": "Tensor[] {axis<0 ? input.dims()[input.dims().size()+axis]:input.dims()[axis]}",
+            "kernel": {
+              "func": "unbind"
+            },
+            "backward": "unbind_grad",
+            "infer_meta": {
+              "func": "UnbindInferMeta"
+            },
+            "file": "paddle\\phi\\ops\\yaml\\ops.yaml"
+          },
+          "kernel_registration": {
+            "found": true,
+            "cpu_registered": true,
+            "gpu_registered": true,
+            "has_header": true,
+            "header_file": "paddle\\phi\\kernels\\unbind_kernel.h"
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "kernel_only",
+        "notes": []
+      },
+      {
+        "op_name": "_fft_c2c",
+        "pytorch": {
+          "op_name": "_fft_c2c",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_fft_c2c.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_fft_c2c",
+                "params": "const at::Tensor & self, at::IntArrayRef dim, int64_t normalization, bool forward"
+              },
+              {
+                "ret": "at::Tensor",
+                "name": "_fft_c2c_symint",
+                "params": "const at::Tensor & self, c10::SymIntArrayRef dim, int64_t normalization, bool forward"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_fft_c2c",
+                "aten_name": "aten::_fft_c2c",
+                "overload_name": "",
+                "schema": "_fft_c2c(Tensor self, SymInt[] dim, int normalization, bool forward) -> Tensor"
+              },
+              {
+                "struct_name": "_fft_c2c_out",
+                "aten_name": "aten::_fft_c2c",
+                "overload_name": "out",
+                "schema": "_fft_c2c.out(Tensor self, SymInt[] dim, int normalization, bool forward, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_fft_c2c(Tensor self, SymInt[] dim, int normalization, bool forward) -> Tensor",
+                "dispatch": {
+                  "CPU": "_fft_c2c_mkl",
+                  "CUDA": "_fft_c2c_cufft",
+                  "MPS": "_fft_c2c_mps"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              },
+              {
+                "func": "_fft_c2c.out(Tensor self, SymInt[] dim, int normalization, bool forward, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {
+                  "CPU": "_fft_c2c_mkl_out",
+                  "CUDA": "_fft_c2c_cufft_out",
+                  "MPS": "_fft_c2c_mps_out"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu_file": "aten\\src\\ATen\\native\\mkl\\SpectralOps.cpp",
+            "cpu_func": "_fft_c2c_mkl_out",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\SpectralOps.cpp",
+            "cuda_func": "_fft_c2c_cufft_out"
+          }
+        },
+        "paddle": {
+          "op_name": "_fft_c2c",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_fft_c2c",
+            "paddle_api": "fft_c2c",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "_stack",
+        "pytorch": {
+          "op_name": "_stack",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_stack.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "_stack",
+                "params": "at::TensorList tensors, int64_t dim=0"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_stack",
+                "aten_name": "aten::_stack",
+                "overload_name": "",
+                "schema": "_stack(Tensor[] tensors, int dim=0) -> Tensor"
+              },
+              {
+                "struct_name": "_stack_out",
+                "aten_name": "aten::_stack",
+                "overload_name": "out",
+                "schema": "_stack.out(Tensor[] tensors, int dim=0, *, Tensor(a!) out) -> Tensor(a!)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_stack(Tensor[] tensors, int dim=0) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              },
+              {
+                "func": "_stack.out(Tensor[] tensors, int dim=0, *, Tensor(a!) out) -> Tensor(a!)",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "_stack",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "_stack",
+            "paddle_api": "stack",
+            "rule": "strip_underscore_prefix",
+            "confidence": "high",
+            "description": "PyTorch internal variant (underscore prefix) -> standard"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      },
+      {
+        "op_name": "grid_sampler",
+        "pytorch": {
+          "op_name": "grid_sampler",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/grid_sampler.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Tensor",
+                "name": "grid_sampler",
+                "params": "const at::Tensor & input, const at::Tensor & grid, int64_t interpolation_mode, int64_t padding_mode, bool align_corners"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "grid_sampler",
+                "aten_name": "aten::grid_sampler",
+                "overload_name": "",
+                "schema": "grid_sampler(Tensor input, Tensor grid, int interpolation_mode, int padding_mode, bool align_corners) -> Tensor"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "grid_sampler(Tensor input, Tensor grid, int interpolation_mode, int padding_mode, bool align_corners) -> Tensor",
+                "dispatch": {},
+                "structured": false,
+                "tags": [],
+                "variants": null
+              }
+            ]
+          },
+          "kernel_impl": {}
+        },
+        "paddle": {
+          "op_name": "grid_sampler",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": false
+          }
+        },
+        "alias_candidates": [
+          {
+            "torch_api": "grid_sampler",
+            "paddle_api": "grid_sample",
+            "rule": "common_naming_differences",
+            "confidence": "medium",
+            "description": "Common naming differences between PyTorch and Paddle"
+          }
+        ],
+        "verification_status": "alias_candidate",
+        "notes": []
+      }
+    ]
+  }
+}

@@ -359,6 +359,7 @@
 | 23 | `at::triangular_solve` | `paddle::experimental::triangular_solve` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at.triangular_solve.md) |
 | 24 | `at::unique_consecutive` | `paddle::experimental::unique_consecutive` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at.unique_consecutive.md) |
 | 25 | `at::where` | `paddle::experimental::where` | 返回参数类型不一致 | [差异对比](cpp_output_args_type_diff/at.where.md) |
+| 26 | `at::einsum` | `paddle::experimental::einsum` | 返回参数类型不一致 | Paddle 返回 tuple，PyTorch 返回 Tensor |
 
 ### 10. 组合替代实现
 
@@ -758,7 +759,6 @@
 | 355 | `at::diff` | - | 功能缺失 | - |
 | 356 | `at::div` | - | 功能缺失 | - |
 | 357 | `at::dstack` | - | 功能缺失 | - |
-| 358 | `at::einsum` | - | 功能缺失 | - |
 | 359 | `at::embedding_bag` | - | 功能缺失 | - |
 | 360 | `at::embedding_renorm` | - | 功能缺失 | - |
 | 361 | `at::empty_permuted` | - | 功能缺失 | - |
@@ -1207,11 +1207,11 @@
 - **torch 参数更多**: 19 个
 - **输入参数用法不一致**: 0 个
 - **输入参数类型不一致**: 37 个
-- **返回参数类型不一致**: 25 个
+- **返回参数类型不一致**: 26 个
 - **组合替代实现**: 0 个
 - **API 别名**: 13 个
 - **语义差异**: 1 个
-- **功能缺失**: 795 个
+- **功能缺失**: 794 个
 - **API 别名映射数**: 14 个
 - **libtorch 主 ops 总数**: 1082 个
 - **实际参与映射的 ops 数**: 1089 个

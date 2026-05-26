@@ -29,7 +29,7 @@ argument-hint: '可选批次名（P0/P1/P2/P3/P4/P5/all），不传则全量验�
 |------|------|--------|------|
 | `batch` | string | `all` | 验证批次：P0/P1/P2/P3/P4/P5/all |
 | `auto_fix` | bool | `true` | 是否自动修复高置信度问题 |
-| `output_dir` | string | `doc/verification_output` | 报告输出目录 |
+| `output_dir` | string | `doc/mapping/verification_output` | 报告输出目录 |
 | `libtorch_ops_dir` | string | `D:/Lenovo/libtorch/include/ATen/ops` | libtorch 头文件路径 |
 | `paddle_src_dir` | string | `D:/Lenovo/Paddle` | Paddle 源码路径 |
 | `pytorch_src_dir` | string | `D:/Lenovo/pytorch` | PyTorch 源码路径 |
@@ -55,7 +55,7 @@ argument-hint: '可选批次名（P0/P1/P2/P3/P4/P5/all），不传则全量验�
 ### Step 2. 脚本执行表层验证
 
 ```bash
-cd "$PCAT_ROOT/doc"
+cd "$PCAT_ROOT/doc/mapping"
 python verify_api_mapping.py --batch "$batch"
 ```
 
@@ -121,7 +121,7 @@ python generate_comprehensive_report.py
 ### Step 7. 提交 PR
 
 若存在修复：
-1. `git add doc/`
+1. `git add doc/mapping/`
 2. pre-commit 检查
 3. `git commit`
 4. `git push origin doc`
