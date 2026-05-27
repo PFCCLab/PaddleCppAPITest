@@ -200,15 +200,20 @@ bash test/result_cmp.sh ./build/
 
 ## Step 7. 提交 commit 并创建 PR
 
-闭环验证通过且文档已回填后，按以下流程提交。完整命令模板见 [`references/pr-workflow.md`](references/pr-workflow.md)。
+闭环验证通过且文档已回填后，按以下流程提交。完整命令模板见 [`references/Step7.md`](references/Step7.md)。
 
 1. **从 fork 主分支 checkout 新分支**（`git fetch upstream && git checkout -B add/<api>-<YYYYMMDD> upstream/develop`）
 2. **commit 改动**（commit message 首行使用 `[Cpp API Compatibility] <对齐迭代记录标题>`）
 3. **征求用户同意后 push 到 fork**（`git push origin <branch>`——这是发出去的动作，**push 前必须明确询问用户**）
 4. **征求用户同意后 `gh pr create` 到 upstream**（`--repo PaddlePaddle/Paddle --base develop`——同样需要用户确认）
 5. **如果还改了 PCAT 测试**：在 `$PCAT_ROOT` 上重复 1-4 步，`--repo PFCCLab/PaddleCppAPITest --base master`
+6. **等待 CI 完成并按结果分流**（`gh pr checks <PR_NUM> --watch`）
+   - CI 通过 → 等待 reviewer，本流程结束
+   - CI 失败 → 调查失败是否由本 PR 引起（命令与判断标准见 [`references/Step7.md`](references/Step7.md) 第 6 节）：
+     - **是** → 返回 [`Step 2`](#step-2-参考-pytorch-实现并新增-paddle-compat-接口) 修复；同一分支上 commit + push（**push 仍需用户同意**），PR 自动更新，不发新 PR
+     - **否** → `gh pr comment <PR_NUM> --body "/re-run all-failed"` 重新触发 CI，回到本步骤继续 watch
 
-> 安全约定：**`git push` 与 `gh pr create` 每一次执行前必须征求用户同意**（不是"在整个 Step 7 开始时一次性确认"，而是这两条命令各确认一次）。这与系统提示"对影响他人的动作要逐次确认"一致。
+> 安全约定：**`git push` 与 `gh pr create` 每一次执行前必须征求用户同意**（不是"在整个 Step 7 开始时一次性确认"，而是这两条命令各确认一次）。修复后的 push 同样适用——同一分支不豁免。这与系统提示"对影响他人的动作要逐次确认"一致。
 
 ## 推荐执行节奏
 

@@ -110,6 +110,91 @@ gh pr create --repo PFCCLab/PaddleCppAPITest --base master ...
 
 PCAT PR 通常**引用** Paddle 侧 PR 编号（在 PR body 里加 `Related: PaddlePaddle/Paddle#xxxxx`）。
 
+## 6) 等待 CI 完成与失败分流
+
+> Step 7 不在 `gh pr create` 就结束——必须看着 CI 跑完才算结束。
+
+### 6.1) 阻塞式等待 CI
+
+```bash
+gh pr checks <PR_NUM> --watch
+```
+
+`--watch` 会阻塞到所有 check 跑完。输出末尾标明 `pass` / `fail` / `cancelled`。
+
+如果不想长时间阻塞，也可以非阻塞看：
+
+```bash
+gh pr checks <PR_NUM>                          # 一次性快照
+gh pr checks <PR_NUM> --watch --interval 30    # 30 秒一次
+```
+
+### 6.2) CI 通过
+
+等待 reviewer。本轮 add / fix 流程整体结束。
+
+### 6.3) CI 失败 —— 第一步：判断是否本 PR 引起
+
+```bash
+gh pr checks <PR_NUM>                          # 列失败的 check 名
+gh run view <run_id> --log-failed              # 看失败日志（run_id 从上一条取）
+gh pr diff <PR_NUM>                            # 回顾本 PR 改了哪些文件
+```
+
+判断标准（任一命中即视为"本 PR 引起"）：
+
+- 失败的 check / test 覆盖了本 PR 改动的文件 / API
+- 错误堆栈引用了本 PR 新增 / 修改的代码路径
+- 失败的 lint / format 指向本 PR 改动的代码
+- 编译错误指向本 PR 引入的符号 / 头文件
+- 同一 CI job 在 master 上能通过，但本分支上挂
+
+判断为"与本 PR 无关"（典型征兆）：
+
+- 失败 check 与本 PR 改动文件无交集（如本 PR 只改 doc，CI 挂的是 build）
+- master 同一时段同一 job 也在挂（上游 break）
+- 网络 / 镜像 / 资源相关错误（pull image timeout 等）
+- 已知 flaky test（CI history 有间歇失败）
+
+### 6.4) CI 失败 —— 第二步：分流
+
+**case A：本 PR 引起 → 返回主流程修复**
+
+```bash
+# 在同一分支上修复（不要切回 master、不要发新 PR）
+# - 编译错误 → 主流程 Step 3
+# - 测试失败 → 主流程 Step 2-5
+# - 格式 / lint → 跑 pre-commit run --all-files
+
+# 修复完代码，先跑完整闭环（不要跳过）
+cd "$PADDLE_ROOT/build" && ninja -j"$(nproc)" && ctest -R "ATen|c10|torch"
+pip install "$PADDLE_ROOT"/build/python/dist/*.whl --force-reinstall --no-deps
+cd "$PCAT_ROOT" && bash test/result_cmp.sh ./build/
+
+# 闭环通过后 commit + push
+git add <修复文件>
+git commit -m "fix CI: <根因简述>"
+
+# push 仍需用户同意（同一分支不豁免本约定）
+git push origin "$(git rev-parse --abbrev-ref HEAD)"
+
+# push 后 PR 自动更新，CI 自动重跑。回到 6.1 继续 watch。
+```
+
+> 用户原话："如果是本次 PR 导致的问题，就返回 Step 2 修复"——具体修复入口看失败类型，但**通常从主流程 Step 2（实现层）入手**。
+
+**case B：与本 PR 无关 → 评论触发重跑**
+
+```bash
+gh pr comment <PR_NUM> --body "/re-run all-failed"
+```
+
+PFCCLab/PaddleCppAPITest 仓库 CI 支持该 chatops 命令重跑失败的 job。
+
+评论后回到 6.1 继续 `gh pr checks <PR_NUM> --watch`。
+
+> 不确定根因时，**先不要评论 `/re-run all-failed`**——盲目重跑会掩盖真实问题。先按 6.3 判断标准查清楚再分流。
+
 ## 失败处理
 
 - commit 失败（pre-commit hook 等）：修复后**新建** commit（不要 `--amend`），重跑闭环验证
