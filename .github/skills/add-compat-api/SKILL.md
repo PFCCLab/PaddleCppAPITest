@@ -33,7 +33,7 @@ TORCH_DIR=~/libtorch
 
 ## Step 0. 环境检测与自动配置
 
-进入主流程之前，按以下顺序检测并按需配置环境。完整命令模板与 fallback 决策见 [`references/env-setup.md`](references/env-setup.md)。
+进入主流程之前，按以下顺序检测并按需配置环境。完整命令模板与 fallback 决策见 [`references/Step0.md`](references/Step0.md)。
 
 1. **检测 NVIDIA GPU**（决定 libtorch CPU/CUDA 版本，用 `nvidia-smi`）
 2. **PaddleCppAPITest**（fork 工作流，缺失则自动克隆并配置 `origin`/`upstream`）
