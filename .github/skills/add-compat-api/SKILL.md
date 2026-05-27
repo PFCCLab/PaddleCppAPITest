@@ -54,7 +54,7 @@ TORCH_DIR=~/libtorch
 
 ### Step 2. 参考 PyTorch 实现并新增 Paddle compat 接口
 
-1. 在 `$PYTORCH_ROOT` 中查找目标接口实现（声明 + 实现）。
+1. 在 `$PYTORCH_ROOT` 中查找目标接口实现，在 `$TORCH_DIR` 中查找目标接口声明。
    追踪方法参考 [references/Step2-1.md](references/Step2-1.md) 与
    [references/Step2-2.md](references/Step2-2.md)。
 2. 在 `$PADDLE_ROOT/paddle/phi/api/include/compat` 中新增接口
