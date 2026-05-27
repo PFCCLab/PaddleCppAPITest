@@ -30,7 +30,7 @@
         <mxCell id="l3" value="单 API / 批次验证&#xa;(doc/mapping/verify_api_mapping.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;fontSize=13;fontWeight=1;" vertex="1" parent="1">
           <mxGeometry width="200" height="60" x="150" y="330" as="geometry" />
         </mxCell>
-        <mxCell id="l3b" value="人工源码审核&#xa;(核心步骤：阅读 C++ kernel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;fontSize=12;fontWeight=1;dashed=1;" vertex="1" parent="1">
+        <mxCell id="l3b" value="Agent 源码审核&#xa;(核心步骤：阅读 C++ kernel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;fontSize=12;fontWeight=1;dashed=1;" vertex="1" parent="1">
           <mxGeometry width="200" height="60" x="150" y="420" as="geometry" />
         </mxCell>
         <mxCell id="l4" value="发现问题？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontSize=13;fontWeight=1;" vertex="1" parent="1">
@@ -39,7 +39,7 @@
         <mxCell id="l5" value="自动修复&#xa;(fix_mapping.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;fontSize=12;" vertex="1" parent="1">
           <mxGeometry width="160" height="50" x="70" y="620" as="geometry" />
         </mxCell>
-        <mxCell id="l6" value="人工审核&#xa;(低置信度 / 语义差异)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="l6" value="Agent 审核&#xa;(低置信度 / 语义差异)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontSize=12;" vertex="1" parent="1">
           <mxGeometry width="160" height="50" x="270" y="620" as="geometry" />
         </mxCell>
         <mxCell id="l7" value="生成修复报告&#xa;(verification_output/)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F3FF;strokeColor=#8B5CF6;fontSize=13;fontWeight=1;" vertex="1" parent="1">
@@ -80,7 +80,7 @@
         <mxCell id="c3" value="验证历史报告&#xa;(verification_output/)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontSize=12;fontWeight=1;" vertex="1" parent="1">
           <mxGeometry width="220" height="50" x="530" y="390" as="geometry" />
         </mxCell>
-        <mxCell id="c3b" value="人工审核报告&#xa;(manual_review_report_P*.md)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;fontSize=12;fontWeight=1;" vertex="1" parent="1">
+        <mxCell id="c3b" value="Agent 审核报告&#xa;(manual_review_report_P*.md)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;fontSize=12;fontWeight=1;" vertex="1" parent="1">
           <mxGeometry width="220" height="50" x="530" y="460" as="geometry" />
         </mxCell>
         <mxCell id="c4" value="验证工具模块&#xa;(verify/ tracer + detector)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontSize=12;" vertex="1" parent="1">
@@ -123,7 +123,7 @@
         <mxCell id="r3c" value="全量验证&#xa;(P0-P5 优先级分批)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;fontSize=13;fontWeight=1;" vertex="1" parent="1">
           <mxGeometry width="200" height="60" x="950" y="510" as="geometry" />
         </mxCell>
-        <mxCell id="r3d" value="人工源码审核&#xa;(核心步骤：阅读 C++ kernel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;fontSize=12;fontWeight=1;dashed=1;" vertex="1" parent="1">
+        <mxCell id="r3d" value="Agent 源码审核&#xa;(核心步骤：阅读 C++ kernel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;fontSize=12;fontWeight=1;dashed=1;" vertex="1" parent="1">
           <mxGeometry width="200" height="60" x="950" y="600" as="geometry" />
         </mxCell>
         <mxCell id="r4" value="差异检测&#xa;(对比上次验证结果)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F3FF;strokeColor=#8B5CF6;fontSize=12;" vertex="1" parent="1">
@@ -135,7 +135,7 @@
         <mxCell id="r6" value="自动修复&#xa;(fix_mapping.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;fontSize=12;" vertex="1" parent="1">
           <mxGeometry width="160" height="50" x="860" y="880" as="geometry" />
         </mxCell>
-        <mxCell id="r7" value="人工审核队列&#xa;(低置信度 / 语义差异)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="r7" value="Agent 审核队列&#xa;(低置信度 / 语义差异)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontSize=12;" vertex="1" parent="1">
           <mxGeometry width="160" height="50" x="1080" y="880" as="geometry" />
         </mxCell>
         <mxCell id="r8" value="生成综合报告&#xa;(generate_comprehensive_report.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F3FF;strokeColor=#8B5CF6;fontSize=12;fontWeight=1;" vertex="1" parent="1">

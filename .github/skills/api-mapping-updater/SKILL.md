@@ -1,6 +1,6 @@
 ---
 name: api-mapping-updater
-description: '定期触发验证并自动更新 API 映射表。基于 verify_api_mapping.py 全量验证，检测分类漂移，自动修复高置信度问题，低置信度进入人工审核队列。'
+description: '定期触发验证并自动更新 API 映射表。基于 verify_api_mapping.py 全量验证，检测分类漂移，自动修复高置信度问题，低置信度进入Agent 审核队列。'
 argument-hint: '可选批次名（P0/P1/P2/P3/P4/P5/all），不传则全量验证'
 ---
 
@@ -39,11 +39,11 @@ argument-hint: '可选批次名（P0/P1/P2/P3/P4/P5/all），不传则全量验�
 1. **验证报告** `verification_report_YYYY-MM-DD.md` — 人类可读的差异报告
 2. **JSON 结果** `verification_results_*.json` — 结构化验证结果
 3. **修复日志** `fix_log_YYYY-MM-DD.md` — 自动修复操作记录
-4. **人工审核队列** `manual_review_queue.json` — 需人工确认的条目
+4. **Agent 审核队列** `manual_review_queue.json` — 需 Agent 确认的条目
 
 ## 工作流
 
-> **核心原则**：脚本只负责**表层验证**（头文件签名、kernel 文件路径定位、重复条目检测），**具体 C++ 实现逻辑的审核必须由人工逐一阅读源码完成**。
+> **核心原则**：脚本只负责**表层验证**（头文件签名、kernel 文件路径定位、重复条目检测），**具体 C++ 实现逻辑的审核由 Agent 逐一阅读源码完成**。
 
 ### Step 1. 环境检查
 
@@ -66,7 +66,7 @@ python verify_api_mapping.py --batch "$batch"
 - 头文件签名对比结果
 - 重复条目检测
 
-### Step 3. 人工阅读源码审核（核心步骤）
+### Step 3. Agent 源码审核（核心步骤）
 
 对 P0（API 完全一致）和 P1（仅参数名不一致）等关键批次的 API，**逐一阅读 C++ 实现文件**，对比以下维度：
 
@@ -101,7 +101,7 @@ python verify_api_mapping.py --batch "$batch"
 | `verified_compat` API 的 compat 层文件缺失 | 降级为 `verified_api_h_only` | medium |
 | 发现新的 `strip_underscore_prefix` 别名 | 添加到 `cpp_api_alias_mapping.json` | high |
 
-**⚠️ 注意**：脚本**不**判断实现语义等价性，语义审核必须由 Step 3 的人工审核完成。
+**⚠️ 注意**：脚本**不**判断实现语义等价性，语义审核必须由 Step 3 的 Agent 审核完成。
 
 修复后运行 `fix_mapping.py` 更新 `cpp_api_mapping_cn.md`。
 
@@ -114,9 +114,9 @@ python generate_comprehensive_report.py
 报告包含：
 - 各批次验证统计
 - 脚本发现的问题列表
-- **人工源码审核记录**（风险评级 + 差异说明）
+- **Agent 源码审核记录**（风险评级 + 差异说明）
 - 自动修复记录
-- 需继续人工审核的条目
+- 需继续 Agent 审核的条目
 
 ### Step 7. 提交 PR
 
@@ -138,8 +138,8 @@ python generate_comprehensive_report.py
 - 提交修复后的映射表
 
 ### 分支 C：发现低置信度问题
-- 生成人工审核队列
-- 不自动修复，等待人工确认
+- 生成Agent 审核队列
+- 不自动修复，等待 Agent 确认
 
 ### 分支 D：Paddle/PyTorch 版本升级
 - 执行全量验证
@@ -149,7 +149,7 @@ python generate_comprehensive_report.py
 ## 质量标准
 
 1. **可追溯**：每次验证都有时间戳和完整报告
-2. **低风险**：高置信度自动修复才执行，低置信度必须人工审核
+2. **低风险**：高置信度自动修复才执行，低置信度必须 Agent 审核
 3. **可回滚**：每次自动修复前备份 `cpp_api_mapping_cn.md` 和 `cpp_api_alias_mapping.json`
 4. **不破坏**：自动修复后验证总数不变（1096 → 1096）
 

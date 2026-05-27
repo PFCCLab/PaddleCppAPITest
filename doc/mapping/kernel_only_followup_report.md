@@ -6,7 +6,7 @@
 
 ## 修正说明
 
-P2 人工源码审核报告中，以下20个API被初步标记为 `kernel_only`（kernel已注册但api.h未暴露）。
+P2 Agent源码审核报告中，以下20个API被初步标记为 `kernel_only`（kernel已注册但api.h未暴露）。
 
 **经进一步验证：这20个API实际上全部已在 `api.h` 中有声明，因此应更正为 `verified_api_h_only`（api.h有实现但compat层未封装）。**
 

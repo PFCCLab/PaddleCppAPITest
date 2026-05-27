@@ -35,7 +35,7 @@ argument-hint: '目标 API 名（如 abs）或批次名（P0/P1/P2/P3/P4/P5）'
 
 ## 工作流
 
-> **核心原则**：脚本只负责**定位**和**提取表层信息**（头文件签名、kernel 文件路径），**具体 C++ 实现逻辑的审核必须由人工逐一阅读源码完成**。
+> **核心原则**：脚本只负责**定位**和**提取表层信息**（头文件签名、kernel 文件路径），**具体 C++ 实现逻辑的审核由 Agent 逐一阅读源码完成**。
 
 ### Step 1. 脚本定位（自动化）
 
@@ -55,7 +55,7 @@ python verify_api_mapping.py --batch "$batch"
 - **Paddle kernel 实现文件路径**（如 `paddle/phi/kernels/cpu/abs_kernel.cc:25`）
 - 头文件签名对比结果
 
-### Step 2. 人工阅读源码审核（核心步骤）
+### Step 2. Agent 源码审核（核心步骤）
 
 **根据脚本定位的文件路径，逐一阅读 C++ 实现文件**，对比以下维度：
 
@@ -119,9 +119,9 @@ python verify_api_mapping.py --batch "$batch"
 
 | 验证状态 | 含义 | 修复建议 |
 |----------|------|----------|
-| `verified_compat` | compat 层已实现 | 需人工审核实现逻辑 |
+| `verified_compat` | compat 层已实现 | 需Agent 审核实现逻辑 |
 | `verified_api_h_only` | api.h 有实现，compat 层未封装 | 可考虑添加 compat 层封装 |
-| `alias_candidate` | 发现别名映射候选 | 需人工确认别名语义等价 |
+| `alias_candidate` | 发现别名映射候选 | 需 Agent 确认别名语义等价 |
 | `kernel_only` | kernel 已注册但未暴露到 api.h | 需 Paddle 侧暴露到 api.h |
 | `truly_missing` | 真正缺失 | 确认是否真的无对应实现 |
 

@@ -9,7 +9,7 @@
 4. 已知功能映射：range → arange
 5. 字符串相似度（Levenshtein ratio >= 0.85）作为补充发现
 
-输出：cpp_api_alias_candidates.json，供人工审核后生成 cpp_api_alias_mapping.json
+输出：cpp_api_alias_candidates.json，供 Agent 审核后生成 cpp_api_alias_mapping.json
 """
 
 import argparse
@@ -170,7 +170,7 @@ def discover_aliases(libtorch_ops, paddle_funcs):
                         "paddle_api": m,
                         "rule": "string_similarity",
                         "confidence": "medium",
-                        "note": f"字符串相似度候选: `{op}` ↔ `{m}`，需人工审核",
+                        "note": f"字符串相似度候选: `{op}` ↔ `{m}`，需 Agent 审核",
                     }
                 )
 

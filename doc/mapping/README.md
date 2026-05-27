@@ -11,7 +11,7 @@ doc/mapping/
 ├── README.md                          # 本文档
 ├── cpp_api_mapping_cn.md              # 主映射表（Markdown）
 ├── cpp_api_alias_mapping.json         # 别名映射配置
-├── cpp_api_alias_candidates.json      # 别名候选（供人工审核）
+├── cpp_api_alias_candidates.json      # 别名候选（供 Agent 审核）
 ├── generate_cpp_api_mapping.py        # [核心] 生成映射表
 ├── verify_api_mapping.py              # [核心] 验证映射表
 ├── fix_mapping.py                     # [核心] 自动修复映射表
@@ -169,7 +169,7 @@ python fix_mapping.py
 
 ### 4. discover_cpp_api_aliases.py — 发现别名候选
 
-**作用**：自动发现 PyTorch 与 Paddle 之间的候选别名映射，输出 JSON 供人工审核。
+**作用**：自动发现 PyTorch 与 Paddle 之间的候选别名映射，输出 JSON 供 Agent 审核。
 
 **使用场景**：
 - 生成或更新 `cpp_api_alias_mapping.json`
@@ -201,7 +201,7 @@ python generate_cpp_api_mapping.py --output cpp_api_mapping_cn.md
 # 2. 发现别名候选（路径从环境变量自动读取）
 python discover_cpp_api_aliases.py --output cpp_api_alias_candidates.json
 
-# 3. 人工审核候选别名，更新 cpp_api_alias_mapping.json
+# 3. Agent 审核候选别名，更新 cpp_api_alias_mapping.json
 
 # 4. 重新生成（别名会参与分类）
 python generate_cpp_api_mapping.py --output cpp_api_mapping_cn.md
@@ -224,11 +224,11 @@ python generate_comprehensive_report.py
 
 ---
 
-## 人工源码审核
+## Agent 源码审核
 
 脚本验证仅覆盖**表层信息**（头文件签名、kernel 文件路径、重复条目）。
 
-**核心数学语义是否一致，必须由人工逐一阅读 C++ 实现文件确认。**
+**核心数学语义是否一致，必须由 Agent 逐一阅读 C++ 实现文件确认。**
 
 审核维度：
 - 核心数学运算（`std::abs` vs `std::abs`）
@@ -245,7 +245,7 @@ python generate_comprehensive_report.py
 
 ## 注意事项
 
-1. **脚本只辅助定位 kernel 文件，语义审核必须人工完成**
+1. **脚本只辅助定位 kernel 文件，语义审核由 Agent 完成**
 2. **generate_cpp_api_mapping.py 会覆盖现有映射表**，执行前建议备份
 3. 验证状态 `kernel_only` 的 API **不要**从别名映射中移除（kernel 已注册但 `api.h` 未暴露）
 4. 每次自动修复前备份 `cpp_api_mapping_cn.md` 和 `cpp_api_alias_mapping.json`

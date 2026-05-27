@@ -116,755 +116,755 @@
     "paddle_api": "acosh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `acos` ↔ `acosh`，需人工审核"
+    "note": "字符串相似度候选: `acos` ↔ `acosh`，需Agent 审核"
   },
   {
     "torch_api": "acos",
     "paddle_api": "cos",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `acos` ↔ `cos`，需人工审核"
+    "note": "字符串相似度候选: `acos` ↔ `cos`，需Agent 审核"
   },
   {
     "torch_api": "acosh",
     "paddle_api": "cosh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `acosh` ↔ `cosh`，需人工审核"
+    "note": "字符串相似度候选: `acosh` ↔ `cosh`，需Agent 审核"
   },
   {
     "torch_api": "acosh",
     "paddle_api": "acos",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `acosh` ↔ `acos`，需人工审核"
+    "note": "字符串相似度候选: `acosh` ↔ `acos`，需Agent 审核"
   },
   {
     "torch_api": "addbmm",
     "paddle_api": "baddbmm",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `addbmm` ↔ `baddbmm`，需人工审核"
+    "note": "字符串相似度候选: `addbmm` ↔ `baddbmm`，需Agent 审核"
   },
   {
     "torch_api": "addbmm",
     "paddle_api": "addmm",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `addbmm` ↔ `addmm`，需人工审核"
+    "note": "字符串相似度候选: `addbmm` ↔ `addmm`，需Agent 审核"
   },
   {
     "torch_api": "addr",
     "paddle_api": "add",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `addr` ↔ `add`，需人工审核"
+    "note": "字符串相似度候选: `addr` ↔ `add`，需Agent 审核"
   },
   {
     "torch_api": "amax",
     "paddle_api": "max",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `amax` ↔ `max`，需人工审核"
+    "note": "字符串相似度候选: `amax` ↔ `max`，需Agent 审核"
   },
   {
     "torch_api": "amin",
     "paddle_api": "min",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `amin` ↔ `min`，需人工审核"
+    "note": "字符串相似度候选: `amin` ↔ `min`，需Agent 审核"
   },
   {
     "torch_api": "asin",
     "paddle_api": "asinh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `asin` ↔ `asinh`，需人工审核"
+    "note": "字符串相似度候选: `asin` ↔ `asinh`，需Agent 审核"
   },
   {
     "torch_api": "asin",
     "paddle_api": "sin",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `asin` ↔ `sin`，需人工审核"
+    "note": "字符串相似度候选: `asin` ↔ `sin`，需Agent 审核"
   },
   {
     "torch_api": "asinh",
     "paddle_api": "sinh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `asinh` ↔ `sinh`，需人工审核"
+    "note": "字符串相似度候选: `asinh` ↔ `sinh`，需Agent 审核"
   },
   {
     "torch_api": "asinh",
     "paddle_api": "asin",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `asinh` ↔ `asin`，需人工审核"
+    "note": "字符串相似度候选: `asinh` ↔ `asin`，需Agent 审核"
   },
   {
     "torch_api": "atan",
     "paddle_api": "atanh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `atan` ↔ `atanh`，需人工审核"
+    "note": "字符串相似度候选: `atan` ↔ `atanh`，需Agent 审核"
   },
   {
     "torch_api": "atan",
     "paddle_api": "atan2",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `atan` ↔ `atan2`，需人工审核"
+    "note": "字符串相似度候选: `atan` ↔ `atan2`，需Agent 审核"
   },
   {
     "torch_api": "atan2",
     "paddle_api": "atan",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `atan2` ↔ `atan`，需人工审核"
+    "note": "字符串相似度候选: `atan2` ↔ `atan`，需Agent 审核"
   },
   {
     "torch_api": "atanh",
     "paddle_api": "tanh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `atanh` ↔ `tanh`，需人工审核"
+    "note": "字符串相似度候选: `atanh` ↔ `tanh`，需Agent 审核"
   },
   {
     "torch_api": "atanh",
     "paddle_api": "atan",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `atanh` ↔ `atan`，需人工审核"
+    "note": "字符串相似度候选: `atanh` ↔ `atan`，需Agent 审核"
   },
   {
     "torch_api": "bitwise_not",
     "paddle_api": "bitwise_or",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `bitwise_not` ↔ `bitwise_or`，需人工审核"
+    "note": "字符串相似度候选: `bitwise_not` ↔ `bitwise_or`，需Agent 审核"
   },
   {
     "torch_api": "bitwise_or",
     "paddle_api": "bitwise_xor",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `bitwise_or` ↔ `bitwise_xor`，需人工审核"
+    "note": "字符串相似度候选: `bitwise_or` ↔ `bitwise_xor`，需Agent 审核"
   },
   {
     "torch_api": "bitwise_or",
     "paddle_api": "bitwise_not",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `bitwise_or` ↔ `bitwise_not`，需人工审核"
+    "note": "字符串相似度候选: `bitwise_or` ↔ `bitwise_not`，需Agent 审核"
   },
   {
     "torch_api": "bitwise_xor",
     "paddle_api": "bitwise_or",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `bitwise_xor` ↔ `bitwise_or`，需人工审核"
+    "note": "字符串相似度候选: `bitwise_xor` ↔ `bitwise_or`，需Agent 审核"
   },
   {
     "torch_api": "broadcast_to",
     "paddle_api": "broadcast",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `broadcast_to` ↔ `broadcast`，需人工审核"
+    "note": "字符串相似度候选: `broadcast_to` ↔ `broadcast`，需Agent 审核"
   },
   {
     "torch_api": "cat",
     "paddle_api": "cast",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `cat` ↔ `cast`，需人工审核"
+    "note": "字符串相似度候选: `cat` ↔ `cast`，需Agent 审核"
   },
   {
     "torch_api": "cdist",
     "paddle_api": "dist",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `cdist` ↔ `dist`，需人工审核"
+    "note": "字符串相似度候选: `cdist` ↔ `dist`，需Agent 审核"
   },
   {
     "torch_api": "celu",
     "paddle_api": "elu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `celu` ↔ `elu`，需人工审核"
+    "note": "字符串相似度候选: `celu` ↔ `elu`，需Agent 审核"
   },
   {
     "torch_api": "concat",
     "paddle_api": "c_concat",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `concat` ↔ `c_concat`，需人工审核"
+    "note": "字符串相似度候选: `concat` ↔ `c_concat`，需Agent 审核"
   },
   {
     "torch_api": "cos",
     "paddle_api": "cosh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `cos` ↔ `cosh`，需人工审核"
+    "note": "字符串相似度候选: `cos` ↔ `cosh`，需Agent 审核"
   },
   {
     "torch_api": "cos",
     "paddle_api": "acos",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `cos` ↔ `acos`，需人工审核"
+    "note": "字符串相似度候选: `cos` ↔ `acos`，需Agent 审核"
   },
   {
     "torch_api": "cosh",
     "paddle_api": "acosh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `cosh` ↔ `acosh`，需人工审核"
+    "note": "字符串相似度候选: `cosh` ↔ `acosh`，需Agent 审核"
   },
   {
     "torch_api": "cosh",
     "paddle_api": "cos",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `cosh` ↔ `cos`，需人工审核"
+    "note": "字符串相似度候选: `cosh` ↔ `cos`，需Agent 审核"
   },
   {
     "torch_api": "dsplit",
     "paddle_api": "split",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `dsplit` ↔ `split`，需人工审核"
+    "note": "字符串相似度候选: `dsplit` ↔ `split`，需Agent 审核"
   },
   {
     "torch_api": "elu",
     "paddle_api": "selu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `elu` ↔ `selu`，需人工审核"
+    "note": "字符串相似度候选: `elu` ↔ `selu`，需Agent 审核"
   },
   {
     "torch_api": "elu",
     "paddle_api": "relu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `elu` ↔ `relu`，需人工审核"
+    "note": "字符串相似度候选: `elu` ↔ `relu`，需Agent 审核"
   },
   {
     "torch_api": "embedding",
     "paddle_api": "c_embedding",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `embedding` ↔ `c_embedding`，需人工审核"
+    "note": "字符串相似度候选: `embedding` ↔ `c_embedding`，需Agent 审核"
   },
   {
     "torch_api": "erfc",
     "paddle_api": "erf",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `erfc` ↔ `erf`，需人工审核"
+    "note": "字符串相似度候选: `erfc` ↔ `erf`，需Agent 审核"
   },
   {
     "torch_api": "exp2",
     "paddle_api": "exp",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `exp2` ↔ `exp`，需人工审核"
+    "note": "字符串相似度候选: `exp2` ↔ `exp`，需Agent 审核"
   },
   {
     "torch_api": "fmax",
     "paddle_api": "max",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `fmax` ↔ `max`，需人工审核"
+    "note": "字符串相似度候选: `fmax` ↔ `max`，需Agent 审核"
   },
   {
     "torch_api": "fmin",
     "paddle_api": "min",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `fmin` ↔ `min`，需人工审核"
+    "note": "字符串相似度候选: `fmin` ↔ `min`，需Agent 审核"
   },
   {
     "torch_api": "fractional_max_pool2d",
     "paddle_api": "fractional_max_pool3d",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `fractional_max_pool2d` ↔ `fractional_max_pool3d`，需人工审核"
+    "note": "字符串相似度候选: `fractional_max_pool2d` ↔ `fractional_max_pool3d`，需Agent 审核"
   },
   {
     "torch_api": "fractional_max_pool3d",
     "paddle_api": "fractional_max_pool2d",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `fractional_max_pool3d` ↔ `fractional_max_pool2d`，需人工审核"
+    "note": "字符串相似度候选: `fractional_max_pool3d` ↔ `fractional_max_pool2d`，需Agent 审核"
   },
   {
     "torch_api": "gelu",
     "paddle_api": "elu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `gelu` ↔ `elu`，需人工审核"
+    "note": "字符串相似度候选: `gelu` ↔ `elu`，需Agent 审核"
   },
   {
     "torch_api": "glu",
     "paddle_api": "gelu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `glu` ↔ `gelu`，需人工审核"
+    "note": "字符串相似度候选: `glu` ↔ `gelu`，需Agent 审核"
   },
   {
     "torch_api": "grid_sampler",
     "paddle_api": "grid_sample",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `grid_sampler` ↔ `grid_sample`，需人工审核"
+    "note": "字符串相似度候选: `grid_sampler` ↔ `grid_sample`，需Agent 审核"
   },
   {
     "torch_api": "histogramdd",
     "paddle_api": "histogram",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `histogramdd` ↔ `histogram`，需人工审核"
+    "note": "字符串相似度候选: `histogramdd` ↔ `histogram`，需Agent 审核"
   },
   {
     "torch_api": "hsplit",
     "paddle_api": "split",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `hsplit` ↔ `split`，需人工审核"
+    "note": "字符串相似度候选: `hsplit` ↔ `split`，需Agent 审核"
   },
   {
     "torch_api": "igamma",
     "paddle_api": "digamma",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `igamma` ↔ `digamma`，需人工审核"
+    "note": "字符串相似度候选: `igamma` ↔ `digamma`，需Agent 审核"
   },
   {
     "torch_api": "igammac",
     "paddle_api": "digamma",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `igammac` ↔ `digamma`，需人工审核"
+    "note": "字符串相似度候选: `igammac` ↔ `digamma`，需Agent 审核"
   },
   {
     "torch_api": "is_complex",
     "paddle_api": "as_complex",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `is_complex` ↔ `as_complex`，需人工审核"
+    "note": "字符串相似度候选: `is_complex` ↔ `as_complex`，需Agent 审核"
   },
   {
     "torch_api": "isin",
     "paddle_api": "isinf",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `isin` ↔ `isinf`，需人工审核"
+    "note": "字符串相似度候选: `isin` ↔ `isinf`，需Agent 审核"
   },
   {
     "torch_api": "isin",
     "paddle_api": "sin",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `isin` ↔ `sin`，需人工审核"
+    "note": "字符串相似度候选: `isin` ↔ `sin`，需Agent 审核"
   },
   {
     "torch_api": "istft",
     "paddle_api": "stft",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `istft` ↔ `stft`，需人工审核"
+    "note": "字符串相似度候选: `istft` ↔ `stft`，需Agent 审核"
   },
   {
     "torch_api": "linear",
     "paddle_api": "bilinear",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `linear` ↔ `bilinear`，需人工审核"
+    "note": "字符串相似度候选: `linear` ↔ `bilinear`，需Agent 审核"
   },
   {
     "torch_api": "log",
     "paddle_api": "log2",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `log` ↔ `log2`，需人工审核"
+    "note": "字符串相似度候选: `log` ↔ `log2`，需Agent 审核"
   },
   {
     "torch_api": "log2",
     "paddle_api": "log",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `log2` ↔ `log`，需人工审核"
+    "note": "字符串相似度候选: `log2` ↔ `log`，需Agent 审核"
   },
   {
     "torch_api": "log_sigmoid",
     "paddle_api": "logsigmoid",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `log_sigmoid` ↔ `logsigmoid`，需人工审核"
+    "note": "字符串相似度候选: `log_sigmoid` ↔ `logsigmoid`，需Agent 审核"
   },
   {
     "torch_api": "logcumsumexp",
     "paddle_api": "logsumexp",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `logcumsumexp` ↔ `logsumexp`，需人工审核"
+    "note": "字符串相似度候选: `logcumsumexp` ↔ `logsumexp`，需Agent 审核"
   },
   {
     "torch_api": "logdet",
     "paddle_api": "slogdet",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `logdet` ↔ `slogdet`，需人工审核"
+    "note": "字符串相似度候选: `logdet` ↔ `slogdet`，需Agent 审核"
   },
   {
     "torch_api": "logical_not",
     "paddle_api": "logical_or",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `logical_not` ↔ `logical_or`，需人工审核"
+    "note": "字符串相似度候选: `logical_not` ↔ `logical_or`，需Agent 审核"
   },
   {
     "torch_api": "logical_or",
     "paddle_api": "logical_xor",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `logical_or` ↔ `logical_xor`，需人工审核"
+    "note": "字符串相似度候选: `logical_or` ↔ `logical_xor`，需Agent 审核"
   },
   {
     "torch_api": "logical_or",
     "paddle_api": "logical_not",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `logical_or` ↔ `logical_not`，需人工审核"
+    "note": "字符串相似度候选: `logical_or` ↔ `logical_not`，需Agent 审核"
   },
   {
     "torch_api": "logical_xor",
     "paddle_api": "logical_or",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `logical_xor` ↔ `logical_or`，需人工审核"
+    "note": "字符串相似度候选: `logical_xor` ↔ `logical_or`，需Agent 审核"
   },
   {
     "torch_api": "max",
     "paddle_api": "fmax",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `max` ↔ `fmax`，需人工审核"
+    "note": "字符串相似度候选: `max` ↔ `fmax`，需Agent 审核"
   },
   {
     "torch_api": "max",
     "paddle_api": "amax",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `max` ↔ `amax`，需人工审核"
+    "note": "字符串相似度候选: `max` ↔ `amax`，需Agent 审核"
   },
   {
     "torch_api": "min",
     "paddle_api": "fmin",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `min` ↔ `fmin`，需人工审核"
+    "note": "字符串相似度候选: `min` ↔ `fmin`，需Agent 审核"
   },
   {
     "torch_api": "min",
     "paddle_api": "amin",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `min` ↔ `amin`，需人工审核"
+    "note": "字符串相似度候选: `min` ↔ `amin`，需Agent 审核"
   },
   {
     "torch_api": "mvlgamma",
     "paddle_api": "lgamma",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `mvlgamma` ↔ `lgamma`，需人工审核"
+    "note": "字符串相似度候选: `mvlgamma` ↔ `lgamma`，需Agent 审核"
   },
   {
     "torch_api": "nanmean",
     "paddle_api": "nanmedian",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `nanmean` ↔ `nanmedian`，需人工审核"
+    "note": "字符串相似度候选: `nanmean` ↔ `nanmedian`，需Agent 审核"
   },
   {
     "torch_api": "nll_loss2d",
     "paddle_api": "nll_loss",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `nll_loss2d` ↔ `nll_loss`，需人工审核"
+    "note": "字符串相似度候选: `nll_loss2d` ↔ `nll_loss`，需Agent 审核"
   },
   {
     "torch_api": "pdist",
     "paddle_api": "dist",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `pdist` ↔ `dist`，需人工审核"
+    "note": "字符串相似度候选: `pdist` ↔ `dist`，需Agent 审核"
   },
   {
     "torch_api": "pinverse",
     "paddle_api": "inverse",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `pinverse` ↔ `inverse`，需人工审核"
+    "note": "字符串相似度候选: `pinverse` ↔ `inverse`，需Agent 审核"
   },
   {
     "torch_api": "pixel_shuffle",
     "paddle_api": "pixel_unshuffle",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `pixel_shuffle` ↔ `pixel_unshuffle`，需人工审核"
+    "note": "字符串相似度候选: `pixel_shuffle` ↔ `pixel_unshuffle`，需Agent 审核"
   },
   {
     "torch_api": "pixel_unshuffle",
     "paddle_api": "pixel_shuffle",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `pixel_unshuffle` ↔ `pixel_shuffle`，需人工审核"
+    "note": "字符串相似度候选: `pixel_unshuffle` ↔ `pixel_shuffle`，需Agent 审核"
   },
   {
     "torch_api": "prelu",
     "paddle_api": "relu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `prelu` ↔ `relu`，需人工审核"
+    "note": "字符串相似度候选: `prelu` ↔ `relu`，需Agent 审核"
   },
   {
     "torch_api": "relu",
     "paddle_api": "rrelu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `relu` ↔ `rrelu`，需人工审核"
+    "note": "字符串相似度候选: `relu` ↔ `rrelu`，需Agent 审核"
   },
   {
     "torch_api": "relu",
     "paddle_api": "relu6",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `relu` ↔ `relu6`，需人工审核"
+    "note": "字符串相似度候选: `relu` ↔ `relu6`，需Agent 审核"
   },
   {
     "torch_api": "relu6",
     "paddle_api": "relu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `relu6` ↔ `relu`，需人工审核"
+    "note": "字符串相似度候选: `relu6` ↔ `relu`，需Agent 审核"
   },
   {
     "torch_api": "rrelu",
     "paddle_api": "relu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `rrelu` ↔ `relu`，需人工审核"
+    "note": "字符串相似度候选: `rrelu` ↔ `relu`，需Agent 审核"
   },
   {
     "torch_api": "rsqrt",
     "paddle_api": "sqrt",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `rsqrt` ↔ `sqrt`，需人工审核"
+    "note": "字符串相似度候选: `rsqrt` ↔ `sqrt`，需Agent 审核"
   },
   {
     "torch_api": "scatter",
     "paddle_api": "c_scatter",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `scatter` ↔ `c_scatter`，需人工审核"
+    "note": "字符串相似度候选: `scatter` ↔ `c_scatter`，需Agent 审核"
   },
   {
     "torch_api": "scatter_add",
     "paddle_api": "scatter_nd_add",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `scatter_add` ↔ `scatter_nd_add`，需人工审核"
+    "note": "字符串相似度候选: `scatter_add` ↔ `scatter_nd_add`，需Agent 审核"
   },
   {
     "torch_api": "selu",
     "paddle_api": "elu",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `selu` ↔ `elu`，需人工审核"
+    "note": "字符串相似度候选: `selu` ↔ `elu`，需Agent 审核"
   },
   {
     "torch_api": "sgn",
     "paddle_api": "sign",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `sgn` ↔ `sign`，需人工审核"
+    "note": "字符串相似度候选: `sgn` ↔ `sign`，需Agent 审核"
   },
   {
     "torch_api": "sign",
     "paddle_api": "sin",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `sign` ↔ `sin`，需人工审核"
+    "note": "字符串相似度候选: `sign` ↔ `sin`，需Agent 审核"
   },
   {
     "torch_api": "sin",
     "paddle_api": "sinh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `sin` ↔ `sinh`，需人工审核"
+    "note": "字符串相似度候选: `sin` ↔ `sinh`，需Agent 审核"
   },
   {
     "torch_api": "sin",
     "paddle_api": "sign",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `sin` ↔ `sign`，需人工审核"
+    "note": "字符串相似度候选: `sin` ↔ `sign`，需Agent 审核"
   },
   {
     "torch_api": "sinc",
     "paddle_api": "sin",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `sinc` ↔ `sin`，需人工审核"
+    "note": "字符串相似度候选: `sinc` ↔ `sin`，需Agent 审核"
   },
   {
     "torch_api": "sinh",
     "paddle_api": "asinh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `sinh` ↔ `asinh`，需人工审核"
+    "note": "字符串相似度候选: `sinh` ↔ `asinh`，需Agent 审核"
   },
   {
     "torch_api": "sinh",
     "paddle_api": "sin",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `sinh` ↔ `sin`，需人工审核"
+    "note": "字符串相似度候选: `sinh` ↔ `sin`，需Agent 审核"
   },
   {
     "torch_api": "slow_conv_dilated2d",
     "paddle_api": "slow_conv3d_dilated",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `slow_conv_dilated2d` ↔ `slow_conv3d_dilated`，需人工审核"
+    "note": "字符串相似度候选: `slow_conv_dilated2d` ↔ `slow_conv3d_dilated`，需Agent 审核"
   },
   {
     "torch_api": "slow_conv_dilated2d",
     "paddle_api": "slow_conv2d_dilated",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `slow_conv_dilated2d` ↔ `slow_conv2d_dilated`，需人工审核"
+    "note": "字符串相似度候选: `slow_conv_dilated2d` ↔ `slow_conv2d_dilated`，需Agent 审核"
   },
   {
     "torch_api": "slow_conv_dilated3d",
     "paddle_api": "slow_conv3d_dilated",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `slow_conv_dilated3d` ↔ `slow_conv3d_dilated`，需人工审核"
+    "note": "字符串相似度候选: `slow_conv_dilated3d` ↔ `slow_conv3d_dilated`，需Agent 审核"
   },
   {
     "torch_api": "slow_conv_dilated3d",
     "paddle_api": "slow_conv2d_dilated",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `slow_conv_dilated3d` ↔ `slow_conv2d_dilated`，需人工审核"
+    "note": "字符串相似度候选: `slow_conv_dilated3d` ↔ `slow_conv2d_dilated`，需Agent 审核"
   },
   {
     "torch_api": "sqrt",
     "paddle_api": "rsqrt",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `sqrt` ↔ `rsqrt`，需人工审核"
+    "note": "字符串相似度候选: `sqrt` ↔ `rsqrt`，需Agent 审核"
   },
   {
     "torch_api": "squeeze",
     "paddle_api": "unsqueeze",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `squeeze` ↔ `unsqueeze`，需人工审核"
+    "note": "字符串相似度候选: `squeeze` ↔ `unsqueeze`，需Agent 审核"
   },
   {
     "torch_api": "tan",
     "paddle_api": "tanh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `tan` ↔ `tanh`，需人工审核"
+    "note": "字符串相似度候选: `tan` ↔ `tanh`，需Agent 审核"
   },
   {
     "torch_api": "tan",
     "paddle_api": "atan",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `tan` ↔ `atan`，需人工审核"
+    "note": "字符串相似度候选: `tan` ↔ `atan`，需Agent 审核"
   },
   {
     "torch_api": "tanh",
     "paddle_api": "stanh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `tanh` ↔ `stanh`，需人工审核"
+    "note": "字符串相似度候选: `tanh` ↔ `stanh`，需Agent 审核"
   },
   {
     "torch_api": "tanh",
     "paddle_api": "atanh",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `tanh` ↔ `atanh`，需人工审核"
+    "note": "字符串相似度候选: `tanh` ↔ `atanh`，需Agent 审核"
   },
   {
     "torch_api": "tril_indices",
     "paddle_api": "triu_indices",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `tril_indices` ↔ `triu_indices`，需人工审核"
+    "note": "字符串相似度候选: `tril_indices` ↔ `triu_indices`，需Agent 审核"
   },
   {
     "torch_api": "triu_indices",
     "paddle_api": "tril_indices",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `triu_indices` ↔ `tril_indices`，需人工审核"
+    "note": "字符串相似度候选: `triu_indices` ↔ `tril_indices`，需Agent 审核"
   },
   {
     "torch_api": "true_divide",
     "paddle_api": "trunc_divide",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `true_divide` ↔ `trunc_divide`，需人工审核"
+    "note": "字符串相似度候选: `true_divide` ↔ `trunc_divide`，需Agent 审核"
   },
   {
     "torch_api": "unflatten",
     "paddle_api": "flatten",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `unflatten` ↔ `flatten`，需人工审核"
+    "note": "字符串相似度候选: `unflatten` ↔ `flatten`，需Agent 审核"
   },
   {
     "torch_api": "unique_dim_consecutive",
     "paddle_api": "unique_consecutive",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `unique_dim_consecutive` ↔ `unique_consecutive`，需人工审核"
+    "note": "字符串相似度候选: `unique_dim_consecutive` ↔ `unique_consecutive`，需Agent 审核"
   },
   {
     "torch_api": "unsqueeze",
     "paddle_api": "squeeze",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `unsqueeze` ↔ `squeeze`，需人工审核"
+    "note": "字符串相似度候选: `unsqueeze` ↔ `squeeze`，需Agent 审核"
   },
   {
     "torch_api": "vdot",
     "paddle_api": "dot",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `vdot` ↔ `dot`，需人工审核"
+    "note": "字符串相似度候选: `vdot` ↔ `dot`，需Agent 审核"
   },
   {
     "torch_api": "vsplit",
     "paddle_api": "split",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `vsplit` ↔ `split`，需人工审核"
+    "note": "字符串相似度候选: `vsplit` ↔ `split`，需Agent 审核"
   },
   {
     "torch_api": "zero",
     "paddle_api": "zeros",
     "rule": "string_similarity",
     "confidence": "medium",
-    "note": "字符串相似度候选: `zero` ↔ `zeros`，需人工审核"
+    "note": "字符串相似度候选: `zero` ↔ `zeros`，需Agent 审核"
   }
 ]

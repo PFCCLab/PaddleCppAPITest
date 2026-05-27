@@ -1,8 +1,8 @@
-# API 映射表人工源码审核报告
+# API 映射表Agent源码审核报告
 
 生成时间: 2026-05-26
 审核范围: 除 compat 层（P0，66 个）以外的所有 API，共 1028 个
-审核方法: 按 skill 流程，脚本定位 kernel 文件路径，人工逐一阅读 C++ 源码
+审核方法: 按 skill 流程，脚本定位 kernel 文件路径，Agent逐一阅读 C++ 源码
 
 ---
 
@@ -308,12 +308,12 @@ Paddle: `paddle/phi/kernels/uniform_kernel.h`，使用 uniform 分布但随机�
 
 ---
 
-## 附录：人工审核方法说明
+## 附录：Agent审核方法说明
 
 本次审核严格按照 `api-mapping-updater` skill 的流程执行：
 
 1. **脚本定位**：`verify_api_mapping.py` 定位 kernel 实现文件路径
-2. **人工阅读**：逐一阅读 `.cpp/.cc/.cu` 实现文件
+2. **Agent阅读**：逐一阅读 `.cpp/.cc/.cu` 实现文件
 3. **对比维度**：核心数学运算、数据类型处理、空张量、精度累积、非连续张量、异常断言、in-place 限制
 4. **风险评级**：低（数学语义一致）/ 中（有已知差异但可兼容）/ 高（不应视为等价）
 
