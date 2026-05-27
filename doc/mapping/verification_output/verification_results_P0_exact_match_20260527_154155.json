@@ -1,0 +1,226 @@
+{
+  "P0_exact_match": {
+    "batch_name": "P0_exact_match",
+    "total": 3,
+    "timestamp": "2026-05-27T15:41:55.813162",
+    "results": [
+      {
+        "op_name": "_local_scalar_dense",
+        "pytorch": {
+          "op_name": "_local_scalar_dense",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_local_scalar_dense.h",
+            "schemas": [],
+            "signatures": [
+              {
+                "ret": "at::Scalar",
+                "name": "_local_scalar_dense",
+                "params": "const at::Tensor & self"
+              }
+            ],
+            "is_dispatcher_forwarded": true
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_local_scalar_dense",
+                "aten_name": "aten::_local_scalar_dense",
+                "overload_name": "",
+                "schema": "_local_scalar_dense(Tensor self) -> Scalar"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_local_scalar_dense(Tensor self) -> Scalar",
+                "dispatch": {
+                  "CPU": "_local_scalar_dense_cpu",
+                  "CUDA": "_local_scalar_dense_cuda",
+                  "MPS": "_local_scalar_dense_mps"
+                },
+                "structured": false,
+                "tags": [
+                  "core",
+                  "data_dependent_output"
+                ],
+                "variants": "function"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "cpu_file": "aten\\src\\ATen\\native\\Scalar.cpp",
+            "cpu_func": "_local_scalar_dense_cpu",
+            "cuda_file": "aten\\src\\ATen\\native\\cuda\\CUDAScalar.cu",
+            "cuda_func": "_local_scalar_dense_cuda"
+          }
+        },
+        "paddle": {
+          "op_name": "_local_scalar_dense",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": true,
+            "file": "compat/ATen/ops/_local_scalar_dense.h"
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_compat",
+        "notes": []
+      },
+      {
+        "op_name": "_nnz",
+        "pytorch": {
+          "op_name": "_nnz",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_nnz.h",
+            "schemas": [],
+            "signatures": [],
+            "is_dispatcher_forwarded": false
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_nnz",
+                "aten_name": "aten::_nnz",
+                "overload_name": "",
+                "schema": "_nnz(Tensor self) -> int"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_nnz(Tensor self) -> int",
+                "dispatch": {
+                  "SparseCPU, SparseCUDA, SparseMPS, SparseMeta": "_nnz_sparse",
+                  "SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta": "_nnz_sparse_csr"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "sparsecpu, sparsecuda, sparsemps, sparsemeta_file": "aten\\src\\ATen\\native\\sparse\\SparseTensor.cpp",
+            "sparsecpu, sparsecuda, sparsemps, sparsemeta_func": "_nnz_sparse",
+            "sparsecsrcpu, sparsecsrcuda, sparsecsrmps, sparsecsrmeta_file": "aten\\src\\ATen\\native\\sparse\\SparseCsrTensor.cpp",
+            "sparsecsrcpu, sparsecsrcuda, sparsecsrmps, sparsecsrmeta_func": "_nnz_sparse_csr"
+          }
+        },
+        "paddle": {
+          "op_name": "_nnz",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": true,
+            "file": "compat/ATen/ops/_nnz.h"
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_compat",
+        "notes": []
+      },
+      {
+        "op_name": "_values",
+        "pytorch": {
+          "op_name": "_values",
+          "notes": [],
+          "declaration": {
+            "found": true,
+            "header_file": "ATen/ops/_values.h",
+            "schemas": [],
+            "signatures": [],
+            "is_dispatcher_forwarded": false
+          },
+          "dispatcher": {
+            "found": true,
+            "structs": [
+              {
+                "struct_name": "_values",
+                "aten_name": "aten::_values",
+                "overload_name": "",
+                "schema": "_values(Tensor(a) self) -> Tensor(a)"
+              }
+            ],
+            "has_call": false,
+            "has_redispatch": false
+          },
+          "yaml_entry": {
+            "found": true,
+            "entries": [
+              {
+                "func": "_values(Tensor(a) self) -> Tensor(a)",
+                "dispatch": {
+                  "SparseCPU, SparseCUDA, SparseMPS, SparseMeta": "_values_sparse"
+                },
+                "structured": false,
+                "tags": [],
+                "variants": "method"
+              }
+            ]
+          },
+          "kernel_impl": {
+            "sparsecpu, sparsecuda, sparsemps, sparsemeta_file": "aten\\src\\ATen\\native\\sparse\\SparseTensor.cpp",
+            "sparsecpu, sparsecuda, sparsemps, sparsemeta_func": "_values_sparse"
+          }
+        },
+        "paddle": {
+          "op_name": "_values",
+          "notes": [],
+          "api_declaration": {
+            "found": false
+          },
+          "yaml_entry": {
+            "found": false
+          },
+          "kernel_registration": {
+            "found": false,
+            "cpu_registered": false,
+            "gpu_registered": false
+          },
+          "compat_layer": {
+            "found": true,
+            "file": "compat/ATen/ops/_values.h"
+          }
+        },
+        "alias_candidates": [],
+        "verification_status": "verified_compat",
+        "notes": []
+      }
+    ]
+  }
+}
