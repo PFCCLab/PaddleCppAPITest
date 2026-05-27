@@ -42,7 +42,7 @@ argument-hint: '目标 API 名（如 abs）或批次名（P0/P1/P2/P3/P4/P5）'
 脚本通过 `verify_api_mapping.py` 完成以下工作：
 
 ```bash
-cd "$PCAT_ROOT/doc"
+cd "$PCAT_ROOT/doc/mapping"
 # 单 API
 python verify_api_mapping.py --op "$op"
 # 批次
