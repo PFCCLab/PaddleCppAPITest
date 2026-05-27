@@ -34,10 +34,37 @@ doc/mapping/
 - Paddle 源码（`paddle/phi/api/include/api.h` 及 compat 层）
 - PyTorch 源码（可选，用于 kernel 实现追踪验证）
 
-默认路径（Windows）：
-- libtorch: `D:/Lenovo/libtorch/include/ATen/ops`
-- Paddle: `D:/Lenovo/Paddle`
-- PyTorch: `D:/Lenovo/pytorch`
+### 路径配置
+
+脚本优先从**环境变量**读取仓库路径，未设置时使用默认路径。
+
+| 环境变量 | 默认值 | 说明 |
+|----------|--------|------|
+| `PADDLE_ROOT` | `D:/Lenovo/Paddle` | Paddle 仓库根目录 |
+| `PYTORCH_ROOT` | `D:/Lenovo/pytorch` | PyTorch 源码目录 |
+| `TORCH_DIR` | `D:/Lenovo/libtorch` | libtorch 安装目录 |
+
+**建议在使用前先设置环境变量**（参考 `add-compat-api` skill）：
+
+```bash
+export PADDLE_ROOT=~/Paddle
+export PYTORCH_ROOT=~/pytorch
+export TORCH_DIR=~/libtorch
+```
+
+Windows (PowerShell):
+```powershell
+$env:PADDLE_ROOT = "D:\Lenovo\Paddle"
+$env:PYTORCH_ROOT = "D:\Lenovo\pytorch"
+$env:TORCH_DIR = "D:\Lenovo\libtorch"
+```
+
+也可通过命令行参数覆盖：
+```bash
+python generate_cpp_api_mapping.py \
+  --libtorch-ops-dir /path/to/libtorch/include/ATen/ops \
+  --paddle-api-h /path/to/Paddle/paddle/phi/api/include/api.h
+```
 
 ---
 
@@ -171,11 +198,8 @@ python discover_cpp_api_aliases.py \
 # 1. 生成映射表
 python generate_cpp_api_mapping.py --output cpp_api_mapping_cn.md
 
-# 2. 发现别名候选
-python discover_cpp_api_aliases.py \
-  --libtorch-ops-dir D:/Lenovo/libtorch/include/ATen/ops \
-  --paddle-api-h D:/Lenovo/Paddle/paddle/phi/api/include/api.h \
-  --output cpp_api_alias_candidates.json
+# 2. 发现别名候选（路径从环境变量自动读取）
+python discover_cpp_api_aliases.py --output cpp_api_alias_candidates.json
 
 # 3. 人工审核候选别名，更新 cpp_api_alias_mapping.json
 

@@ -1496,20 +1496,36 @@ def main():
     parser = argparse.ArgumentParser(
         description="自动生成 PyTorch C++ API 与 Paddle C++ API 映射表"
     )
+
+    # 优先从环境变量读取路径，未设置时使用默认值
+    torch_dir = os.environ.get("TORCH_DIR", r"D:/Lenovo/libtorch")
+    paddle_root = os.environ.get("PADDLE_ROOT", r"D:/Lenovo/Paddle")
+
     parser.add_argument(
         "--libtorch-ops-dir",
-        default=r"D:/Lenovo/libtorch/include/ATen/ops",
-        help="libtorch ATen/ops 头文件目录",
+        default=os.path.join(torch_dir, "include", "ATen", "ops"),
+        help="libtorch ATen/ops 头文件目录 (默认: $TORCH_DIR/include/ATen/ops)",
     )
     parser.add_argument(
         "--paddle-compat-dir",
-        default=r"D:/Lenovo/Paddle/paddle/phi/api/include/compat/ATen/ops",
-        help="Paddle compat 层头文件目录",
+        default=os.path.join(
+            paddle_root,
+            "paddle",
+            "phi",
+            "api",
+            "include",
+            "compat",
+            "ATen",
+            "ops",
+        ),
+        help="Paddle compat 层头文件目录 (默认: $PADDLE_ROOT/paddle/phi/api/include/compat/ATen/ops)",
     )
     parser.add_argument(
         "--paddle-api-h",
-        default=r"D:/Lenovo/Paddle/paddle/phi/api/include/api.h",
-        help="Paddle api.h 头文件路径",
+        default=os.path.join(
+            paddle_root, "paddle", "phi", "api", "include", "api.h"
+        ),
+        help="Paddle api.h 头文件路径 (默认: $PADDLE_ROOT/paddle/phi/api/include/api.h)",
     )
     parser.add_argument(
         "--output",

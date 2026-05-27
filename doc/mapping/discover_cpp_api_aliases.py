@@ -181,15 +181,22 @@ def main():
     parser = argparse.ArgumentParser(
         description="自动发现 C++ API 候选别名映射"
     )
+
+    # 优先从环境变量读取路径
+    torch_dir = os.environ.get("TORCH_DIR", r"D:/Lenovo/libtorch")
+    paddle_root = os.environ.get("PADDLE_ROOT", r"D:/Lenovo/Paddle")
+
     parser.add_argument(
         "--libtorch-ops-dir",
-        required=True,
-        help="libtorch ATen/ops 头文件目录",
+        default=os.path.join(torch_dir, "include", "ATen", "ops"),
+        help="libtorch ATen/ops 头文件目录 (默认: $TORCH_DIR/include/ATen/ops)",
     )
     parser.add_argument(
         "--paddle-api-h",
-        required=True,
-        help="Paddle api.h 路径",
+        default=os.path.join(
+            paddle_root, "paddle", "phi", "api", "include", "api.h"
+        ),
+        help="Paddle api.h 路径 (默认: $PADDLE_ROOT/paddle/phi/api/include/api.h)",
     )
     parser.add_argument(
         "--output",

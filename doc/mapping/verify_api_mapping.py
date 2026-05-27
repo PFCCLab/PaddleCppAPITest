@@ -23,13 +23,21 @@ from alias_detector import AliasDetector
 from paddle_tracer import PaddleTracer
 from pytorch_tracer import PyTorchTracer
 
-# Default paths (Windows)
+# Default paths: prefer environment variables, fallback to hard-coded defaults
+_torch_dir = os.environ.get("TORCH_DIR", r"D:/Lenovo/libtorch")
+_paddle_root = os.environ.get("PADDLE_ROOT", r"D:/Lenovo/Paddle")
+_pytorch_root = os.environ.get("PYTORCH_ROOT", r"D:/Lenovo/pytorch")
+
 DEFAULT_CONFIG = {
-    "libtorch_ops_dir": "D:/Lenovo/libtorch/include/ATen/ops",
-    "pytorch_src_dir": "D:/Lenovo/pytorch",
-    "paddle_src_dir": "D:/Lenovo/Paddle",
-    "paddle_api_h": "D:/Lenovo/Paddle/paddle/phi/api/include/api.h",
-    "paddle_compat_dir": "D:/Lenovo/Paddle/paddle/phi/api/include/compat/ATen/ops",
+    "libtorch_ops_dir": os.path.join(_torch_dir, "include", "ATen", "ops"),
+    "pytorch_src_dir": _pytorch_root,
+    "paddle_src_dir": _paddle_root,
+    "paddle_api_h": os.path.join(
+        _paddle_root, "paddle", "phi", "api", "include", "api.h"
+    ),
+    "paddle_compat_dir": os.path.join(
+        _paddle_root, "paddle", "phi", "api", "include", "compat", "ATen", "ops"
+    ),
     "mapping_file": os.path.join(
         os.path.dirname(__file__), "cpp_api_mapping_cn.md"
     ),
