@@ -47,19 +47,21 @@ commit message 首行模板：
 
 正文（如有）：可粘贴 `doc/mismatch_api_record.md` 对应条目的"问题与根因 / 修复内容"段。
 
-## 3) push 到 fork —— **执行前必须征求用户同意**
+## 3) push 到 fork
 
 ```bash
 git push origin "$(git rev-parse --abbrev-ref HEAD)"
 ```
 
-> 安全约定：`git push` 把改动发到 GitHub fork，对用户可见、可被他人引用。**Claude 不得在用户未明确同意的情况下执行 push**。用文字明确询问："是否 push 到 origin fork？"
+> `git push` 把改动发到 GitHub fork。
 
 push 失败时的常见原因：
-- 分支名冲突（用 `--force-with-lease` 而非 `--force`，且征求用户同意）
+- 分支名冲突（用 `--force-with-lease` 而非 `--force`）
 - 远程拒绝（fork 仓库的保护规则）
 
-## 4) `gh pr create` 到 upstream —— **执行前必须征求用户同意**
+## 4) `gh pr create` 到 upstream
+
+> ⚠️ **PR body 必须严格按照 Paddle 官方模板格式填写**（包含 `### PR Category`、`### PR Types`、`### Description`、`### 是否引起精度变化` 四个字段）。格式不符将导致 `PR-CI-CheckPRTemplate` 失败。
 
 ### Paddle 侧 add
 
