@@ -70,29 +70,29 @@ gh pr create \
   --head "$GITHUB_USER:$(git rev-parse --abbrev-ref HEAD)" \
   --title "[Cpp API Compatibility] Add <api>" \
   --body "$(cat <<'EOF'
-## 背景
-<引用 doc/mismatch_api_record.md 对应"对齐迭代记录"段>
+### PR Category
+Execute Infrastructure
 
-## 改动
-- compat 接口：<path>
-- 新增测试：<path>
 
-## 验证
-- ninja: 通过
-- ctest -R "ATen|c10|torch": 通过
-- result_cmp: 通过
+### PR Types
+New features
 
-## 关联
-- 上游 PyTorch 实现：<libtorch / native_functions.yaml 位置>
+
+### Description
+<!-- Describe what you’ve done -->
+
+
+### 是否引起精度变化
+否
 EOF
 )"
 ```
 
 ### Paddle 侧 fix
 
-同上，但 `--title` 改为 `[Cpp API Compatibility] Fix <api> ...`，且 `## 关联` 段加一行 `- 修复链接：<原 PR / Actions / comment 链接>`。
+同上，但 `--title` 改为 `[Cpp API Compatibility] Fix <api> ...`，`### PR Types` 改为 `Bug fixes`。
 
-> 安全约定：`gh pr create` 直接打开 PR，会通知 reviewer、触发 CI、占用 PR 编号。**Claude 不得在用户未明确同意的情况下执行**。用文字明确询问："是否发 PR 到 PaddlePaddle/Paddle？"
+> `gh pr create` 创建 PR 后将自动触发 CI，无需手动干预。
 
 ## 5) 如果还改了 PCAT 测试 → PCAT fork 上重复 1-4 步
 
