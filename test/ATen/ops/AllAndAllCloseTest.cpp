@@ -61,5 +61,21 @@ TEST(TensorBodyTest, AllCloseTest) {
   file.saveFile();
 }
 
+TEST(TensorBodyTest, Any) {
+  auto file_name = g_custom_param.get();
+  paddle_api_test::FileManerger file(file_name);
+  file.openAppend();
+  file << "Any ";
+  at::Tensor test_tensor = at::ones({2, 2}, at::kFloat);
+  test_tensor.fill_(0.0);
+  test_tensor.data_ptr<float>()[0] = 1.0;
+  bool any_result = test_tensor.any().item<bool>();
+  file << std::to_string(any_result) << " ";
+  auto any_dim_result = test_tensor.any(0);
+  file << std::to_string(any_dim_result.sizes()[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at

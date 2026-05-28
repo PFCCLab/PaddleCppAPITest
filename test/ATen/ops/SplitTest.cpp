@@ -196,5 +196,41 @@ TEST_F(SplitTest, BoundaryShapesAndDtypes) {
   file.saveFile();
 }
 
+TEST_F(SplitTest, Chunk) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "Chunk ";
+  at::Tensor test_tensor = at::ones({4, 4}, at::kFloat);
+  std::vector<at::Tensor> chunks = test_tensor.chunk(2, 0);
+  file << std::to_string(chunks.size()) << " ";
+  file << std::to_string(chunks[0].sizes()[0]) << " ";
+  file << std::to_string(chunks[1].sizes()[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+// [DIFF] This covers the compat branch that emits empty chunks when chunks is
+// larger than the split dimension. Some Torch versions return fewer chunks.
+TEST_F(SplitTest, ChunkMoreChunksThanDimSize) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "ChunkMoreChunksThanDimSize ";
+
+  at::Tensor test_tensor = at::ones({2, 3}, at::kFloat);
+  std::vector<at::Tensor> chunks = test_tensor.chunk(5, 0);
+  file << std::to_string(chunks.size()) << " ";
+  for (const auto& chunk : chunks) {
+    file << std::to_string(chunk.dim()) << " ";
+    file << std::to_string(chunk.numel()) << " ";
+    if (chunk.dim() > 0) {
+      file << std::to_string(chunk.sizes()[0]) << " ";
+    }
+  }
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at

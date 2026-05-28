@@ -354,5 +354,43 @@ TEST_F(IndexTest, IndexTensorAndNoneIndices) {
   file.saveFile();
 }
 
+// 返回当前用例的结果文件名
+std::string GetTestCaseResultFileName() {
+  std::string base = g_custom_param.get();
+  std::string test_name =
+      ::testing::UnitTest::GetInstance()->current_test_info()->name();
+  if (base.size() >= 4 && base.substr(base.size() - 4) == ".txt") {
+    base.resize(base.size() - 4);
+  }
+  return base + "_" + test_name + ".txt";
+}
+
+TEST_F(IndexTest, IndexSelect) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "IndexSelect ";
+  at::Tensor input = at::ones({3, 4}, at::kFloat);
+  input.fill_(1.0f);
+  int64_t index_data[] = {0, 2};
+  at::Tensor index = at::from_blob(index_data, {2}, at::kLong);
+  at::Tensor result = input.index_select(0, index);
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << std::to_string(result.dim()) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(IndexTest, OperatorIndex) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "OperatorIndex ";
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  at::Tensor result = tensor[0];
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at

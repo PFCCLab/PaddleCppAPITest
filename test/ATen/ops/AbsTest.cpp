@@ -401,5 +401,64 @@ TEST_F(AbsTest, MethodAbs) {
   file.saveFile();
 }
 
+// 返回当前用例的结果文件名
+std::string GetTestCaseResultFileName() {
+  std::string base = g_custom_param.get();
+  std::string test_name =
+      ::testing::UnitTest::GetInstance()->current_test_info()->name();
+  if (base.size() >= 4 && base.substr(base.size() - 4) == ".txt") {
+    base.resize(base.size() - 4);
+  }
+  return base + "_" + test_name + ".txt";
+}
+
+TEST_F(AbsTest, AbsMethod) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "AbsMethod ";
+  at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
+  at::Tensor result = input.abs();
+  float* data = result.data_ptr<float>();
+  file << std::to_string(data[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AbsTest, AbsInplace) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "AbsInplace ";
+  at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
+  input.abs_();
+  float* data = input.data_ptr<float>();
+  file << std::to_string(data[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AbsTest, AbsoluteMethod) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "AbsoluteMethod ";
+  at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
+  at::Tensor result = input.absolute();
+  float* data = result.data_ptr<float>();
+  file << std::to_string(data[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(AbsTest, AbsoluteInplace) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "AbsoluteInplace ";
+  at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(-1.0f);
+  input.absolute_();
+  float* data = input.data_ptr<float>();
+  file << std::to_string(data[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at

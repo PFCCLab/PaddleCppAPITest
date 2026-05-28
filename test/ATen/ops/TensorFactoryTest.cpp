@@ -274,5 +274,143 @@ TEST_F(TensorFactoryTest, TensorSpecialValues) {
   file.saveFile();
 }
 
+TEST_F(TensorFactoryTest, NewEmpty) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewEmpty ";
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  at::Tensor empty_tensor = tensor.new_empty({3, 4});
+  file << std::to_string(empty_tensor.sizes()[0]) << " ";
+  file << std::to_string(empty_tensor.sizes()[1]) << " ";
+  file << std::to_string(empty_tensor.dtype() == tensor.dtype()) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorFactoryTest, NewFull) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewFull ";
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  at::Tensor full_tensor = tensor.new_full({2, 3}, 7.5);
+  file << std::to_string(full_tensor.sizes()[0]) << " ";
+  file << std::to_string(full_tensor.sizes()[1]) << " ";
+  file << std::to_string(full_tensor.data_ptr<float>()[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorFactoryTest, NewZeros) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewZeros ";
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  at::Tensor zeros_tensor = tensor.new_zeros({2, 3});
+  file << std::to_string(zeros_tensor.sizes()[0]) << " ";
+  file << std::to_string(zeros_tensor.sizes()[1]) << " ";
+  file << std::to_string(zeros_tensor.data_ptr<float>()[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorFactoryTest, NewOnes) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewOnes ";
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  at::Tensor ones_tensor = tensor.new_ones({2, 3});
+  file << std::to_string(ones_tensor.sizes()[0]) << " ";
+  file << std::to_string(ones_tensor.sizes()[1]) << " ";
+  file << std::to_string(ones_tensor.data_ptr<float>()[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorFactoryTest, NewOpsPinnedMemoryCPU) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewOpsPinnedMemoryCPU ";
+
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  auto options = at::TensorOptions()
+                     .dtype(at::kFloat)
+                     .device(at::kCPU)
+                     .pinned_memory(true);
+
+  try {
+    auto result = tensor.new_empty({2, 2}, options);
+    file << "empty_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "empty_exception ";
+  }
+  try {
+    auto result = tensor.new_full({2, 2}, 3.0, options);
+    file << "full_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "full_exception ";
+  }
+  try {
+    auto result = tensor.new_ones({2, 2}, options);
+    file << "ones_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "ones_exception ";
+  }
+  try {
+    auto result = tensor.new_zeros({2, 2}, options);
+    file << "zeros_ok " << std::to_string(result.numel()) << " ";
+  } catch (const std::exception&) {
+    file << "zeros_exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(TensorFactoryTest, NewOpsPinnedMemoryCUDADevice) {
+  auto file_name = g_custom_param.get();
+  FileManerger file(file_name);
+  file.openAppend();
+  file << "NewOpsPinnedMemoryCUDADevice ";
+
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  auto options = at::TensorOptions()
+                     .dtype(at::kFloat)
+                     .device(at::kCUDA)
+                     .pinned_memory(true);
+
+  try {
+    (void)tensor.new_empty({2, 2}, options);
+    file << "empty_ok ";
+  } catch (const std::exception&) {
+    file << "empty_exception ";
+  }
+  try {
+    (void)tensor.new_full({2, 2}, 3.0, options);
+    file << "full_ok ";
+  } catch (const std::exception&) {
+    file << "full_exception ";
+  }
+  try {
+    (void)tensor.new_ones({2, 2}, options);
+    file << "ones_ok ";
+  } catch (const std::exception&) {
+    file << "ones_exception ";
+  }
+  try {
+    (void)tensor.new_zeros({2, 2}, options);
+    file << "zeros_ok ";
+  } catch (const std::exception&) {
+    file << "zeros_exception ";
+  }
+
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at

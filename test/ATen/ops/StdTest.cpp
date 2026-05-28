@@ -142,5 +142,71 @@ TEST_F(StdTest, StdException) {
   file.saveFile();
 }
 
+// 从 TensorTest.cpp 迁移的 Std 测试
+
+// 返回当前用例的结果文件名
+std::string GetTestCaseResultFileName() {
+  std::string base = g_custom_param.get();
+  std::string test_name =
+      ::testing::UnitTest::GetInstance()->current_test_info()->name();
+  if (base.size() >= 4 && base.substr(base.size() - 4) == ".txt") {
+    base.resize(base.size() - 4);
+  }
+  return base + "_" + test_name + ".txt";
+}
+
+TEST_F(StdTest, StdDimTensorBody) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "StdDim ";
+  at::Tensor input = at::ones({2, 3}, at::kFloat).fill_(2.0f);
+  input.fill_(1.0f);
+  input.data_ptr<float>()[1] = 3.0f;
+  at::Tensor result = input.std(1);
+  file << std::to_string(result.dim()) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(StdTest, StdAllTensorBody) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "StdAll ";
+  at::Tensor input = at::ones({2, 3}, at::kFloat);
+  input.fill_(1.0f);
+  input.data_ptr<float>()[1] = 3.0f;
+  at::Tensor result = input.std(true);
+  file << std::to_string(result.dim()) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(StdTest, StdDimsTensorBody) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "StdDims ";
+  at::Tensor input = at::ones({2, 3}, at::kFloat);
+  input.fill_(1.0f);
+  input.data_ptr<float>()[1] = 3.0f;
+  at::Tensor result = input.std({1}, true, true);
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.sizes()[0]) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(StdTest, StdCorrectionTensorBody) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "StdCorrection ";
+  at::Tensor input = at::ones({2, 3}, at::kFloat);
+  input.fill_(1.0f);
+  input.data_ptr<float>()[1] = 3.0f;
+  at::Tensor result = input.std({1}, 1.0, true);
+  file << std::to_string(result.dim()) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at

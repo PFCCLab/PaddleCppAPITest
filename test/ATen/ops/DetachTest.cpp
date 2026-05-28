@@ -83,5 +83,40 @@ TEST_F(DetachTest, DetachInplace) {
   file.saveFile();
 }
 
+// 返回当前用例的结果文件名
+std::string GetTestCaseResultFileName() {
+  std::string base = g_custom_param.get();
+  std::string test_name =
+      ::testing::UnitTest::GetInstance()->current_test_info()->name();
+  if (base.size() >= 4 && base.substr(base.size() - 4) == ".txt") {
+    base.resize(base.size() - 4);
+  }
+  return base + "_" + test_name + ".txt";
+}
+
+TEST_F(DetachTest, TensorData) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "TensorData ";
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  at::Tensor result = tensor.tensor_data();
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
+TEST_F(DetachTest, VariableData) {
+  FileManerger file(GetTestCaseResultFileName());
+  file.openAppend();
+  file << "VariableData ";
+  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
+  at::Tensor result = tensor.variable_data();
+  file << std::to_string(result.dim()) << " ";
+  file << std::to_string(result.numel()) << " ";
+  file << "\n";
+  file.saveFile();
+}
+
 }  // namespace test
 }  // namespace at
