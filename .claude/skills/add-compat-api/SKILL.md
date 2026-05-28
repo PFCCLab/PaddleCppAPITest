@@ -58,7 +58,7 @@ TORCH_DIR=~/libtorch
    追踪方法参考 [references/Step2-1.md](references/Step2-1.md) 与
    [references/Step2-2.md](references/Step2-2.md)。
 2. 在 `$PADDLE_ROOT/paddle/phi/api/include/compat` 中新增接口
-3. 在 `$PADDLE_ROOT/test/cpp/compat` 中新增对应测试
+3. 在 `$PADDLE_ROOT/test/cpp/compat` 中新增对应测试，规范见 [references/Step2-3.md](references/Step2-3.md)
 4. **同时**在 `$PCAT_ROOT/test/` 下新增/扩展跨框架对比测试。
    测试规范见 [compatibility-testing](../compatibility-testing/SKILL.md)
    （命名空间 `at::test`、`<OpName>Test` 类、`write_<op>_result_to_file`、
