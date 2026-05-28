@@ -104,9 +104,7 @@ git fetch upstream
 git checkout -B "test/<api>-$(date +%Y%m%d)" upstream/master
 git add test/<改动文件>
 git commit -m "test(<api>): align with Paddle compat <api> 行为"
-# 同样：先确认再 push
 git push origin <branch>
-# 同样：先确认再 PR
 gh pr create --repo PFCCLab/PaddleCppAPITest --base master ...
 ```
 
@@ -177,7 +175,6 @@ cd "$PCAT_ROOT" && bash test/result_cmp.sh ./build/
 git add <修复文件>
 git commit -m "fix CI: <根因简述>"
 
-# push 仍需用户同意（同一分支不豁免本约定）
 git push origin "$(git rev-parse --abbrev-ref HEAD)"
 
 # push 后 PR 自动更新，CI 自动重跑。回到 6.1 继续 watch。

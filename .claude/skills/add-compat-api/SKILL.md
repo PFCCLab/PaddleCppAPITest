@@ -196,7 +196,7 @@ bash test/result_cmp.sh ./build/
 - 对每个标 `🔧` 的条目，在"关键差异说明"中补一小节
 - 发布前按 compat-doc-authoring 的 Step 5 校验 checklist 全项过审
 
-只有下游确认"格式合规"后，本轮才算完成。
+下游 compat-doc-authoring 的 Step 5 校验全部通过后，本轮即算完成。
 
 ## Step 7. 提交 commit 并创建 PR
 
@@ -206,7 +206,11 @@ bash test/result_cmp.sh ./build/
 2. **commit 改动**（commit message 首行使用 `[Cpp API Compatibility] <对齐迭代记录标题>`）
 3. **push 到 fork**（`git push origin <branch>`）
 4. **`gh pr create` 到 upstream**（`--repo PaddlePaddle/Paddle --base develop`）
-5. **同步 PCAT 测试改动**：本轮涉及 `test/` 或 `$PCAT_ROOT` 修改时，在 `$PCAT_ROOT` 上重复 1-4 步，`--repo PFCCLab/PaddleCppAPITest --base master`
+5. **同步 PCAT 测试改动**
+   1. **从 fork 主分支 checkout 新分支**（`cd "$PCAT_ROOT" && git fetch upstream && git checkout -B test/<api>-<YYYYMMDD> upstream/master`）
+   2. **commit 改动**（commit message 首行使用 `test(<api>): align with Paddle compat <api> 行为`）
+   3. **push 到 fork**（`git push origin <branch>`）
+   4. **`gh pr create` 到 upstream**（`--repo PFCCLab/PaddleCppAPITest --base master`，PR body 中加 `Related: PaddlePaddle/Paddle#<Paddle_PR_NUM>`）
 6. **等待 CI 完成并按结果分流**（`gh pr checks <PR_NUM> --watch`）
    - CI 通过 → 等待 reviewer，本流程结束
    - CI 失败 → 调查失败是否由本 PR 引起（命令与判断标准见 [`references/Step7.md`](references/Step7.md) 第 6 节）：

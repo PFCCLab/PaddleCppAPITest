@@ -4,7 +4,7 @@
 
 ## 第1步：先在 libtorch 查声明，再定位真实实现
 
-目标：先从 libtorch 头文件确认 API 入口，再追踪到 PyTorch 源码中的最终 C++ 实现。
+目标：先从 libtorch 头文件定位 API 入口，再追踪到 PyTorch 源码中的最终 C++ 实现。
 
 ### 1) 先在 libtorch 中定位声明
 

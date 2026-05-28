@@ -46,7 +46,7 @@ if [ ! -d "$PYTORCH_ROOT/.git" ]; then
 fi
 ```
 
-提示：浅克隆仍约 500MB-1GB，确认磁盘空间充足后再执行。
+提示：浅克隆仍约 500MB-1GB，检查磁盘空间充足后再执行。
 
 ## 4) libtorch
 

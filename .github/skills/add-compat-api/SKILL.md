@@ -196,7 +196,7 @@ bash test/result_cmp.sh ./build/
 - 对每个标 `🔧` 的条目，在"关键差异说明"中补一小节
 - 发布前按 compat-doc-authoring 的 Step 5 校验 checklist 全项过审
 
-只有下游确认"格式合规"后，本轮才算完成。
+下游 compat-doc-authoring 的 Step 5 校验全部通过后，本轮即算完成。
 
 ## Step 7. 提交 commit 并创建 PR
 
