@@ -74,6 +74,20 @@ TORCH_DIR=~/libtorch
 > 本引用为**说明性引用**，不会自动触发 `add-compat-api`——避免一次输入
 > 同时启动两条驱动型循环造成递归。请用户/Claude 明确在两个 skill 间切换。
 
+## Step 0. 环境检测与自动配置
+
+进入主流程之前，按以下顺序检测并按需配置环境。完整命令模板与 fallback 决策见 [`../add-compat-api/references/Step0.md`](../add-compat-api/references/Step0.md)（与 `add-compat-api` 共享同一份 references）。
+
+1. **检测 NVIDIA GPU**（决定 libtorch CPU/CUDA 版本，用 `nvidia-smi`）
+2. **PaddleCppAPITest**（fork 工作流，缺失则自动克隆并配置 `origin`/`upstream`）
+3. **pytorch**（upstream，缺失则浅克隆，仅供参考）
+4. **libtorch**（缺失则下载并解压；URL 按上一步检测结果选 CPU / cu126）
+5. **Paddle 仓库**（**不自动克隆**——缺失时提示用户手动 fork + 克隆 + 配置 upstream，并暂停等待）
+   - fix 流程通常已有 Paddle 仓库（因为是链接驱动、对已有代码做修复）；若缺失，提示并暂停等待用户配置
+6. **Paddle wheel**（缺失则提示用户安装；不自动 `pip install`，因为版本须与 Paddle build 输出一致）
+
+> 安全约定：克隆、下载、`pip install` 这类"本地、可逆"操作可在用户已知意图下直接执行；但**不要主动改用户已存在仓库的 `remote`**（remote 是用户工作流，意外覆盖会丢失工作）。
+
 ## 修复流程（循环执行）
 
 ### Step 1. 解析需求并定义本轮目标
@@ -199,6 +213,23 @@ bash test/result_cmp.sh ./build/
 - 回填 `## 兼容性统计` 数字
 - 检查链接编号、PR 编号是否在"备注"列被回填
 - 按 Step 5 校验 checklist 全项过审
+
+## Step 7. 提交 commit 并创建 PR
+
+闭环验证通过且文档已回填后，按以下流程提交。完整命令模板见 [`../add-compat-api/references/Step7.md`](../add-compat-api/references/Step7.md)（与 `add-compat-api` 共享同一份 references）。
+
+1. **从 fork 主分支 checkout 新分支**（`git fetch upstream && git checkout -B fix/<pr-or-issue-num>-<YYYYMMDD> upstream/develop`）
+2. **commit 改动**（commit message 首行使用 `[Cpp API Compatibility] <Compat 修复记录标题>`）
+3. **征求用户同意后 push 到 fork**（`git push origin <branch>`——这是发出去的动作，**push 前必须明确询问用户**）
+4. **征求用户同意后 `gh pr create` 到 upstream**（`--repo PaddlePaddle/Paddle --base develop`——同样需要用户确认；若本轮修复源自外部 PR/Actions/comment 链接，PR 描述里应**引用原链接**便于追溯）
+5. **如果还改了 PCAT 测试**：在 `$PCAT_ROOT` 上重复 1-4 步，`--repo PFCCLab/PaddleCppAPITest --base master`
+6. **等待 CI 完成并按结果分流**（`gh pr checks <PR_NUM> --watch`）
+   - CI 通过 → 等待 reviewer，本流程结束
+   - CI 失败 → 调查失败是否由本 PR 引起（命令与判断标准见 [`../add-compat-api/references/Step7.md`](../add-compat-api/references/Step7.md) 第 6 节）：
+     - **是** → 返回 [`Step 2`](#step-2-对照-pytorch-实现) 修复；同一分支上 commit + push（**push 仍需用户同意**），PR 自动更新，不发新 PR
+     - **否** → `gh pr comment <PR_NUM> --body "/re-run all-failed"` 重新触发 CI，回到本步骤继续 watch
+
+> 安全约定：**`git push` 与 `gh pr create` 每一次执行前必须征求用户同意**（不是"在整个 Step 7 开始时一次性确认"，而是这两条命令各确认一次）。修复后的 push 同样适用——同一分支不豁免。这与系统提示"对影响他人的动作要逐次确认"一致。
 
 ## 常见错误
 

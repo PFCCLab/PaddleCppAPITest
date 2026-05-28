@@ -31,6 +31,19 @@ TORCH_DIR=~/libtorch
 - `bash test/result_cmp.sh ./build/` 仍出现 `FAILED/SKIPPED/DIFF`
 - 需要新增 Device、Tensor、c10、ATen 等 compat 接口和测试
 
+## Step 0. 环境检测与自动配置
+
+进入主流程之前，按以下顺序检测并按需配置环境。完整命令模板与 fallback 决策见 [`references/Step0.md`](references/Step0.md)。
+
+1. **检测 NVIDIA GPU**（决定 libtorch CPU/CUDA 版本，用 `nvidia-smi`）
+2. **PaddleCppAPITest**（fork 工作流，缺失则自动克隆并配置 `origin`/`upstream`）
+3. **pytorch**（upstream，缺失则浅克隆，仅供参考）
+4. **libtorch**（缺失则下载并解压；URL 按上一步检测结果选 CPU / cu126）
+5. **Paddle 仓库**（**不自动克隆**——缺失时提示用户手动 fork + 克隆 + 配置 upstream，并暂停等待）
+6. **Paddle wheel**（缺失则提示用户安装；不自动 `pip install`，因为版本须与 Paddle build 输出一致）
+
+> 安全约定：克隆、下载、`pip install` 这类"本地、可逆"操作可在用户已知意图下直接执行；但**不要主动改用户已存在仓库的 `remote`**（remote 是用户工作流，意外覆盖会丢失工作）。
+
 ## 主流程（循环执行）
 
 ### Step 1. 确定本轮新增接口范围
@@ -41,7 +54,7 @@ TORCH_DIR=~/libtorch
 
 ### Step 2. 参考 PyTorch 实现并新增 Paddle compat 接口
 
-1. 在 `$PYTORCH_ROOT` 中查找目标接口实现（声明 + 实现）。
+1. 先在 `$TORCH_DIR` 中查找目标接口声明，然后在 `$PYTORCH_ROOT` 中查找目标接口实现。
    追踪方法参考 [references/Step2-1.md](references/Step2-1.md) 与
    [references/Step2-2.md](references/Step2-2.md)。
 2. 在 `$PADDLE_ROOT/paddle/phi/api/include/compat` 中新增接口
@@ -184,6 +197,22 @@ bash test/result_cmp.sh ./build/
 - 发布前按 compat-doc-authoring 的 Step 5 校验 checklist 全项过审
 
 只有下游确认"格式合规"后，本轮才算完成。
+
+## Step 7. 提交 commit 并创建 PR
+
+闭环验证通过且文档已回填后，按以下流程提交。完整命令模板见 [`references/Step7.md`](references/Step7.md)。
+
+1. **从 fork 主分支 checkout 新分支**（`git fetch upstream && git checkout -B add/<api>-<YYYYMMDD> upstream/develop`）
+2. **commit 改动**（commit message 首行使用 `[Cpp API Compatibility] <对齐迭代记录标题>`）
+3. **push 到 fork**（`git push origin <branch>`）
+4. **`gh pr create` 到 upstream**（`--repo PaddlePaddle/Paddle --base develop`）
+5. **同步 PCAT 测试改动**：本轮涉及 `test/` 或 `$PCAT_ROOT` 修改时，在 `$PCAT_ROOT` 上重复 1-4 步，`--repo PFCCLab/PaddleCppAPITest --base master`
+6. **等待 CI 完成并按结果分流**（`gh pr checks <PR_NUM> --watch`）
+   - CI 通过 → 等待 reviewer，本流程结束
+   - CI 失败 → 调查失败是否由本 PR 引起（命令与判断标准见 [`references/Step7.md`](references/Step7.md) 第 6 节）：
+     - **是** → 返回 [`Step 2`](#step-2-参考-pytorch-实现并新增-paddle-compat-接口) 修复；同一分支上 commit + push，PR 自动更新，不发新 PR
+     - **否** → `gh pr comment <PR_NUM> --body "/re-run all-failed"` 重新触发 CI，回到本步骤继续 watch
+
 
 ## 推荐执行节奏
 
