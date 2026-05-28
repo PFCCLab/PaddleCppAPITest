@@ -68,3 +68,10 @@ rg -n "<op>\(" "$PADDLE_ROOT/paddle/phi/api/include/compat/ATen/ops"
 - `ATen/ops`：先找 `paddle::experimental` 复用算子能力。
 - 基础设施（`Device`/`ScalarType`）：按 PyTorch 语义适配，宏定义完全对齐。
 - 底层张量（`Storage`/`DataPtr`）：默认不动，必须人工审核后再改。
+
+## 实现后检查
+
+新增或修改的 compat 头文件与测试文件完成后，必须确认以下两项，否则 CI/ctest 不会编译或运行该用例：
+
+1. **头文件自包含**：compat 头文件应直接 `#include` 其依赖的声明（如调用了 `at::cat`，就必须显式包含 `ATen/ops/cat.h`），不能依赖其他头文件的 include 顺序来隐式引入。
+2. **测试接入 CMake**：`test/cpp/compat/CMakeLists.txt` 是手动列举 `cc_test(...)` / `nv_test(...)` 目标的，每新增一个测试文件必须同步注册。详见 [Step2-3.md](Step2-3.md)。
