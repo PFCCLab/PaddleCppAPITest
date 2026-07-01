@@ -2,6 +2,53 @@
 
 ---
 
+## 2026-05-31 broadcast_to / expand strides 对齐修复记录
+
+### 输入链接
+- 链接类型：review comment
+- 原始链接：https://github.com/PaddlePaddle/Paddle/pull/79173
+- 关联 PR：#79173 [Execute Infrastructure] Add at::broadcast_to compat interface
+
+### 问题与根因
+
+| # | 问题接口 | 触发场景 | 根因说明 |
+|---|---------|---------|---------|
+| 1 | `at::broadcast_to` / `Tensor::broadcast_to` | 对齐测试移除 `.contiguous()` 后 result_cmp DIFFER | Paddle `expand` 对广播维度分配非零 strides（如 `{1,3}` expand 到 `{2,3}` 时 strides 为 `[3,1]`），而 PyTorch 对广播维度分配 stride 为 0（`[0,1]`） |
+| 2 | `at::expand` / `Tensor::expand` | 对齐测试移除 `.contiguous()` 后 result_cmp DIFFER | 同根因 #1：Paddle `expand` 的 strides 分配策略与 PyTorch 不同。`{1}` expand 到 `{2,3}` 时 Paddle strides 为 `[3,1]`，PyTorch 为 `[0,1]` |
+
+### 修复内容
+
+**Paddle compat 层改动文件：**
+- `paddle/phi/api/include/compat/ATen/ops/expand.h`
+  - 重构 `expand` 实现：不再调用 `paddle::experimental::expand()`（其返回 dense copy 且 strides 非零）
+  - 新增 `compute_expand_strides` 辅助函数，按 PyTorch 规则计算 expand 后的 strides（广播维度 stride = 0）
+  - 使用 `self.as_strided()` 创建 view，使结果与 PyTorch 一样共享原始存储且 strides 一致
+- `paddle/phi/api/include/compat/ATen/ops/broadcast_to.h`
+  - 无需改动，`broadcast_to` 已委托给 `self.expand()`，随 expand 修复自动对齐
+
+**Paddle 测试改动文件：**
+- `test/cpp/compat/ATen_expand_test.cc`
+  - 修复 `ExpandPreserveNonSingleton` 测试：原测试直接访问 `data_ptr()[3]` 假设 dense 布局；改为 strides-aware 访问
+
+**PaddleCppAPITest 改动文件：**
+- `test/ATen/ops/BroadcastToTest.cpp`
+  - 移除所有 `.contiguous()` 调用，改用 strides-aware 元素访问（`compute_offset_from_flat_index`）
+  - 在结果输出中增加 strides 字段，使 result_cmp 能检测布局差异
+- `test/ATen/ops/ExpandTest.cpp`
+  - 同上：移除 `.contiguous()`，改用 strides-aware 访问，增加 strides 字段
+
+### 验证结果
+
+- **result_cmp**：`paddle_BroadcastToTest` 与 `torch_BroadcastToTest` **MATCH** ✅
+- **result_cmp**：`paddle_ExpandTest` 与 `torch_ExpandTest` **MATCH** ✅
+- **ctest**：`ATen_expand_test` 全部通过 ✅
+
+### 风险与后续
+- 已知风险：无
+- 后续待办：无
+
+---
+
 ## 2026-05-07 兼容层接口修复（PR #78652）
 
 ### 输入链接
