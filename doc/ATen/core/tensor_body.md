@@ -75,7 +75,7 @@
 | `ccol_indices`              |       ⏳        |   ⏳    |  P2 |                                      |
 | `ceil`                      |       ⏳        |   ⏳    |  P2 |                                      |
 | `chalf`                     |       ⏳        |   ⏳    |  P2 |                                      |
-| `cholesky`                  |       ⏳        |   ⏳    |  P2 |                                      |
+| `cholesky`                  |       ✅        |   ✅    |  P2 |  Tensor 方法与 at::cholesky 均已实现    |
 | `cholesky_inverse`          |       ⏳        |   ⏳    |  P2 |                                      |
 | `cholesky_solve`            |       ⏳        |   ⏳    |  P2 |                                      |
 | `clamp`                     |       ✅        |   ✅    |  P2 |        已实现 Scalar 和 Tensor 版本        |
