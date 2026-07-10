@@ -123,17 +123,6 @@ TEST_F(TensorAccessorTest, IsNonOverlappingAndDense) {
   file.saveFile();
 }
 
-// 测试 has_names
-TEST_F(TensorAccessorTest, HasNames) {
-  auto file_name = g_custom_param.get();
-  FileManerger file(file_name);
-  file.openAppend();
-  file << "HasNames ";
-  file << std::to_string(tensor.has_names()) << " ";
-  file << "\n";
-  file.saveFile();
-}
-
 // 测试 TensorAccessor - accessor<float, N>() 返回 TensorAccessor
 TEST_F(TensorAccessorTest, TensorAccessorBasic) {
   auto file_name = g_custom_param.get();

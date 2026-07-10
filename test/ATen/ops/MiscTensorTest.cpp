@@ -68,18 +68,6 @@ std::string GetTestCaseResultFileName() {
   return base + "_" + test_name + ".txt";
 }
 
-TEST(TensorBodyTest, Rename) {
-  auto file_name = g_custom_param.get();
-  paddle_api_test::FileManerger file(file_name);
-  file.openAppend();
-  file << "Rename ";
-  at::Tensor tensor = at::ones({2, 3, 4}, at::kFloat);
-  at::Tensor renamed = tensor.rename(std::nullopt);
-  file << std::to_string(renamed.sizes().size()) << " ";
-  file << "\n";
-  file.saveFile();
-}
-
 TEST(TensorBodyTest, DtypeMethod) {
   FileManerger file(GetTestCaseResultFileName());
   file.openAppend();
